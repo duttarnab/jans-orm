@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
 import org.gluu.ldap.model.SimpleSessionState;
 import org.gluu.log.LoggingHelper;
-import org.gluu.persist.ldap.impl.LdapEntryManager;
+import io.jans.persist.ldap.impl.LdapEntryManager;
 
 /**
  * @author Yuriy Movchan Date: 01/25/2016

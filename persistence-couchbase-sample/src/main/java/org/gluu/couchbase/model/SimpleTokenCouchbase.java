@@ -1,7 +1,8 @@
 package org.gluu.couchbase.model;
 
+import io.jans.persist.annotation.*;
 import org.gluu.persist.annotation.*;
-import org.gluu.persist.model.base.CustomAttribute;
+import io.jans.persist.model.base.CustomAttribute;
 import org.gluu.util.StringHelper;
 
 import java.io.Serializable;

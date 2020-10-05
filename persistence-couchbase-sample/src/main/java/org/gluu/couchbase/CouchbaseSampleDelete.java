@@ -1,8 +1,8 @@
 package org.gluu.couchbase;
 
-import org.gluu.persist.couchbase.impl.CouchbaseEntryManager;
-import org.gluu.persist.couchbase.operation.impl.CouchbaseConnectionProvider;
-import org.gluu.persist.model.base.DeletableEntity;
+import io.jans.persist.couchbase.impl.CouchbaseEntryManager;
+import io.jans.persist.couchbase.operation.impl.CouchbaseConnectionProvider;
+import io.jans.persist.model.base.DeletableEntity;
 import org.gluu.search.filter.Filter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

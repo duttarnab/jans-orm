@@ -10,11 +10,11 @@ import org.gluu.ldap.model.SimpleGrant;
 import org.gluu.ldap.model.SimpleSession;
 import org.gluu.ldap.model.SimpleUser;
 import org.gluu.log.LoggingHelper;
-import org.gluu.persist.ldap.impl.LdapEntryManager;
-import org.gluu.persist.model.PagedResult;
-import org.gluu.persist.model.SearchScope;
-import org.gluu.persist.model.SortOrder;
-import org.gluu.persist.model.base.CustomAttribute;
+import io.jans.persist.ldap.impl.LdapEntryManager;
+import io.jans.persist.model.PagedResult;
+import io.jans.persist.model.SearchScope;
+import io.jans.persist.model.SortOrder;
+import io.jans.persist.model.base.CustomAttribute;
 import org.gluu.search.filter.Filter;
 
 /**

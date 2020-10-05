@@ -4,8 +4,8 @@ import org.apache.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
 import org.gluu.log.LoggingHelper;
-import org.gluu.persist.ldap.impl.LdapEntryManager;
-import org.gluu.persist.model.base.DeletableEntity;
+import io.jans.persist.ldap.impl.LdapEntryManager;
+import io.jans.persist.model.base.DeletableEntity;
 import org.gluu.search.filter.Filter;
 
 import java.util.Date;

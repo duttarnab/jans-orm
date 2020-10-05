@@ -4,9 +4,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.gluu.couchbase.model.SimpleUser;
-import org.gluu.persist.couchbase.impl.CouchbaseEntryManager;
-import org.gluu.persist.couchbase.operation.impl.CouchbaseConnectionProvider;
-import org.gluu.persist.model.base.CustomObjectAttribute;
+import io.jans.persist.couchbase.impl.CouchbaseEntryManager;
+import io.jans.persist.couchbase.operation.impl.CouchbaseConnectionProvider;
+import io.jans.persist.model.base.CustomObjectAttribute;
 import org.gluu.search.filter.Filter;
 import org.gluu.util.StringHelper;
 import org.slf4j.Logger;

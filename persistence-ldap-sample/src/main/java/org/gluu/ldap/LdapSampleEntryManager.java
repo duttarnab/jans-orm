@@ -3,8 +3,8 @@ package org.gluu.ldap;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
-import org.gluu.persist.ldap.impl.LdapEntryManager;
-import org.gluu.persist.ldap.impl.LdapEntryManagerFactory;
+import io.jans.persist.ldap.impl.LdapEntryManager;
+import io.jans.persist.ldap.impl.LdapEntryManagerFactory;
 
 /**
  * @author Yuriy Movchan

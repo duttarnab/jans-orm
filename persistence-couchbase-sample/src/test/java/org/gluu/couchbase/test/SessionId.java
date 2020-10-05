@@ -8,8 +8,9 @@ package org.gluu.couchbase.test;
 
 import com.couchbase.client.java.cluster.User;
 import com.google.common.collect.Maps;
+import io.jans.persist.annotation.*;
 import org.gluu.persist.annotation.*;
-import org.gluu.persist.model.base.Deletable;
+import io.jans.persist.model.base.Deletable;
 
 import javax.inject.Named;
 import javax.persistence.Transient;

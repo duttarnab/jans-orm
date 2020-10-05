@@ -3,8 +3,8 @@ package org.gluu.couchbase;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
-import org.gluu.persist.couchbase.impl.CouchbaseEntryManager;
-import org.gluu.persist.couchbase.impl.CouchbaseEntryManagerFactory;
+import io.jans.persist.couchbase.impl.CouchbaseEntryManager;
+import io.jans.persist.couchbase.impl.CouchbaseEntryManagerFactory;
 
 /**
  * @author Yuriy Movchan

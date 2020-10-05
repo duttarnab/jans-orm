@@ -10,13 +10,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.gluu.persist.model.base.CustomAttribute;
-import org.gluu.persist.annotation.AttributeName;
-import org.gluu.persist.annotation.AttributesList;
-import org.gluu.persist.annotation.CustomObjectClass;
-import org.gluu.persist.annotation.DN;
-import org.gluu.persist.annotation.DataEntry;
-import org.gluu.persist.annotation.ObjectClass;
+import io.jans.persist.model.base.CustomAttribute;
+import io.jans.persist.annotation.AttributeName;
+import io.jans.persist.annotation.AttributesList;
+import io.jans.persist.annotation.CustomObjectClass;
+import io.jans.persist.annotation.DN;
+import io.jans.persist.annotation.DataEntry;
+import io.jans.persist.annotation.ObjectClass;
 import org.gluu.util.StringHelper;
 
 /**

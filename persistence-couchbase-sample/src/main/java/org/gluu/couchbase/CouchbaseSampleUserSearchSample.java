@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
 import org.gluu.couchbase.model.SimpleUser;
 import org.gluu.log.LoggingHelper;
-import org.gluu.persist.couchbase.impl.CouchbaseEntryManager;
+import io.jans.persist.couchbase.impl.CouchbaseEntryManager;
 import org.gluu.search.filter.Filter;
 import org.gluu.util.StringHelper;
 
