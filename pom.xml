@@ -6,7 +6,7 @@
 	<artifactId>orm</artifactId>
 	<packaging>pom</packaging>
 	<version>5.0.0-SNAPSHOT</version>
-	<name>janssen-orm</name>
+	<name>orm</name>
 
 	<prerequisites>
 		<maven>${maven.min-version}</maven>
@@ -19,9 +19,9 @@
 	</properties>
 
 	<scm>
-		<url>https://github.com/JanssenProject/janssen-orm</url>
-		<connection>scm:git:git://github.com/JanssenProject/janssen-orm.git</connection>
-		<developerConnection>scm:git:git@github.com:JanssenProject/janssen-orm.git</developerConnection>
+		<url>https://github.com/JanssenProject/orm</url>
+		<connection>scm:git:git://github.com/JanssenProject/orm.git</connection>
+		<developerConnection>scm:git:git@github.com:JanssenProject/orm.git</developerConnection>
 	</scm>
 
 	<modules>
@@ -43,7 +43,7 @@
 		<dependencies>
 			<dependency>
 				<groupId>io.jans</groupId>
-				<artifactId>janssen-core-bom</artifactId>
+				<artifactId>core-bom</artifactId>
 				<version>5.0.0-SNAPSHOT</version>
 				<scope>import</scope>
 				<type>pom</type>
