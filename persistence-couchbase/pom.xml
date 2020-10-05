@@ -8,7 +8,7 @@
 	<name>persistence-couchbase</name>
 
 	<parent>
-		<groupId>org.janssen</groupId>
+		<groupId>io.jans</groupId>
 		<artifactId>janssen-orm</artifactId>
 		<version>5.0.0-SNAPSHOT</version>
 	</parent>
@@ -30,23 +30,23 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.janssen</groupId>
+			<groupId>io.jans</groupId>
 			<artifactId>persistence-util</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.janssen</groupId>
+			<groupId>io.jans</groupId>
 			<artifactId>persistence-filter</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.janssen</groupId>
+			<groupId>io.jans</groupId>
 			<artifactId>persistence-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.janssen</groupId>
+			<groupId>io.jans</groupId>
 			<artifactId>persistence-ldap</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.janssen</groupId>
+			<groupId>io.jans</groupId>
 			<artifactId>persistence-annotation</artifactId>
 		</dependency>
 
