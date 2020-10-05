@@ -29,7 +29,6 @@ import io.jans.persist.exception.operation.*;
 import io.jans.persist.model.BatchOperation;
 import io.jans.persist.operation.auth.PasswordEncryptionHelper;
 import io.jans.persist.couchbase.impl.CouchbaseBatchOperationWraper;
-import org.gluu.persist.exception.operation.*;
 import io.jans.persist.model.PagedResult;
 import io.jans.persist.model.SearchScope;
 import io.jans.util.ArrayHelper;
