@@ -13,7 +13,7 @@ import java.util.List;
 import io.jans.persist.annotation.AttributesList;
 import io.jans.persist.annotation.CustomObjectClass;
 import io.jans.persist.annotation.DataEntry;
-import org.gluu.util.StringHelper;
+import io.jans.util.StringHelper;
 
 /**
  * @author Yuriy Movchan Date: 04/08/2014

@@ -47,9 +47,9 @@ import io.jans.persist.model.AttributeData;
 import io.jans.persist.model.AttributeDataModification;
 import io.jans.persist.model.AttributeDataModification.AttributeModificationType;
 import io.jans.persist.model.SearchScope;
-import org.gluu.search.filter.Filter;
-import org.gluu.util.ArrayHelper;
-import org.gluu.util.StringHelper;
+import io.jans.search.filter.Filter;
+import io.jans.util.ArrayHelper;
+import io.jans.util.StringHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

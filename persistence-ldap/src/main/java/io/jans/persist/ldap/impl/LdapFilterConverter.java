@@ -3,9 +3,9 @@ package io.jans.persist.ldap.impl;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.jans.persist.exception.operation.SearchException;
-import org.gluu.search.filter.Filter;
-import org.gluu.search.filter.FilterType;
-import org.gluu.util.ArrayHelper;
+import io.jans.search.filter.Filter;
+import io.jans.search.filter.FilterType;
+import io.jans.util.ArrayHelper;
 
 /**
  * Filter to LDAP filter convert

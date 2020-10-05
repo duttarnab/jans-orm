@@ -15,9 +15,9 @@ import io.jans.persist.operation.PersistenceOperationService;
 import io.jans.persist.PersistenceEntryManager;
 import io.jans.persist.exception.operation.ConfigurationException;
 import io.jans.persist.service.BaseFactoryService;
-import org.gluu.util.PropertiesHelper;
-import org.gluu.util.StringHelper;
-import org.gluu.util.properties.FileConfiguration;
+import io.jans.util.PropertiesHelper;
+import io.jans.util.StringHelper;
+import io.jans.util.properties.FileConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

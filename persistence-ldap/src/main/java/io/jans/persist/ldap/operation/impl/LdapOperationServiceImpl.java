@@ -34,9 +34,9 @@ import io.jans.persist.model.PagedResult;
 import io.jans.persist.model.SortOrder;
 import io.jans.persist.operation.auth.PasswordEncryptionHelper;
 import io.jans.persist.operation.auth.PasswordEncryptionMethod;
-import org.gluu.util.ArrayHelper;
-import org.gluu.util.Pair;
-import org.gluu.util.StringHelper;
+import io.jans.util.ArrayHelper;
+import io.jans.util.Pair;
+import io.jans.util.StringHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

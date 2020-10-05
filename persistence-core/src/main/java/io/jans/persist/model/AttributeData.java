@@ -8,7 +8,7 @@ package io.jans.persist.model;
 
 import java.util.Arrays;
 
-import org.gluu.util.StringHelper;
+import io.jans.util.StringHelper;
 
 /**
  * LDAP Attribute

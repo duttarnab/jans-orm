@@ -32,8 +32,8 @@ import io.jans.persist.couchbase.impl.CouchbaseBatchOperationWraper;
 import org.gluu.persist.exception.operation.*;
 import io.jans.persist.model.PagedResult;
 import io.jans.persist.model.SearchScope;
-import org.gluu.util.ArrayHelper;
-import org.gluu.util.StringHelper;
+import io.jans.util.ArrayHelper;
+import io.jans.util.StringHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

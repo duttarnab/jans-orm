@@ -8,7 +8,7 @@ import io.jans.persist.reflect.util.ReflectHelper;
 import org.apache.commons.lang.StringUtils;
 import io.jans.persist.annotation.AttributeName;
 import io.jans.persist.annotation.AttributesList;
-import org.gluu.util.Util;
+import io.jans.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

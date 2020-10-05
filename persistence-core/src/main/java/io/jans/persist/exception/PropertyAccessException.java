@@ -6,7 +6,7 @@
 
 package io.jans.persist.exception;
 
-import org.gluu.util.StringHelper;
+import io.jans.util.StringHelper;
 
 /**
  * A problem occurred accessing a property of an instance of a persistent class

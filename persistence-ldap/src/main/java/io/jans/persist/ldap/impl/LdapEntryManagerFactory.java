@@ -11,7 +11,7 @@ import io.jans.persist.ldap.operation.impl.LdapAuthConnectionProvider;
 import io.jans.persist.ldap.operation.impl.LdapConnectionProvider;
 import io.jans.persist.ldap.operation.impl.LdapOperationServiceImpl;
 import io.jans.persist.service.BaseFactoryService;
-import org.gluu.util.PropertiesHelper;
+import io.jans.util.PropertiesHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

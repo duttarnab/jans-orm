@@ -24,7 +24,7 @@ import io.jans.persist.model.AttributeData;
 import io.jans.persist.model.PagedResult;
 import io.jans.persist.model.SearchScope;
 import io.jans.persist.model.SortOrder;
-import org.gluu.search.filter.Filter;
+import io.jans.search.filter.Filter;
 
 /**
  * Methods which Entry Manager must provide

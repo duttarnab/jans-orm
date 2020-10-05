@@ -1,7 +1,7 @@
 package io.jans.persist.model;
 
 import io.jans.persist.PersistenceEntryManagerFactory;
-import org.gluu.util.properties.FileConfiguration;
+import io.jans.util.properties.FileConfiguration;
 
 /**
  * Persistence configuration

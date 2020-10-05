@@ -17,7 +17,7 @@ import io.jans.persist.annotation.CustomObjectClass;
 import io.jans.persist.annotation.DN;
 import io.jans.persist.annotation.DataEntry;
 import io.jans.persist.annotation.ObjectClass;
-import org.gluu.util.StringHelper;
+import io.jans.util.StringHelper;
 
 /**
  * @author Javier Rojas Blum Date: 11.25.2011

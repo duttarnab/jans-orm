@@ -19,10 +19,10 @@ import io.jans.persist.exception.operation.SearchException;
 import io.jans.persist.ldap.impl.LdapFilterConverter;
 import io.jans.persist.reflect.property.PropertyAnnotation;
 import io.jans.persist.reflect.util.ReflectHelper;
-import org.gluu.search.filter.Filter;
-import org.gluu.search.filter.FilterType;
-import org.gluu.util.ArrayHelper;
-import org.gluu.util.StringHelper;
+import io.jans.search.filter.Filter;
+import io.jans.search.filter.FilterType;
+import io.jans.util.ArrayHelper;
+import io.jans.util.StringHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

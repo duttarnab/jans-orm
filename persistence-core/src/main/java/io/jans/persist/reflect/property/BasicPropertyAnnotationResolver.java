@@ -15,7 +15,7 @@ import java.util.Map;
 
 import io.jans.persist.exception.PropertyNotFoundException;
 import io.jans.persist.reflect.util.ReflectHelper;
-import org.gluu.util.StringHelper;
+import io.jans.util.StringHelper;
 
 /**
  * Defines a strategy for accessing class and propery annotations.

@@ -17,8 +17,8 @@ import io.jans.persist.couchbase.model.ResultCode;
 import io.jans.persist.exception.KeyConversionException;
 import io.jans.persist.exception.operation.ConfigurationException;
 import io.jans.persist.operation.auth.PasswordEncryptionMethod;
-import org.gluu.util.ArrayHelper;
-import org.gluu.util.StringHelper;
+import io.jans.util.ArrayHelper;
+import io.jans.util.StringHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

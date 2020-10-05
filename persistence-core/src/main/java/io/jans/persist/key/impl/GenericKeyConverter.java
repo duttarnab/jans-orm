@@ -9,7 +9,7 @@ package io.jans.persist.key.impl;
 
 import io.jans.persist.exception.KeyConversionException;
 import io.jans.persist.key.impl.model.ParsedKey;
-import org.gluu.util.StringHelper;
+import io.jans.util.StringHelper;
 
 /**
  * DN to Generic key convert
