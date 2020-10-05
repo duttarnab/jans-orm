@@ -1,7 +1,6 @@
 package io.jans.couchbase.model;
 
 import io.jans.persist.annotation.*;
-import org.gluu.persist.annotation.*;
 import io.jans.persist.model.base.CustomAttribute;
 import io.jans.util.StringHelper;
 
