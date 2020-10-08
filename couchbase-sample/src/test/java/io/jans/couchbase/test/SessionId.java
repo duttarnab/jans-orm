@@ -9,7 +9,6 @@ package io.jans.couchbase.test;
 import com.couchbase.client.java.cluster.User;
 import com.google.common.collect.Maps;
 import io.jans.orm.annotation.*;
-import io.jans.persist.annotation.*;
 import io.jans.orm.model.base.Deletable;
 
 import javax.inject.Named;
