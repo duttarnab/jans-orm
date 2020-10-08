@@ -2,8 +2,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>persistence-ldap-sample</artifactId>
-	<name>persistence-ldapSample</name>
+	<artifactId>jans-orm-ldap-sample</artifactId>
+	<name>jans-orm-ldapSample</name>
 	<description>Sample project to show persistence-ldap functionality</description>
 
 	<parent>
@@ -19,11 +19,11 @@
 	<dependencies>
 		<dependency>
 			<groupId>io.jans</groupId>
-			<artifactId>persistence-ldap</artifactId>
+			<artifactId>jans-orm-ldap</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.jans</groupId>
-			<artifactId>persistence-annotation</artifactId>
+			<artifactId>jans-orm-annotation</artifactId>
 		</dependency>
 	</dependencies>
 

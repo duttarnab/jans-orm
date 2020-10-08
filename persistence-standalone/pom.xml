@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>persistence-standalone</artifactId>
+	<artifactId>jans-orm-standalone</artifactId>
 	<name>Persistence standalone services</name>
 
 	<parent>
@@ -33,7 +33,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>io.jans</groupId>
-			<artifactId>persistence-cdi</artifactId>
+			<artifactId>jans-orm-cdi</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.reflections</groupId>

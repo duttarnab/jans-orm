@@ -2,9 +2,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>persistence-util</artifactId>
+	<artifactId>jans-orm-util</artifactId>
 	<packaging>jar</packaging>
-	<name>persistence-util</name>
+	<name>jans-orm-util</name>
 
 	<parent>
 		<groupId>io.jans</groupId>
@@ -15,13 +15,13 @@
 	<dependencies>
 		<dependency>
 			<groupId>io.jans</groupId>
-			<artifactId>persistence-annotation</artifactId>
+			<artifactId>jans-orm-annotation</artifactId>
 		</dependency>
 		
 		<!-- Validation -->
 		<dependency>
 			<groupId>javax.persistence</groupId>
-			<artifactId>persistence-api</artifactId>
+			<artifactId>jans-orm-api</artifactId>
 		</dependency>
 
 		<!-- Logging -->
