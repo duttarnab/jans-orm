@@ -4,7 +4,7 @@
  * Copyright (c) 2014, Gluu
  */
 
-package io.jans.persist.ldap.operation.impl;
+package io.jans.orm.ldap.operation.impl;
 
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;

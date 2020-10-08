@@ -1,4 +1,4 @@
-package io.jans.persist.ldap.impl;
+package io.jans.orm.ldap.impl;
 
 import java.util.HashMap;
 import java.util.Properties;
@@ -7,9 +7,9 @@ import javax.enterprise.context.ApplicationScoped;
 
 import io.jans.orm.PersistenceEntryManagerFactory;
 import io.jans.orm.exception.operation.ConfigurationException;
-import io.jans.persist.ldap.operation.impl.LdapAuthConnectionProvider;
-import io.jans.persist.ldap.operation.impl.LdapConnectionProvider;
-import io.jans.persist.ldap.operation.impl.LdapOperationServiceImpl;
+import io.jans.orm.ldap.operation.impl.LdapAuthConnectionProvider;
+import io.jans.orm.ldap.operation.impl.LdapConnectionProvider;
+import io.jans.orm.ldap.operation.impl.LdapOperationServiceImpl;
 import io.jans.orm.service.BaseFactoryService;
 import io.jans.util.PropertiesHelper;
 import org.slf4j.Logger;

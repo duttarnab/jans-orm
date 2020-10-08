@@ -3,8 +3,8 @@ package io.jans.ldap;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
-import io.jans.persist.ldap.impl.LdapEntryManager;
-import io.jans.persist.ldap.impl.LdapEntryManagerFactory;
+import io.jans.orm.ldap.impl.LdapEntryManager;
+import io.jans.orm.ldap.impl.LdapEntryManagerFactory;
 
 /**
  * @author Yuriy Movchan

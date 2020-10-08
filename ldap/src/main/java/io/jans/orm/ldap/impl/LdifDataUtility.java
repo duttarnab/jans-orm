@@ -4,7 +4,7 @@
  * Copyright (c) 2014, Gluu
  */
 
-package io.jans.persist.ldap.impl;
+package io.jans.orm.ldap.impl;
 
 import com.unboundid.ldap.sdk.*;
 import com.unboundid.ldif.LDIFChangeRecord;

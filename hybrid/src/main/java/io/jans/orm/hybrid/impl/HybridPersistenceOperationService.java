@@ -1,4 +1,4 @@
-package io.jans.persist.hybrid.impl;
+package io.jans.orm.hybrid.impl;
 
 import java.util.List;
 

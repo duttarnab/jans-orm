@@ -1,4 +1,4 @@
-package io.jans.persist.ldap.operation.watch;
+package io.jans.orm.ldap.operation.watch;
 
 import io.jans.orm.watch.DurationUtil;
 

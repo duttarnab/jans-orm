@@ -4,7 +4,7 @@
  * Copyright (c) 2014, Gluu
  */
 
-package io.jans.persist.hybrid.impl;
+package io.jans.orm.hybrid.impl;
 
 import java.io.Serializable;
 import java.util.Date;

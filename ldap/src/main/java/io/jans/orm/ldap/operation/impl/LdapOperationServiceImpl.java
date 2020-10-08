@@ -4,7 +4,7 @@
  * Copyright (c) 2014, Gluu
  */
 
-package io.jans.persist.ldap.operation.impl;
+package io.jans.orm.ldap.operation.impl;
 
 import java.io.Serializable;
 import java.time.Duration;
@@ -19,16 +19,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import io.jans.persist.ldap.exception.InvalidSimplePageControlException;
-import io.jans.persist.ldap.impl.LdapBatchOperationWraper;
-import io.jans.persist.ldap.operation.watch.OperationDurationUtil;
+import io.jans.orm.ldap.exception.InvalidSimplePageControlException;
+import io.jans.orm.ldap.impl.LdapBatchOperationWraper;
+import io.jans.orm.ldap.operation.watch.OperationDurationUtil;
 import org.apache.commons.lang.StringUtils;
 import io.jans.orm.exception.MappingException;
 import io.jans.orm.exception.extension.PersistenceExtension;
 import io.jans.orm.exception.operation.ConnectionException;
 import io.jans.orm.exception.operation.DuplicateEntryException;
 import io.jans.orm.exception.operation.SearchException;
-import io.jans.persist.ldap.operation.LdapOperationService;
+import io.jans.orm.ldap.operation.LdapOperationService;
 import io.jans.orm.model.BatchOperation;
 import io.jans.orm.model.PagedResult;
 import io.jans.orm.model.SortOrder;

@@ -2,7 +2,7 @@ package io.jans.orm.service;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 import io.jans.orm.PersistenceEntryManagerFactory;
-import io.jans.persist.ldap.impl.LdapEntryManagerFactory;
+import io.jans.orm.ldap.impl.LdapEntryManagerFactory;
 import io.jans.orm.model.PersistenceConfiguration;
 import io.jans.util.StringHelper;
 import io.jans.util.properties.FileConfiguration;

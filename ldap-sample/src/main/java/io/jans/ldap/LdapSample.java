@@ -10,7 +10,7 @@ import io.jans.ldap.model.SimpleGrant;
 import io.jans.ldap.model.SimpleSession;
 import io.jans.ldap.model.SimpleUser;
 import io.jans.log.LoggingHelper;
-import io.jans.persist.ldap.impl.LdapEntryManager;
+import io.jans.orm.ldap.impl.LdapEntryManager;
 import io.jans.orm.model.PagedResult;
 import io.jans.orm.model.SearchScope;
 import io.jans.orm.model.SortOrder;

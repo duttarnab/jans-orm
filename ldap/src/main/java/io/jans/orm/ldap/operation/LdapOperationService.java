@@ -1,13 +1,13 @@
-package io.jans.persist.ldap.operation;
+package io.jans.orm.ldap.operation;
 
 import java.util.Collection;
 import java.util.List;
 
-import io.jans.persist.ldap.impl.LdapBatchOperationWraper;
+import io.jans.orm.ldap.impl.LdapBatchOperationWraper;
 import io.jans.orm.exception.operation.ConnectionException;
 import io.jans.orm.exception.operation.DuplicateEntryException;
 import io.jans.orm.exception.operation.SearchException;
-import io.jans.persist.ldap.operation.impl.LdapConnectionProvider;
+import io.jans.orm.ldap.operation.impl.LdapConnectionProvider;
 import io.jans.orm.model.PagedResult;
 import io.jans.orm.model.SortOrder;
 import io.jans.orm.operation.PersistenceOperationService;

@@ -4,7 +4,7 @@
  * Copyright (c) 2014, Gluu
  */
 
-package io.jans.persist.ldap.impl;
+package io.jans.orm.ldap.impl;
 
 import java.io.Serializable;
 import java.text.ParseException;
@@ -32,8 +32,8 @@ import io.jans.orm.exception.operation.ConnectionException;
 import io.jans.orm.exception.operation.SearchException;
 import io.jans.orm.exception.operation.SearchScopeException;
 import io.jans.orm.impl.BaseEntryManager;
-import io.jans.persist.ldap.operation.LdapOperationService;
-import io.jans.persist.ldap.operation.impl.LdapOperationServiceImpl;
+import io.jans.orm.ldap.operation.LdapOperationService;
+import io.jans.orm.ldap.operation.impl.LdapOperationServiceImpl;
 import io.jans.orm.model.AttributeData;
 import io.jans.orm.model.AttributeDataModification;
 import io.jans.orm.model.AttributeDataModification.AttributeModificationType;

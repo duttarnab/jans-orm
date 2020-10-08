@@ -10,7 +10,7 @@ import org.apache.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
 import io.jans.log.LoggingHelper;
-import io.jans.persist.ldap.impl.LdapEntryManager;
+import io.jans.orm.ldap.impl.LdapEntryManager;
 
 /**
  * @author Yuriy Movchan Date: 01/25/2016

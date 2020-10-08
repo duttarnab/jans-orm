@@ -1,4 +1,4 @@
-package io.jans.persist.ldap.operation.impl;
+package io.jans.orm.ldap.operation.impl;
 
 import java.util.Properties;
 

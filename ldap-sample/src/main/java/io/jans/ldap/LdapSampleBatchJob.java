@@ -9,7 +9,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
 import io.jans.log.LoggingHelper;
 import io.jans.orm.exception.EntryPersistenceException;
-import io.jans.persist.ldap.impl.LdapEntryManager;
+import io.jans.orm.ldap.impl.LdapEntryManager;
 import io.jans.orm.model.BatchOperation;
 import io.jans.orm.model.DefaultBatchOperation;
 import io.jans.orm.model.ProcessBatchOperation;

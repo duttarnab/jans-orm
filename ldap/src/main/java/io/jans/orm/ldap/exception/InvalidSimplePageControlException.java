@@ -4,7 +4,7 @@
  * Copyright (c) 2014, Gluu
  */
 
-package io.jans.persist.ldap.exception;
+package io.jans.orm.ldap.exception;
 
 import io.jans.orm.exception.operation.PersistenceException;
 

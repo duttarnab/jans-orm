@@ -16,7 +16,7 @@ import io.jans.orm.annotation.AttributeEnum;
 import io.jans.orm.annotation.AttributeName;
 import io.jans.orm.couchbase.model.ConvertedExpression;
 import io.jans.orm.exception.operation.SearchException;
-import io.jans.persist.ldap.impl.LdapFilterConverter;
+import io.jans.orm.ldap.impl.LdapFilterConverter;
 import io.jans.orm.reflect.property.PropertyAnnotation;
 import io.jans.orm.reflect.util.ReflectHelper;
 import io.jans.search.filter.Filter;

@@ -1,4 +1,4 @@
-package io.jans.persist.ldap.impl;
+package io.jans.orm.ldap.impl;
 
 import com.unboundid.ldap.sdk.SearchResult;
 import com.unboundid.ldap.sdk.SearchResultEntry;
