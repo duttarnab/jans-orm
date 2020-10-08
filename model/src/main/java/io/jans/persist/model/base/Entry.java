@@ -8,7 +8,7 @@ package io.jans.persist.model.base;
 
 import java.io.Serializable;
 
-import io.jans.persist.annotation.DN;
+import io.jans.orm.annotation.DN;
 
 /**
  * Provides DN attribute

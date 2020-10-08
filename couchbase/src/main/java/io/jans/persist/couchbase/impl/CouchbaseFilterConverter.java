@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import io.jans.persist.annotation.AttributeEnum;
-import io.jans.persist.annotation.AttributeName;
+import io.jans.orm.annotation.AttributeEnum;
+import io.jans.orm.annotation.AttributeName;
 import io.jans.persist.couchbase.model.ConvertedExpression;
 import io.jans.persist.exception.operation.SearchException;
 import io.jans.persist.ldap.impl.LdapFilterConverter;

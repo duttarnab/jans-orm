@@ -40,7 +40,7 @@ import io.jans.persist.model.DefaultBatchOperation;
 import io.jans.persist.model.PagedResult;
 import io.jans.persist.reflect.property.PropertyAnnotation;
 import io.jans.persist.reflect.util.ReflectHelper;
-import io.jans.persist.annotation.AttributeName;
+import io.jans.orm.annotation.AttributeName;
 import io.jans.persist.model.AttributeDataModification;
 import io.jans.persist.model.AttributeDataModification.AttributeModificationType;
 import io.jans.persist.model.SearchScope;

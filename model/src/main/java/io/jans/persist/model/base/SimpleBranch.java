@@ -8,9 +8,9 @@ package io.jans.persist.model.base;
 
 import java.io.Serializable;
 
-import io.jans.persist.annotation.AttributeName;
-import io.jans.persist.annotation.DataEntry;
-import io.jans.persist.annotation.ObjectClass;
+import io.jans.orm.annotation.AttributeName;
+import io.jans.orm.annotation.DataEntry;
+import io.jans.orm.annotation.ObjectClass;
 
 /**
  * Model for simple branch

@@ -4,7 +4,7 @@
  * Copyright (c) 2014, Gluu
  */
 
-package io.jans.persist.annotation;
+package io.jans.orm.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -12,11 +12,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Persistance Object Class
+ * Mark that attribute contains password
  *
- * @author Yuriy Movchan Date: 10.21.2010
+ * @author Yuriy Movchan Date: 05/15/2018
  */
 @Target({ ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface CustomObjectClass {
+public @interface Password {
 }

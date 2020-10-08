@@ -8,7 +8,7 @@ package io.jans.persist.couchbase.model;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.jans.persist.annotation.AttributeEnum;
+import io.jans.orm.annotation.AttributeEnum;
 
 /**
  * Couchbase search return data type

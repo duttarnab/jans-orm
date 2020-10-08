@@ -10,9 +10,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.jans.persist.annotation.AttributesList;
-import io.jans.persist.annotation.CustomObjectClass;
-import io.jans.persist.annotation.DataEntry;
+import io.jans.orm.annotation.AttributesList;
+import io.jans.orm.annotation.CustomObjectClass;
+import io.jans.orm.annotation.DataEntry;
 import io.jans.util.StringHelper;
 
 /**

@@ -1,5 +1,6 @@
 package io.jans.ldap.model;
 
+import io.jans.orm.annotation.*;
 import io.jans.persist.annotation.*;
 import io.jans.persist.model.base.CustomAttribute;
 import io.jans.util.StringHelper;

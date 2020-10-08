@@ -8,7 +8,7 @@ package io.jans.persist.model.base;
 
 import java.io.Serializable;
 
-import io.jans.persist.annotation.DataEntry;
+import io.jans.orm.annotation.DataEntry;
 
 /**
  * Dummy entry

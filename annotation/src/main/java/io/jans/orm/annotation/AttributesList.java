@@ -4,7 +4,7 @@
  * Copyright (c) 2014, Gluu
  */
 
-package io.jans.persist.annotation;
+package io.jans.orm.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

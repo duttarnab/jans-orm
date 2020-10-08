@@ -4,7 +4,7 @@
  * Copyright (c) 2014, Gluu
  */
 
-package io.jans.persist.annotation;
+package io.jans.orm.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -12,22 +12,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Mark POJO class as Persistance entry
+ * Persistance Object Class
  *
  * @author Yuriy Movchan Date: 10.07.2010
  */
 @Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface DataEntry {
+public @interface ObjectClass {
 
-    /**
-     * (Optional) Specify that this entry contains LDAP configuration definition.
-     */
-    boolean configurationDefinition() default false;
+	@Deprecated // TODO: Remove it in 4.0
+    String[] values() default {};
 
-    /**
-     * (Optional) Specify sortBy properties to sort by default list of Entries.
-     */
-    String[] sortBy() default {};
-
+    String value() default "";
 }

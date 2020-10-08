@@ -10,12 +10,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.jans.persist.annotation.AttributeName;
-import io.jans.persist.annotation.AttributesList;
-import io.jans.persist.annotation.CustomObjectClass;
-import io.jans.persist.annotation.DN;
-import io.jans.persist.annotation.DataEntry;
-import io.jans.persist.annotation.ObjectClass;
+import io.jans.orm.annotation.AttributeName;
+import io.jans.orm.annotation.AttributesList;
+import io.jans.orm.annotation.CustomObjectClass;
+import io.jans.orm.annotation.DN;
+import io.jans.orm.annotation.DataEntry;
+import io.jans.orm.annotation.ObjectClass;
 import io.jans.persist.model.base.CustomAttribute;
 import io.jans.util.StringHelper;
 

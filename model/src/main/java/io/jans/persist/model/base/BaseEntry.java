@@ -6,7 +6,7 @@
 
 package io.jans.persist.model.base;
 
-import io.jans.persist.annotation.DN;
+import io.jans.orm.annotation.DN;
 
 import java.util.Collection;
 import java.util.List;

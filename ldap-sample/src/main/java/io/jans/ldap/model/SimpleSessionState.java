@@ -13,11 +13,11 @@ import java.util.Map;
 
 import javax.persistence.Transient;
 
-import io.jans.persist.annotation.AttributeName;
-import io.jans.persist.annotation.DN;
-import io.jans.persist.annotation.DataEntry;
-import io.jans.persist.annotation.JsonObject;
-import io.jans.persist.annotation.ObjectClass;
+import io.jans.orm.annotation.AttributeName;
+import io.jans.orm.annotation.DN;
+import io.jans.orm.annotation.DataEntry;
+import io.jans.orm.annotation.JsonObject;
+import io.jans.orm.annotation.ObjectClass;
 
 /**
  * @author Yuriy Zabrovarnyy
