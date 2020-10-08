@@ -1,4 +1,4 @@
-package io.jans.persist.couchbase.model;
+package io.jans.orm.couchbase.model;
 /*
  * oxCore is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
  *

@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import io.jans.couchbase.model.SimpleUser;
-import io.jans.persist.couchbase.impl.CouchbaseEntryManager;
-import io.jans.persist.couchbase.operation.impl.CouchbaseConnectionProvider;
+import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
+import io.jans.orm.couchbase.operation.impl.CouchbaseConnectionProvider;
 import io.jans.orm.model.base.CustomObjectAttribute;
 import io.jans.search.filter.Filter;
 import io.jans.util.StringHelper;

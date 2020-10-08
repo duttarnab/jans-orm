@@ -5,7 +5,7 @@
  * Copyright (c) 2018, Gluu
  */
 
-package io.jans.persist.couchbase.impl;
+package io.jans.orm.couchbase.impl;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -21,10 +21,10 @@ import java.util.function.Function;
 import javax.inject.Inject;
 
 import io.jans.orm.PersistenceEntryManager;
-import io.jans.persist.couchbase.model.ConvertedExpression;
-import io.jans.persist.couchbase.model.SearchReturnDataType;
-import io.jans.persist.couchbase.operation.CouchbaseOperationService;
-import io.jans.persist.couchbase.operation.impl.CouchbaseConnectionProvider;
+import io.jans.orm.couchbase.model.ConvertedExpression;
+import io.jans.orm.couchbase.model.SearchReturnDataType;
+import io.jans.orm.couchbase.operation.CouchbaseOperationService;
+import io.jans.orm.couchbase.operation.impl.CouchbaseConnectionProvider;
 import io.jans.orm.event.DeleteNotifier;
 import io.jans.orm.exception.AuthenticationException;
 import io.jans.orm.exception.EntryDeleteException;

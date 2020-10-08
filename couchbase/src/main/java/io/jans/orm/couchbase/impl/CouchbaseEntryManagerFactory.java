@@ -5,14 +5,14 @@
  * Copyright (c) 2018, Gluu
  */
 
-package io.jans.persist.couchbase.impl;
+package io.jans.orm.couchbase.impl;
 
 import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
+import io.jans.orm.couchbase.operation.impl.CouchbaseConnectionProvider;
+import io.jans.orm.couchbase.operation.impl.CouchbaseOperationServiceImpl;
 import io.jans.orm.service.BaseFactoryService;
 import io.jans.orm.PersistenceEntryManagerFactory;
-import io.jans.persist.couchbase.operation.impl.CouchbaseConnectionProvider;
-import io.jans.persist.couchbase.operation.impl.CouchbaseOperationServiceImpl;
 import io.jans.orm.exception.operation.ConfigurationException;
 import io.jans.util.PropertiesHelper;
 import io.jans.util.StringHelper;

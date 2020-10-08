@@ -5,7 +5,7 @@
  * Copyright (c) 2018, Gluu
  */
 
-package io.jans.persist.couchbase.impl;
+package io.jans.orm.couchbase.impl;
 
 import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.query.N1qlQueryRow;

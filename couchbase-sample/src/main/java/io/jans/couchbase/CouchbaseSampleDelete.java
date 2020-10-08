@@ -1,7 +1,7 @@
 package io.jans.couchbase;
 
-import io.jans.persist.couchbase.impl.CouchbaseEntryManager;
-import io.jans.persist.couchbase.operation.impl.CouchbaseConnectionProvider;
+import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
+import io.jans.orm.couchbase.operation.impl.CouchbaseConnectionProvider;
 import io.jans.orm.model.base.DeletableEntity;
 import io.jans.search.filter.Filter;
 import org.slf4j.Logger;

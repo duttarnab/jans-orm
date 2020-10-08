@@ -7,7 +7,7 @@ import org.apache.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
 import io.jans.log.LoggingHelper;
-import io.jans.persist.couchbase.impl.CouchbaseEntryManager;
+import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
 import io.jans.orm.exception.EntryPersistenceException;
 import io.jans.orm.model.BatchOperation;
 import io.jans.orm.model.DefaultBatchOperation;

@@ -4,7 +4,7 @@
  * Copyright (c) 2018, Gluu
  */
 
-package io.jans.persist.couchbase.operation.impl;
+package io.jans.orm.couchbase.operation.impl;
 
 import com.couchbase.client.core.CouchbaseException;
 import com.couchbase.client.core.message.kv.subdoc.multi.Mutation;
@@ -20,15 +20,15 @@ import com.couchbase.client.java.query.dsl.path.*;
 import com.couchbase.client.java.subdoc.DocumentFragment;
 import com.couchbase.client.java.subdoc.MutateInBuilder;
 import com.couchbase.client.java.subdoc.MutationSpec;
-import io.jans.persist.couchbase.model.BucketMapping;
-import io.jans.persist.couchbase.model.SearchReturnDataType;
-import io.jans.persist.couchbase.operation.CouchbaseOperationService;
-import io.jans.persist.couchbase.operation.watch.OperationDurationUtil;
+import io.jans.orm.couchbase.model.BucketMapping;
+import io.jans.orm.couchbase.model.SearchReturnDataType;
+import io.jans.orm.couchbase.operation.CouchbaseOperationService;
+import io.jans.orm.couchbase.operation.watch.OperationDurationUtil;
 import io.jans.orm.exception.extension.PersistenceExtension;
 import io.jans.orm.exception.operation.*;
 import io.jans.orm.model.BatchOperation;
 import io.jans.orm.operation.auth.PasswordEncryptionHelper;
-import io.jans.persist.couchbase.impl.CouchbaseBatchOperationWraper;
+import io.jans.orm.couchbase.impl.CouchbaseBatchOperationWraper;
 import io.jans.orm.model.PagedResult;
 import io.jans.orm.model.SearchScope;
 import io.jans.util.ArrayHelper;

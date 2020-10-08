@@ -5,7 +5,7 @@
  * Copyright (c) 2018, Gluu
  */
 
-package io.jans.persist.couchbase.impl;
+package io.jans.orm.couchbase.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.function.Function;
 
 import io.jans.orm.annotation.AttributeEnum;
 import io.jans.orm.annotation.AttributeName;
-import io.jans.persist.couchbase.model.ConvertedExpression;
+import io.jans.orm.couchbase.model.ConvertedExpression;
 import io.jans.orm.exception.operation.SearchException;
 import io.jans.persist.ldap.impl.LdapFilterConverter;
 import io.jans.orm.reflect.property.PropertyAnnotation;

@@ -5,15 +5,15 @@
  * Copyright (c) 2018, Gluu
  */
 
-package io.jans.persist.couchbase.operation;
+package io.jans.orm.couchbase.operation;
 
 import java.util.List;
 
 import io.jans.orm.exception.AuthenticationException;
 import io.jans.orm.operation.PersistenceOperationService;
-import io.jans.persist.couchbase.impl.CouchbaseBatchOperationWraper;
-import io.jans.persist.couchbase.model.SearchReturnDataType;
-import io.jans.persist.couchbase.operation.impl.CouchbaseConnectionProvider;
+import io.jans.orm.couchbase.impl.CouchbaseBatchOperationWraper;
+import io.jans.orm.couchbase.model.SearchReturnDataType;
+import io.jans.orm.couchbase.operation.impl.CouchbaseConnectionProvider;
 import io.jans.orm.exception.operation.DeleteException;
 import io.jans.orm.exception.operation.DuplicateEntryException;
 import io.jans.orm.exception.operation.EntryNotFoundException;

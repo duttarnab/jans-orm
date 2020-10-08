@@ -3,8 +3,8 @@ package io.jans.couchbase;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
-import io.jans.persist.couchbase.impl.CouchbaseEntryManager;
-import io.jans.persist.couchbase.impl.CouchbaseEntryManagerFactory;
+import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
+import io.jans.orm.couchbase.impl.CouchbaseEntryManagerFactory;
 
 /**
  * @author Yuriy Movchan

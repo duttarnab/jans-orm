@@ -1,4 +1,4 @@
-package io.jans.persist.couchbase.operation.watch;
+package io.jans.orm.couchbase.operation.watch;
 
 import io.jans.orm.watch.DurationUtil;
 

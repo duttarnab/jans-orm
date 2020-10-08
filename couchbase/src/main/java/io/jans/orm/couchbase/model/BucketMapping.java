@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2018, Gluu
  */
-package io.jans.persist.couchbase.model;
+package io.jans.orm.couchbase.model;
 
 import com.couchbase.client.java.Bucket;
 

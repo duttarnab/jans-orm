@@ -1,4 +1,4 @@
-package io.jans.persist.couchbase.model;
+package io.jans.orm.couchbase.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

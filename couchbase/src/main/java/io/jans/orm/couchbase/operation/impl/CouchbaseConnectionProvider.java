@@ -4,7 +4,7 @@
  * Copyright (c) 2018, Gluu
  */
 
-package io.jans.persist.couchbase.operation.impl;
+package io.jans.orm.couchbase.operation.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,8 +12,8 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import io.jans.persist.couchbase.model.BucketMapping;
-import io.jans.persist.couchbase.model.ResultCode;
+import io.jans.orm.couchbase.model.BucketMapping;
+import io.jans.orm.couchbase.model.ResultCode;
 import io.jans.orm.exception.KeyConversionException;
 import io.jans.orm.exception.operation.ConfigurationException;
 import io.jans.orm.operation.auth.PasswordEncryptionMethod;
