@@ -11,10 +11,10 @@ import io.jans.ldap.model.SimpleSession;
 import io.jans.ldap.model.SimpleUser;
 import io.jans.log.LoggingHelper;
 import io.jans.persist.ldap.impl.LdapEntryManager;
-import io.jans.persist.model.PagedResult;
-import io.jans.persist.model.SearchScope;
-import io.jans.persist.model.SortOrder;
-import io.jans.persist.model.base.CustomAttribute;
+import io.jans.orm.model.PagedResult;
+import io.jans.orm.model.SearchScope;
+import io.jans.orm.model.SortOrder;
+import io.jans.orm.model.base.CustomAttribute;
 import io.jans.search.filter.Filter;
 
 /**

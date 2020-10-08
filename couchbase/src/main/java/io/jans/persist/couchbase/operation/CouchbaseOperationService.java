@@ -9,18 +9,18 @@ package io.jans.persist.couchbase.operation;
 
 import java.util.List;
 
-import io.jans.persist.exception.AuthenticationException;
-import io.jans.persist.operation.PersistenceOperationService;
+import io.jans.orm.exception.AuthenticationException;
+import io.jans.orm.operation.PersistenceOperationService;
 import io.jans.persist.couchbase.impl.CouchbaseBatchOperationWraper;
 import io.jans.persist.couchbase.model.SearchReturnDataType;
 import io.jans.persist.couchbase.operation.impl.CouchbaseConnectionProvider;
-import io.jans.persist.exception.operation.DeleteException;
-import io.jans.persist.exception.operation.DuplicateEntryException;
-import io.jans.persist.exception.operation.EntryNotFoundException;
-import io.jans.persist.exception.operation.PersistenceException;
-import io.jans.persist.exception.operation.SearchException;
-import io.jans.persist.model.PagedResult;
-import io.jans.persist.model.SearchScope;
+import io.jans.orm.exception.operation.DeleteException;
+import io.jans.orm.exception.operation.DuplicateEntryException;
+import io.jans.orm.exception.operation.EntryNotFoundException;
+import io.jans.orm.exception.operation.PersistenceException;
+import io.jans.orm.exception.operation.SearchException;
+import io.jans.orm.model.PagedResult;
+import io.jans.orm.model.SearchScope;
 
 import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.query.consistency.ScanConsistency;

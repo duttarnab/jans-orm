@@ -2,7 +2,7 @@ package io.jans.couchbase.model;
 
 import io.jans.orm.annotation.*;
 import io.jans.persist.annotation.*;
-import io.jans.persist.model.base.CustomAttribute;
+import io.jans.orm.model.base.CustomAttribute;
 import io.jans.util.StringHelper;
 
 import java.io.Serializable;

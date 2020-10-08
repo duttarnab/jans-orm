@@ -2,8 +2,8 @@ package io.jans.persist.ldap.impl;
 
 import com.unboundid.ldap.sdk.SearchResult;
 import com.unboundid.ldap.sdk.SearchResultEntry;
-import io.jans.persist.model.BatchOperation;
-import io.jans.persist.reflect.property.PropertyAnnotation;
+import io.jans.orm.model.BatchOperation;
+import io.jans.orm.reflect.property.PropertyAnnotation;
 
 import java.util.ArrayList;
 import java.util.List;

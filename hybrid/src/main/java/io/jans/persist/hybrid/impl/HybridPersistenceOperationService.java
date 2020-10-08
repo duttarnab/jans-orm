@@ -2,8 +2,8 @@ package io.jans.persist.hybrid.impl;
 
 import java.util.List;
 
-import io.jans.persist.exception.extension.PersistenceExtension;
-import io.jans.persist.operation.PersistenceOperationService;
+import io.jans.orm.exception.extension.PersistenceExtension;
+import io.jans.orm.operation.PersistenceOperationService;
 
 /**
  * Hybrid Operation Service

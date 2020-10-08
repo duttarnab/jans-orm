@@ -7,14 +7,13 @@
 
 package io.jans.persist.couchbase.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import io.jans.persist.model.BatchOperation;
-import io.jans.persist.reflect.property.PropertyAnnotation;
-
 import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.query.N1qlQueryRow;
+import io.jans.orm.model.BatchOperation;
+import io.jans.orm.reflect.property.PropertyAnnotation;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Couchbase batch operation wrapper

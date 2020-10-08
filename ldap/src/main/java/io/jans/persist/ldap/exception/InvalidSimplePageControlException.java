@@ -6,7 +6,7 @@
 
 package io.jans.persist.ldap.exception;
 
-import io.jans.persist.exception.operation.PersistenceException;
+import io.jans.orm.exception.operation.PersistenceException;
 
 import com.unboundid.ldap.sdk.ResultCode;
 

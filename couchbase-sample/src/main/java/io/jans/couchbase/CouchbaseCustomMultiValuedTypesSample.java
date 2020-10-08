@@ -6,7 +6,7 @@ import java.util.List;
 import io.jans.couchbase.model.SimpleUser;
 import io.jans.persist.couchbase.impl.CouchbaseEntryManager;
 import io.jans.persist.couchbase.operation.impl.CouchbaseConnectionProvider;
-import io.jans.persist.model.base.CustomObjectAttribute;
+import io.jans.orm.model.base.CustomObjectAttribute;
 import io.jans.search.filter.Filter;
 import io.jans.util.StringHelper;
 import org.slf4j.Logger;

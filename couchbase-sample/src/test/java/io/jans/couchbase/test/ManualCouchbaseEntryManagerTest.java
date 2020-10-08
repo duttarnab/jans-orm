@@ -9,7 +9,7 @@ import com.couchbase.client.java.subdoc.SubdocOptionsBuilder;
 import io.jans.couchbase.model.SimpleClient;
 import io.jans.persist.couchbase.impl.CouchbaseEntryManager;
 import io.jans.persist.couchbase.impl.CouchbaseEntryManagerFactory;
-import io.jans.persist.exception.operation.SearchException;
+import io.jans.orm.exception.operation.SearchException;
 import io.jans.util.Pair;
 import org.testng.annotations.Test;
 

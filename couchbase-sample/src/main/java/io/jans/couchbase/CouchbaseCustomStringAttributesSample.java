@@ -7,7 +7,7 @@ import io.jans.couchbase.model.SimpleCustomStringUser;
 import io.jans.couchbase.model.UserRole;
 import io.jans.persist.couchbase.impl.CouchbaseEntryManager;
 import io.jans.persist.couchbase.operation.impl.CouchbaseConnectionProvider;
-import io.jans.persist.model.base.CustomAttribute;
+import io.jans.orm.model.base.CustomAttribute;
 import io.jans.search.filter.Filter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

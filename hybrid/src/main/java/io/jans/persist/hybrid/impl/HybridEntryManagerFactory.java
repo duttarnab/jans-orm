@@ -10,10 +10,10 @@ import java.util.Properties;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.jans.persist.PersistenceEntryManagerFactory;
-import io.jans.persist.operation.PersistenceOperationService;
-import io.jans.persist.PersistenceEntryManager;
-import io.jans.persist.exception.operation.ConfigurationException;
+import io.jans.orm.PersistenceEntryManagerFactory;
+import io.jans.orm.operation.PersistenceOperationService;
+import io.jans.orm.PersistenceEntryManager;
+import io.jans.orm.exception.operation.ConfigurationException;
 import io.jans.orm.service.BaseFactoryService;
 import io.jans.util.PropertiesHelper;
 import io.jans.util.StringHelper;

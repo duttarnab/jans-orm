@@ -1,6 +1,6 @@
 package io.jans.persist.couchbase.operation.watch;
 
-import io.jans.persist.watch.DurationUtil;
+import io.jans.orm.watch.DurationUtil;
 
 /**
  * Simple Couchbase operation duration calculator helper

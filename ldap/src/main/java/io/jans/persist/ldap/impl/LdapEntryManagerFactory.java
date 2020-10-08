@@ -5,8 +5,8 @@ import java.util.Properties;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.jans.persist.PersistenceEntryManagerFactory;
-import io.jans.persist.exception.operation.ConfigurationException;
+import io.jans.orm.PersistenceEntryManagerFactory;
+import io.jans.orm.exception.operation.ConfigurationException;
 import io.jans.persist.ldap.operation.impl.LdapAuthConnectionProvider;
 import io.jans.persist.ldap.operation.impl.LdapConnectionProvider;
 import io.jans.persist.ldap.operation.impl.LdapOperationServiceImpl;

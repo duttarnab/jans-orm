@@ -6,11 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import io.jans.persist.PersistenceEntryManagerFactory;
-import io.jans.persist.exception.PropertyNotFoundException;
-import io.jans.persist.exception.operation.ConfigurationException;
-import io.jans.persist.model.PersistenceConfiguration;
-import io.jans.persist.reflect.util.ReflectHelper;
+import io.jans.orm.PersistenceEntryManagerFactory;
+import io.jans.orm.exception.PropertyNotFoundException;
+import io.jans.orm.exception.operation.ConfigurationException;
+import io.jans.orm.model.PersistenceConfiguration;
+import io.jans.orm.reflect.util.ReflectHelper;
 
 /**
  * Factory which creates Persistence Entry Manager

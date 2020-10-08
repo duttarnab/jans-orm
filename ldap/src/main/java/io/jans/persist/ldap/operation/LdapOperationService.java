@@ -4,13 +4,13 @@ import java.util.Collection;
 import java.util.List;
 
 import io.jans.persist.ldap.impl.LdapBatchOperationWraper;
-import io.jans.persist.exception.operation.ConnectionException;
-import io.jans.persist.exception.operation.DuplicateEntryException;
-import io.jans.persist.exception.operation.SearchException;
+import io.jans.orm.exception.operation.ConnectionException;
+import io.jans.orm.exception.operation.DuplicateEntryException;
+import io.jans.orm.exception.operation.SearchException;
 import io.jans.persist.ldap.operation.impl.LdapConnectionProvider;
-import io.jans.persist.model.PagedResult;
-import io.jans.persist.model.SortOrder;
-import io.jans.persist.operation.PersistenceOperationService;
+import io.jans.orm.model.PagedResult;
+import io.jans.orm.model.SortOrder;
+import io.jans.orm.operation.PersistenceOperationService;
 
 import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.ldap.sdk.Control;

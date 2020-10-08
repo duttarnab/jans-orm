@@ -2,7 +2,7 @@ package io.jans.persist.ldap.impl;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.jans.persist.exception.operation.SearchException;
+import io.jans.orm.exception.operation.SearchException;
 import io.jans.search.filter.Filter;
 import io.jans.search.filter.FilterType;
 import io.jans.util.ArrayHelper;

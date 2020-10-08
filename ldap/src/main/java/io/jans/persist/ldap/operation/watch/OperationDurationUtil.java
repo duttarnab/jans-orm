@@ -1,6 +1,6 @@
 package io.jans.persist.ldap.operation.watch;
 
-import io.jans.persist.watch.DurationUtil;
+import io.jans.orm.watch.DurationUtil;
 
 /**
  * Simple LDAP operation duration calculator helper

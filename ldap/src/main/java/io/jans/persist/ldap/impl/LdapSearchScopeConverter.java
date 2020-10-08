@@ -1,7 +1,7 @@
 package io.jans.persist.ldap.impl;
 
-import io.jans.persist.exception.operation.SearchScopeException;
-import io.jans.persist.model.SearchScope;
+import io.jans.orm.exception.operation.SearchScopeException;
+import io.jans.orm.model.SearchScope;
 
 /**
  * Simple filter without dependency to specific persistence filter mechanism

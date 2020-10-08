@@ -1,7 +1,7 @@
 package io.jans.orm.service;
 
-import io.jans.persist.PersistenceEntryManagerFactory;
-import io.jans.persist.model.PersistenceConfiguration;
+import io.jans.orm.PersistenceEntryManagerFactory;
+import io.jans.orm.model.PersistenceConfiguration;
 import org.slf4j.Logger;
 
 public interface BaseFactoryService {

@@ -16,7 +16,7 @@ import io.jans.orm.annotation.CustomObjectClass;
 import io.jans.orm.annotation.DN;
 import io.jans.orm.annotation.DataEntry;
 import io.jans.orm.annotation.ObjectClass;
-import io.jans.persist.model.base.CustomObjectAttribute;
+import io.jans.orm.model.base.CustomObjectAttribute;
 import io.jans.util.StringHelper;
 
 /**
