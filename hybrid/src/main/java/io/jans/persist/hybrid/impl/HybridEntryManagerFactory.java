@@ -14,7 +14,7 @@ import io.jans.persist.PersistenceEntryManagerFactory;
 import io.jans.persist.operation.PersistenceOperationService;
 import io.jans.persist.PersistenceEntryManager;
 import io.jans.persist.exception.operation.ConfigurationException;
-import io.jans.persist.service.BaseFactoryService;
+import io.jans.orm.service.BaseFactoryService;
 import io.jans.util.PropertiesHelper;
 import io.jans.util.StringHelper;
 import io.jans.util.properties.FileConfiguration;

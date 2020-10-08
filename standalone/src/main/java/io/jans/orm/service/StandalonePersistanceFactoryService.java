@@ -1,4 +1,4 @@
-package io.jans.persist.service;
+package io.jans.orm.service;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;

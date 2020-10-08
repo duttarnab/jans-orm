@@ -9,7 +9,7 @@ package io.jans.persist;
 import java.util.Map;
 import java.util.Properties;
 
-import io.jans.persist.service.BaseFactoryService;
+import io.jans.orm.service.BaseFactoryService;
 
 /**
  * Factory which creates Persistence Entry Manager

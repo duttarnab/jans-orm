@@ -7,25 +7,23 @@
 
 package io.jans.persist.couchbase.impl;
 
-import java.util.HashMap;
-import java.util.Properties;
-
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-
+import com.couchbase.client.java.env.CouchbaseEnvironment;
+import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
+import io.jans.orm.service.BaseFactoryService;
 import io.jans.persist.PersistenceEntryManagerFactory;
 import io.jans.persist.couchbase.operation.impl.CouchbaseConnectionProvider;
 import io.jans.persist.couchbase.operation.impl.CouchbaseOperationServiceImpl;
 import io.jans.persist.exception.operation.ConfigurationException;
-import io.jans.persist.service.BaseFactoryService;
 import io.jans.util.PropertiesHelper;
 import io.jans.util.StringHelper;
 import io.jans.util.init.Initializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.couchbase.client.java.env.CouchbaseEnvironment;
-import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
+import javax.annotation.PostConstruct;
+import javax.enterprise.context.ApplicationScoped;
+import java.util.HashMap;
+import java.util.Properties;
 
 /**
  * Couchbase Entry Manager Factory

@@ -1,4 +1,4 @@
-package io.jans.persist.service;
+package io.jans.orm.service;
 
 import io.jans.persist.PersistenceEntryManagerFactory;
 import io.jans.persist.model.PersistenceConfiguration;
