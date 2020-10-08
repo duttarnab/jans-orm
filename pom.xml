@@ -25,18 +25,18 @@
 	</scm>
 
 	<modules>
-		<module>persistence-util</module>
-		<module>persistence-filter</module>
-		<module>persistence-model</module>
+		<module>util</module>
+		<module>filter</module>
+		<module>model</module>
 		<module>core</module>
-		<module>persistence-ldap</module>
+		<module>ldap</module>
 		<module>annotation</module>
-		<module>persistence-couchbase</module>
-		<module>persistence-hybrid</module>
+		<module>couchbase</module>
+		<module>hybrid</module>
 		<module>cdi</module>
-		<module>persistence-standalone</module>
-		<module>persistence-ldap-sample</module>
-		<module>persistence-couchbase-sample</module>
+		<module>standalone</module>
+		<module>ldap-sample</module>
+		<module>couchbase-sample</module>
 	</modules>
 
 	<dependencyManagement>
