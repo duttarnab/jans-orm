@@ -9,7 +9,7 @@ package io.jans.orm.impl;
 
 import io.jans.orm.exception.KeyConversionException;
 import io.jans.orm.impl.model.ParsedKey;
-import io.jans.util.StringHelper;
+import io.jans.orm.util.StringHelper;
 
 /**
  * DN to Generic key convert

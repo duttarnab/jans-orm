@@ -11,7 +11,7 @@ import io.jans.orm.ldap.operation.impl.LdapAuthConnectionProvider;
 import io.jans.orm.ldap.operation.impl.LdapConnectionProvider;
 import io.jans.orm.ldap.operation.impl.LdapOperationServiceImpl;
 import io.jans.orm.service.BaseFactoryService;
-import io.jans.util.PropertiesHelper;
+import io.jans.orm.util.PropertiesHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

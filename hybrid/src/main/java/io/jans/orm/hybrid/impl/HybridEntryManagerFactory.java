@@ -15,9 +15,9 @@ import io.jans.orm.operation.PersistenceOperationService;
 import io.jans.orm.PersistenceEntryManager;
 import io.jans.orm.exception.operation.ConfigurationException;
 import io.jans.orm.service.BaseFactoryService;
-import io.jans.util.PropertiesHelper;
-import io.jans.util.StringHelper;
-import io.jans.util.properties.FileConfiguration;
+import io.jans.orm.util.PropertiesHelper;
+import io.jans.orm.util.StringHelper;
+import io.jans.orm.util.properties.FileConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

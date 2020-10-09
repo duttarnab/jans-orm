@@ -1,7 +1,7 @@
 package io.jans.orm.model;
 
 import io.jans.orm.PersistenceEntryManagerFactory;
-import io.jans.util.properties.FileConfiguration;
+import io.jans.orm.util.properties.FileConfiguration;
 
 /**
  * Persistence configuration

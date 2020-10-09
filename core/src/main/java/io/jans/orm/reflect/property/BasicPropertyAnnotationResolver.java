@@ -15,7 +15,7 @@ import java.util.Map;
 
 import io.jans.orm.exception.PropertyNotFoundException;
 import io.jans.orm.reflect.util.ReflectHelper;
-import io.jans.util.StringHelper;
+import io.jans.orm.util.StringHelper;
 
 /**
  * Defines a strategy for accessing class and propery annotations.

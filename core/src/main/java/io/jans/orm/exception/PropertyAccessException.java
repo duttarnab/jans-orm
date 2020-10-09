@@ -6,7 +6,7 @@
 
 package io.jans.orm.exception;
 
-import io.jans.util.StringHelper;
+import io.jans.orm.util.StringHelper;
 
 /**
  * A problem occurred accessing a property of an instance of a persistent class

@@ -14,9 +14,9 @@ import io.jans.orm.couchbase.operation.impl.CouchbaseOperationServiceImpl;
 import io.jans.orm.service.BaseFactoryService;
 import io.jans.orm.PersistenceEntryManagerFactory;
 import io.jans.orm.exception.operation.ConfigurationException;
-import io.jans.util.PropertiesHelper;
-import io.jans.util.StringHelper;
-import io.jans.util.init.Initializable;
+import io.jans.orm.util.PropertiesHelper;
+import io.jans.orm.util.StringHelper;
+import io.jans.orm.util.init.Initializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

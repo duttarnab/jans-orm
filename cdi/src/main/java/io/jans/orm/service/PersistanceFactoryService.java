@@ -4,8 +4,8 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import io.jans.orm.PersistenceEntryManagerFactory;
 import io.jans.orm.ldap.impl.LdapEntryManagerFactory;
 import io.jans.orm.model.PersistenceConfiguration;
-import io.jans.util.StringHelper;
-import io.jans.util.properties.FileConfiguration;
+import io.jans.orm.util.StringHelper;
+import io.jans.orm.util.properties.FileConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -32,6 +32,8 @@ import io.jans.orm.reflect.property.Getter;
 import io.jans.orm.reflect.property.PropertyAnnotation;
 import io.jans.orm.reflect.property.Setter;
 import io.jans.orm.reflect.util.ReflectHelper;
+import io.jans.orm.search.filter.Filter;
+
 import org.apache.commons.codec.binary.Base64;
 import io.jans.orm.annotation.AttributeEnum;
 import io.jans.orm.annotation.AttributeName;
@@ -47,9 +49,8 @@ import io.jans.orm.model.AttributeData;
 import io.jans.orm.model.AttributeDataModification;
 import io.jans.orm.model.AttributeDataModification.AttributeModificationType;
 import io.jans.orm.model.SearchScope;
-import io.jans.search.filter.Filter;
-import io.jans.util.ArrayHelper;
-import io.jans.util.StringHelper;
+import io.jans.orm.util.ArrayHelper;
+import io.jans.orm.util.StringHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

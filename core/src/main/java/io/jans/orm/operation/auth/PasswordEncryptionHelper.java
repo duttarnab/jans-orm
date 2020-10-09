@@ -18,8 +18,8 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
 import org.apache.commons.codec.digest.Crypt;
-import io.jans.util.StringHelper;
-import io.jans.util.security.BCrypt;
+import io.jans.orm.util.StringHelper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

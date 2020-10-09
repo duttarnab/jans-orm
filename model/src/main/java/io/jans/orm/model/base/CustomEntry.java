@@ -13,7 +13,7 @@ import java.util.List;
 import io.jans.orm.annotation.AttributesList;
 import io.jans.orm.annotation.CustomObjectClass;
 import io.jans.orm.annotation.DataEntry;
-import io.jans.util.StringHelper;
+import io.jans.orm.util.StringHelper;
 
 /**
  * @author Yuriy Movchan Date: 04/08/2014

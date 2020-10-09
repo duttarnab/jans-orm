@@ -10,7 +10,7 @@ import com.unboundid.ldap.sdk.*;
 import com.unboundid.ldif.LDIFChangeRecord;
 import com.unboundid.ldif.LDIFException;
 import com.unboundid.ldif.LDIFReader;
-import io.jans.util.StringHelper;
+import io.jans.orm.util.StringHelper;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

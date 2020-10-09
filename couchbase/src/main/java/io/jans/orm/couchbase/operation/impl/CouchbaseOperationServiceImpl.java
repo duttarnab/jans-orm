@@ -31,8 +31,8 @@ import io.jans.orm.operation.auth.PasswordEncryptionHelper;
 import io.jans.orm.couchbase.impl.CouchbaseBatchOperationWraper;
 import io.jans.orm.model.PagedResult;
 import io.jans.orm.model.SearchScope;
-import io.jans.util.ArrayHelper;
-import io.jans.util.StringHelper;
+import io.jans.orm.util.ArrayHelper;
+import io.jans.orm.util.StringHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

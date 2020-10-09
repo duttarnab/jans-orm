@@ -3,9 +3,9 @@ package io.jans.orm.ldap.impl;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.jans.orm.exception.operation.SearchException;
-import io.jans.search.filter.Filter;
-import io.jans.search.filter.FilterType;
-import io.jans.util.ArrayHelper;
+import io.jans.orm.search.filter.Filter;
+import io.jans.orm.search.filter.FilterType;
+import io.jans.orm.util.ArrayHelper;
 
 /**
  * Filter to LDAP filter convert

@@ -17,7 +17,7 @@ import io.jans.orm.annotation.CustomObjectClass;
 import io.jans.orm.annotation.DN;
 import io.jans.orm.annotation.DataEntry;
 import io.jans.orm.annotation.ObjectClass;
-import io.jans.util.StringHelper;
+import io.jans.orm.util.StringHelper;
 
 /**
  * @author Javier Rojas Blum Date: 11.25.2011

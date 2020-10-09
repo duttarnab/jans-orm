@@ -19,12 +19,12 @@ import javax.persistence.Query;
 import io.jans.orm.exception.extension.PersistenceExtension;
 import io.jans.orm.model.BatchOperation;
 import io.jans.orm.operation.PersistenceOperationService;
+import io.jans.orm.search.filter.Filter;
 import io.jans.orm.event.DeleteNotifier;
 import io.jans.orm.model.AttributeData;
 import io.jans.orm.model.PagedResult;
 import io.jans.orm.model.SearchScope;
 import io.jans.orm.model.SortOrder;
-import io.jans.search.filter.Filter;
 
 /**
  * Methods which Entry Manager must provide

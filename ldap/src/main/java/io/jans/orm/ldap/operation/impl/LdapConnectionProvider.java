@@ -13,8 +13,8 @@ import java.util.Properties;
 
 import io.jans.orm.exception.operation.ConfigurationException;
 import io.jans.orm.operation.auth.PasswordEncryptionMethod;
-import io.jans.util.ArrayHelper;
-import io.jans.util.StringHelper;
+import io.jans.orm.util.ArrayHelper;
+import io.jans.orm.util.StringHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

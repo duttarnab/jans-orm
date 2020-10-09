@@ -8,7 +8,7 @@ package io.jans.orm.model;
 
 import java.util.Arrays;
 
-import io.jans.util.StringHelper;
+import io.jans.orm.util.StringHelper;
 
 /**
  * LDAP Attribute
