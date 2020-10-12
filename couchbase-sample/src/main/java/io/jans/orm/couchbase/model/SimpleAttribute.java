@@ -4,7 +4,7 @@
  * Copyright (c) 2014, Gluu
  */
 
-package io.jans.couchbase.orm.model;
+package io.jans.orm.couchbase.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -20,13 +20,13 @@ import io.jans.orm.util.StringHelper;
 
 /**
  * @author Yuriy Movchan
- * Date: 02/08/2018
+ * Date: 12/30/2016
  */
 @DataEntry
-@ObjectClass(value = "oxAuthClient")
-public class SimpleClient implements Serializable {
+@ObjectClass(value = "gluuAttribute")
+public class SimpleAttribute implements Serializable {
 
-    private static final long serialVersionUID = -2534191420188575733L;
+    private static final long serialVersionUID = -1634191420188575733L;
 
     @DN
     private String dn;

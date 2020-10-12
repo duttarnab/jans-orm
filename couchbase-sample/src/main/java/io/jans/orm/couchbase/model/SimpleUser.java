@@ -4,7 +4,7 @@
  * Copyright (c) 2014, Gluu
  */
 
-package io.jans.couchbase.orm.model;
+package io.jans.orm.couchbase.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;

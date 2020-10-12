@@ -1,4 +1,4 @@
-package io.jans.couchbase.orm;
+package io.jans.orm.couchbase;
 
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
@@ -9,9 +9,8 @@ import org.apache.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
 
-import io.jans.couchbase.orm.model.SimpleSessionState;
-import io.jans.orm.log.LoggingHelper;
 import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
+import io.jans.orm.couchbase.model.SimpleSessionState;
 
 /**
  * @author Yuriy Movchan Date: 01/25/2016

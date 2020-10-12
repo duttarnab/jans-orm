@@ -1,38 +1,27 @@
-/*
- * oxCore is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
- *
- * Copyright (c) 2014, Gluu
- */
+package io.jans.orm.couchbase.model;
 
-package io.jans.couchbase.orm.model;
+import io.jans.orm.annotation.*;
+import io.jans.orm.model.base.CustomAttribute;
+import io.jans.orm.util.StringHelper;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.jans.orm.model.base.CustomAttribute;
-import io.jans.orm.annotation.AttributesList;
-import io.jans.orm.annotation.CustomObjectClass;
-import io.jans.orm.annotation.DN;
-import io.jans.orm.annotation.DataEntry;
-import io.jans.orm.annotation.ObjectClass;
-import io.jans.orm.util.StringHelper;
-
 /**
- * @author Yuriy Movchan
- * Date: 12/30/2016
+ * Created by eugeniuparvan on 1/12/17.
  */
 @DataEntry
-@ObjectClass(value = "oxAuthGrant")
-public class SimpleGrant implements Serializable {
+@ObjectClass(value = "token")
+public class SimpleTokenCouchbase implements Serializable {
 
-    private static final long serialVersionUID = -1234191420188575733L;
-
-    @DN
-    private String dn;
+    private static final long serialVersionUID = 6726419630327625172L;
 
     @AttributesList(name = "name", value = "values", sortByName = true)
     private List<CustomAttribute> customAttributes = new ArrayList<CustomAttribute>();
+
+    @DN
+    private String dn;
 
     @CustomObjectClass
     private String[] customObjectClasses;

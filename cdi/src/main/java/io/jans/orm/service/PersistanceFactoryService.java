@@ -1,20 +1,22 @@
 package io.jans.orm.service;
 
+import java.io.File;
+import java.util.Iterator;
+import java.util.Map;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Instance;
+import javax.inject.Inject;
+
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.jans.orm.PersistenceEntryManagerFactory;
 import io.jans.orm.ldap.impl.LdapEntryManagerFactory;
 import io.jans.orm.model.PersistenceConfiguration;
 import io.jans.orm.util.StringHelper;
 import io.jans.orm.util.properties.FileConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Iterator;
-import java.util.Map;
 
 /**
  * Factory which creates Persistence Entry Manager
@@ -40,7 +42,7 @@ public class PersistanceFactoryService implements BaseFactoryService {
 
 	public static final String BASE_DIR;
 	public static final String DIR = BASE_DIR + File.separator + "conf" + File.separator;
-	private static final String GLUU_FILE_PATH = DIR + "gluu.properties";
+	private static final String GLUU_FILE_PATH = DIR + "jans.properties";
 
 	@Inject
 	private Logger log;
@@ -57,7 +59,7 @@ public class PersistanceFactoryService implements BaseFactoryService {
 	public PersistenceConfiguration loadPersistenceConfiguration(String applicationPropertiesFile) {
 		PersistenceConfiguration currentPersistenceConfiguration = null;
 
-		String gluuFileName = determineGluuConfigurationFileName(applicationPropertiesFile);
+		String gluuFileName = determineJansConfigurationFileName(applicationPropertiesFile);
 		if (gluuFileName != null) {
 			currentPersistenceConfiguration = createPersistenceConfiguration(gluuFileName);
 		}
@@ -178,7 +180,7 @@ public class PersistanceFactoryService implements BaseFactoryService {
         }
 	}
 
-	private String determineGluuConfigurationFileName(String applicationPropertiesFile) {
+	private String determineJansConfigurationFileName(String applicationPropertiesFile) {
 		String applicationFilePath = DIR + applicationPropertiesFile;
 		File applicationFile = new File(applicationFilePath);
 		if (applicationFile.exists()) {

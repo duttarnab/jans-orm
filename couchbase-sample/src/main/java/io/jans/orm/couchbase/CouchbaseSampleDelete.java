@@ -1,4 +1,4 @@
-package io.jans.couchbase.orm;
+package io.jans.orm.couchbase;
 
 import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
 import io.jans.orm.couchbase.operation.impl.CouchbaseConnectionProvider;

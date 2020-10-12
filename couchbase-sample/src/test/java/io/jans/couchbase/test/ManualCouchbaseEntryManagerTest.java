@@ -6,9 +6,9 @@ import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.subdoc.DocumentFragment;
 import com.couchbase.client.java.subdoc.SubdocOptionsBuilder;
 
-import io.jans.couchbase.orm.model.SimpleClient;
 import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
 import io.jans.orm.couchbase.impl.CouchbaseEntryManagerFactory;
+import io.jans.orm.couchbase.model.SimpleClient;
 import io.jans.orm.exception.operation.SearchException;
 import io.jans.orm.util.Pair;
 import org.testng.annotations.Test;

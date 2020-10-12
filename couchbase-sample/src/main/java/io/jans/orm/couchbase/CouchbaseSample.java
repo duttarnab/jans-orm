@@ -1,13 +1,13 @@
-package io.jans.couchbase.orm;
+package io.jans.orm.couchbase;
 
 import java.util.Arrays;
 import java.util.List;
 
-import io.jans.couchbase.orm.model.SimpleAttribute;
-import io.jans.couchbase.orm.model.SimpleGrant;
-import io.jans.couchbase.orm.model.SimpleSession;
-import io.jans.couchbase.orm.model.SimpleUser;
 import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
+import io.jans.orm.couchbase.model.SimpleAttribute;
+import io.jans.orm.couchbase.model.SimpleGrant;
+import io.jans.orm.couchbase.model.SimpleSession;
+import io.jans.orm.couchbase.model.SimpleUser;
 import io.jans.orm.couchbase.operation.impl.CouchbaseConnectionProvider;
 import io.jans.orm.model.PagedResult;
 import io.jans.orm.model.SearchScope;

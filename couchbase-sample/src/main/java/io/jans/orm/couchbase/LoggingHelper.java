@@ -1,4 +1,4 @@
-package io.jans.orm.log;
+package io.jans.orm.couchbase;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;

@@ -1,10 +1,10 @@
-package io.jans.couchbase.orm;
+package io.jans.orm.couchbase;
 
 import java.util.Arrays;
 import java.util.List;
 
-import io.jans.couchbase.orm.model.SimpleUser;
 import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
+import io.jans.orm.couchbase.model.SimpleUser;
 import io.jans.orm.couchbase.operation.impl.CouchbaseConnectionProvider;
 import io.jans.orm.model.base.CustomObjectAttribute;
 import io.jans.orm.search.filter.Filter;

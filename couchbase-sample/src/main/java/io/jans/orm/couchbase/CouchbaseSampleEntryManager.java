@@ -1,4 +1,4 @@
-package io.jans.couchbase.orm;
+package io.jans.orm.couchbase;
 
 import java.util.Properties;
 

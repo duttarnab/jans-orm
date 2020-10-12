@@ -20,8 +20,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ObjectClass {
 
-	@Deprecated // TODO: Remove it in 4.0
-    String[] values() default {};
-
     String value() default "";
 }

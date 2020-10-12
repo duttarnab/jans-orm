@@ -8,7 +8,6 @@ import java.util.concurrent.ThreadFactory;
 import org.apache.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
-import io.jans.orm.log.LoggingHelper;
 import io.jans.orm.ldap.impl.LdapEntryManager;
 import io.jans.orm.ldap.model.SimpleSessionState;
 
