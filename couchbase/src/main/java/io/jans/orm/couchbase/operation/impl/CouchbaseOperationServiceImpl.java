@@ -1,7 +1,7 @@
 /*
- * oxCore is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
  *
- * Copyright (c) 2018, Gluu
+ * Copyright (c) 2020, Janssen Project
  */
 
 package io.jans.orm.couchbase.operation.impl;
@@ -514,7 +514,7 @@ public class CouchbaseOperationServiceImpl implements CouchbaseOperationService 
 
         String[] select = attributes;
         if (select == null) {
-            select = new String[] { "gluu_doc.*", CouchbaseOperationService.DN };
+            select = new String[] { "jans_doc.*", CouchbaseOperationService.DN };
         } else if ((select.length == 1) && StringHelper.isEmpty(select[0])) {
         	// Compatibility with Couchbase persistence layer when application pass filter new String[] { "" }
             select = new String[] { CouchbaseOperationService.DN };
@@ -524,7 +524,7 @@ public class CouchbaseOperationServiceImpl implements CouchbaseOperationService 
                 select = ArrayHelper.arrayMerge(select, new String[] { CouchbaseOperationService.DN });
             }
         }
-        GroupByPath selectQuery = Select.select(select).from(Expression.i(bucketMapping.getBucketName())).as("gluu_doc").where(finalExpression);
+        GroupByPath selectQuery = Select.select(select).from(Expression.i(bucketMapping.getBucketName())).as("jans_doc").where(finalExpression);
 
         LimitPath baseQuery = selectQuery;
         if (orderBy != null) {

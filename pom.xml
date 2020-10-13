@@ -20,20 +20,6 @@
 		<janssen.version>5.0.0-SNAPSHOT</janssen.version>
 	</properties>
 
-	<repositories>
-		<repository>
-			<id>central</id>
-			<name>Maven Repository Switchboard</name>
-			<layout>default</layout>
-			<url>https://repo1.maven.org/maven2</url>
-		</repository>
-		<repository>
-			<id>jans</id>
-			<name>Janssen repository</name>
-			<url>https://maven.jans.io/maven</url>
-		</repository>
-	</repositories>
-
 	<scm>
 		<url>https://github.com/JanssenProject/jans-orm</url>
 		<connection>scm:git:git://github.com/JanssenProject/jans-orm.git</connection>

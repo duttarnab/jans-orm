@@ -1,8 +1,8 @@
 /*
  /*
- * oxCore is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
  *
- * Copyright (c) 2018, Gluu
+ * Copyright (c) 2020, Janssen Project
  */
 
 package io.jans.orm.impl;
@@ -40,7 +40,7 @@ public class GenericKeyConverter {
             }
             String value = token.substring(pos + 1, token.length());
             if (StringHelper.equalsIgnoreCase(name, "o")) {
-                if (!StringHelper.equalsIgnoreCase(value, "gluu")) {
+                if (!StringHelper.equalsIgnoreCase(value, "jans")) {
                     orgInum = value;
                 }
                 continue;

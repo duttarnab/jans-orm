@@ -1,3 +1,9 @@
+/*
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2020, Janssen Project
+ */
+
 package io.jans.orm.couchbase;
 
 import java.util.List;
@@ -62,7 +68,7 @@ public final class CouchbaseSampleUserSearchSample {
 	                        try {
 		                        Filter filter = Filter.createEqualityFilter(Filter.createLowercaseFilter("uid"), StringHelper.toLowerCase(uid));
 //		                        Filter filter = Filter.createEqualityFilter("uid", uid);
-		                        List<SimpleUser> foundUsers = couchbaseEntryManager.findEntries("ou=people,o=gluu", SimpleUser.class, filter);
+		                        List<SimpleUser> foundUsers = couchbaseEntryManager.findEntries("ou=people,o=jans", SimpleUser.class, filter);
 		                        if (foundUsers.size() > 0) {
 		                        	successResult.incrementAndGet();
 		                        } else {

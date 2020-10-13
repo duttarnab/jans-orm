@@ -1,3 +1,9 @@
+/*
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2020, Janssen Project
+ */
+
 package io.jans.orm.hybrid.impl;
 
 import java.io.File;
@@ -29,8 +35,8 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class HybridEntryManagerFactory implements PersistenceEntryManagerFactory {
 	static {
-		if (System.getProperty("gluu.base") != null) {
-			BASE_DIR = System.getProperty("gluu.base");
+		if (System.getProperty("jans.base") != null) {
+			BASE_DIR = System.getProperty("jans.base");
 		} else if ((System.getProperty("catalina.base") != null) && (System.getProperty("catalina.base.ignore") == null)) {
 			BASE_DIR = System.getProperty("catalina.base");
 		} else if (System.getProperty("catalina.home") != null) {
@@ -46,7 +52,7 @@ public class HybridEntryManagerFactory implements PersistenceEntryManagerFactory
 	public static final String DIR = BASE_DIR + File.separator + "conf" + File.separator;
 
     public static final String PERSISTENCE_TYPE = "hybrid";
-    public static final String PROPERTIES_FILE = "gluu-hybrid.properties";
+    public static final String PROPERTIES_FILE = "jans-hybrid.properties";
 
 	private static final Logger LOG = LoggerFactory.getLogger(HybridEntryManagerFactory.class);
 	

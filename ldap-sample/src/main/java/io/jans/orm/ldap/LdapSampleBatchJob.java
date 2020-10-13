@@ -1,3 +1,9 @@
+/*
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2020, Janssen Project
+ */
+
 package io.jans.orm.ldap;
 
 import com.unboundid.util.StaticUtils;
@@ -66,7 +72,7 @@ public final class LdapSampleBatchJob {
         };
 
         final Filter filter1 = Filter.createPresenceFilter("exp");
-        ldapEntryManager.findEntries("o=gluu", SimpleTokenLdap.class, filter1, SearchScope.SUB, new String[] {"exp"},
+        ldapEntryManager.findEntries("o=jans", SimpleTokenLdap.class, filter1, SearchScope.SUB, new String[] {"exp"},
                 tokenLdapBatchOperation, 0, 0, 100);
 
         BatchOperation<SimpleSession> sessionBatchOperation = new ProcessBatchOperation<SimpleSession>() {
@@ -91,7 +97,7 @@ public final class LdapSampleBatchJob {
         };
 
         final Filter filter2 = Filter.createPresenceFilter("oxLastAccessTime");
-        ldapEntryManager.findEntries("o=gluu", SimpleSession.class, filter2, SearchScope.SUB, new String[] {"oxLastAccessTime"},
+        ldapEntryManager.findEntries("o=jans", SimpleSession.class, filter2, SearchScope.SUB, new String[] {"oxLastAccessTime"},
                 sessionBatchOperation, 0, 0, 100);
 
         BatchOperation<SimpleClient> clientBatchOperation = new ProcessBatchOperation<SimpleClient>() {
@@ -108,7 +114,7 @@ public final class LdapSampleBatchJob {
         };
 
         final Filter filter3 = Filter.createPresenceFilter("exp");
-        List<SimpleClient> result3 = ldapEntryManager.findEntries("o=gluu", SimpleClient.class, filter3, SearchScope.SUB,
+        List<SimpleClient> result3 = ldapEntryManager.findEntries("o=jans", SimpleClient.class, filter3, SearchScope.SUB,
                 new String[] {"exp"}, clientBatchOperation, 0, 0, 1000);
 
         LOG.info("Result count (without collecting results): " + result3.size());
@@ -127,7 +133,7 @@ public final class LdapSampleBatchJob {
         };
 
         final Filter filter4 = Filter.createPresenceFilter("exp");
-        List<SimpleClient> result4 = ldapEntryManager.findEntries("o=gluu", SimpleClient.class, filter4, SearchScope.SUB,
+        List<SimpleClient> result4 = ldapEntryManager.findEntries("o=jans", SimpleClient.class, filter4, SearchScope.SUB,
                 new String[] {"exp"}, clientBatchOperation2, 0, 0, 1000);
 
         LOG.info("Result count (with collecting results): " + result4.size());

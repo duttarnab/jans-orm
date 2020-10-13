@@ -1,3 +1,9 @@
+/*
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2020, Janssen Project
+ */
+
 package io.jans.orm.couchbase;
 
 import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
@@ -27,7 +33,7 @@ public final class CouchbaseSampleDelete {
         // Create Couchbase entry manager
         CouchbaseEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createCouchbaseEntryManager();
 
-        String baseDn = "ou=cache,o=gluu";
+        String baseDn = "ou=cache,o=jans";
 		Filter filter = Filter.createANDFilter(
 		        Filter.createEqualityFilter("del", true),
 				Filter.createLessOrEqualFilter("exp", couchbaseEntryManager.encodeTime(baseDn, new Date()))

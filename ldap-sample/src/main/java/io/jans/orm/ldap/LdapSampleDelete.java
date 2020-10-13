@@ -1,3 +1,9 @@
+/*
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2020, Janssen Project
+ */
+
 package io.jans.orm.ldap;
 
 import org.apache.log4j.Logger;
@@ -32,7 +38,7 @@ public final class LdapSampleDelete {
         // Create LDAP entry manager
         LdapEntryManager ldapEntryManager = ldapSampleEntryManager.createLdapEntryManager();
 
-        String baseDn = "ou=cache,o=gluu";
+        String baseDn = "ou=cache,o=jans";
 		Filter filter = Filter.createANDFilter(
 		        Filter.createEqualityFilter("del", true),
 				Filter.createLessOrEqualFilter("exp", ldapEntryManager.encodeTime(baseDn, new Date(System.currentTimeMillis() + 2 * 24 * 60 * 60 * 1000)))

@@ -1,3 +1,9 @@
+/*
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2020, Janssen Project
+ */
+
 package io.jans.orm.ldap;
 
 import java.util.List;
@@ -41,7 +47,7 @@ public final class LdapSample {
         LdapEntryManager ldapEntryManager = ldapSampleEntryManager.createLdapEntryManager();
 
         // Find all users which have specified object classes defined in SimpleUser
-        List<SimpleUser> users = ldapEntryManager.findEntries("o=gluu", SimpleUser.class, null);
+        List<SimpleUser> users = ldapEntryManager.findEntries("o=jans", SimpleUser.class, null);
         for (SimpleUser user : users) {
             LOG.debug("User with uid: " + user.getUserId());
         }
@@ -54,23 +60,23 @@ public final class LdapSample {
             ldapEntryManager.merge(user);
         }
 
-        Filter filter = Filter.createEqualityFilter("gluuStatus", "active");
-        List<SimpleAttribute> attributes = ldapEntryManager.findEntries("o=gluu", SimpleAttribute.class, filter, SearchScope.SUB, null, null, 10, 0,
+        Filter filter = Filter.createEqualityFilter("status", "active");
+        List<SimpleAttribute> attributes = ldapEntryManager.findEntries("o=jans", SimpleAttribute.class, filter, SearchScope.SUB, null, null, 10, 0,
                 0);
         for (SimpleAttribute attribute : attributes) {
             LOG.debug("Attribute with displayName: " + attribute.getCustomAttributes().get(1));
         }
 
-        List<SimpleSession> sessions = ldapEntryManager.findEntries("o=gluu", SimpleSession.class, filter, SearchScope.SUB, null, null, 10, 0, 0);
+        List<SimpleSession> sessions = ldapEntryManager.findEntries("o=jans", SimpleSession.class, filter, SearchScope.SUB, null, null, 10, 0, 0);
         LOG.debug("Found sessions: " + sessions.size());
 
-        List<SimpleGrant> grants = ldapEntryManager.findEntries("o=gluu", SimpleGrant.class, null, SearchScope.SUB, new String[] { "grtId" },
+        List<SimpleGrant> grants = ldapEntryManager.findEntries("o=jans", SimpleGrant.class, null, SearchScope.SUB, new String[] { "grtId" },
                 null, 10, 0, 0);
         LOG.debug("Found grants: " + grants.size());
 
         try {
-            PagedResult<SimpleUser> vlvResponse = ldapEntryManager.findPagedEntries("o=gluu", SimpleUser.class, null,
-                    new String[] { "uid", "displayName", "gluuStatus" }, "displayName", SortOrder.ASCENDING, 10, 100000, 1000);
+            PagedResult<SimpleUser> vlvResponse = ldapEntryManager.findPagedEntries("o=jans", SimpleUser.class, null,
+                    new String[] { "uid", "displayName", "status" }, "displayName", SortOrder.ASCENDING, 10, 100000, 1000);
 
             LOG.debug("Found persons: " + vlvResponse.getTotalEntriesCount());
             System.out.println(vlvResponse.getEntries().size());

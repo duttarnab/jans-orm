@@ -1,3 +1,9 @@
+/*
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2020, Janssen Project
+ */
+
 package io.jans.orm.ldap.impl;
 
 import java.util.HashMap;
@@ -24,7 +30,7 @@ import org.slf4j.LoggerFactory;
 public class LdapEntryManagerFactory implements PersistenceEntryManagerFactory {
 
     public static final String PERSISTENCE_TYPE = "ldap";
-    public static final String LDAP_DEFAULT_PROPERTIES_FILE = "gluu-ldap.properties";
+    public static final String LDAP_DEFAULT_PROPERTIES_FILE = "jans-ldap.properties";
 
 	private static final Logger LOG = LoggerFactory.getLogger(LdapEntryManagerFactory.class);
 

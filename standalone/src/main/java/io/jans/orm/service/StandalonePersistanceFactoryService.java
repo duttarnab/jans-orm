@@ -1,3 +1,9 @@
+/*
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2020, Janssen Project
+ */
+
 package io.jans.orm.service;
 
 import java.lang.reflect.InvocationTargetException;
@@ -55,7 +61,7 @@ public class StandalonePersistanceFactoryService extends PersistanceFactoryServi
 		this.persistenceEntryManagerFactoryTypes = new HashMap<Class<? extends PersistenceEntryManagerFactory>, PersistenceEntryManagerFactory>();
 
 		org.reflections.Reflections reflections = new org.reflections.Reflections(new org.reflections.util.ConfigurationBuilder()
-			     .setUrls(org.reflections.util.ClasspathHelper.forPackage("org.gluu.persist"))
+			     .setUrls(org.reflections.util.ClasspathHelper.forPackage("io.jans.orm"))
 			     .setScanners(new org.reflections.scanners.SubTypesScanner()));
 		Set<Class<? extends PersistenceEntryManagerFactory>> classes = reflections.getSubTypesOf(PersistenceEntryManagerFactory.class);
 

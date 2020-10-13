@@ -1,3 +1,9 @@
+/*
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2020, Janssen Project
+ */
+
 package io.jans.orm.couchbase;
 
 import java.util.Arrays;
@@ -36,18 +42,18 @@ public final class CouchbaseSample {
         CouchbaseEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createCouchbaseEntryManager();
 
         SimpleUser newUser = new SimpleUser();
-        newUser.setDn(String.format("inum=%s,ou=people,o=gluu", System.currentTimeMillis()));
+        newUser.setDn(String.format("inum=%s,ou=people,o=jans", System.currentTimeMillis()));
         newUser.setUserId("sample_user_" + System.currentTimeMillis());
         newUser.setUserPassword("test");
         newUser.getCustomAttributes().add(new CustomObjectAttribute("streetAddress", Arrays.asList("London", "Texas", "Kiev")));
         newUser.getCustomAttributes().add(new CustomObjectAttribute("test", "test_value"));
         couchbaseEntryManager.persist(newUser);
 
-//        SimpleUser dummyUser = couchbaseEntryManager.find(SimpleUser.class, "inum=test,o=test,o=gluu");
+//        SimpleUser dummyUser = couchbaseEntryManager.find(SimpleUser.class, "inum=test,o=test,o=jans");
 //        LOG.info("Dummy User '{}'", dummyUser);
 
         // Find all users which have specified object classes defined in SimpleUser
-        List<SimpleUser> users = couchbaseEntryManager.findEntries("o=@!5304.5F36.0E64.E1AC!0001!179C.62D7,o=gluu", SimpleUser.class, null);
+        List<SimpleUser> users = couchbaseEntryManager.findEntries("o=@!5304.5F36.0E64.E1AC!0001!179C.62D7,o=jans", SimpleUser.class, null);
         for (SimpleUser user : users) {
             LOG.info("User with uid: '{}' with DN: '{}'", user.getUserId(), user.getDn());
         }
@@ -70,28 +76,28 @@ public final class CouchbaseSample {
 
         for (SimpleUser user : users) {
             boolean result1 = couchbaseEntryManager.authenticate(user.getDn(), "test");
-            boolean result2 = couchbaseEntryManager.authenticate("ou=people,o=gluu", SimpleUser.class, user.getUserId(), "test");
+            boolean result2 = couchbaseEntryManager.authenticate("ou=people,o=jans", SimpleUser.class, user.getUserId(), "test");
             System.out.println("authetication result: " + result1 + ", " + result2);
         }
 
-        Filter filter = Filter.createEqualityFilter("gluuStatus", "active");
-        List<SimpleAttribute> attributes = couchbaseEntryManager.findEntries("o=gluu", SimpleAttribute.class, filter, SearchScope.SUB, null, null, 10,
+        Filter filter = Filter.createEqualityFilter("status", "active");
+        List<SimpleAttribute> attributes = couchbaseEntryManager.findEntries("o=jans", SimpleAttribute.class, filter, SearchScope.SUB, null, null, 10,
                 0, 0);
         for (SimpleAttribute attribute : attributes) {
             LOG.info("Attribute with displayName: " + attribute.getCustomAttributes().get(1));
         }
 
-        List<SimpleSession> sessions = couchbaseEntryManager.findEntries("o=gluu", SimpleSession.class, filter, SearchScope.SUB, null, null, 10, 0,
+        List<SimpleSession> sessions = couchbaseEntryManager.findEntries("o=jans", SimpleSession.class, filter, SearchScope.SUB, null, null, 10, 0,
                 0);
         LOG.info("Found sessions: " + sessions.size());
 
-        List<SimpleGrant> grants = couchbaseEntryManager.findEntries("o=gluu", SimpleGrant.class, null, SearchScope.SUB,
+        List<SimpleGrant> grants = couchbaseEntryManager.findEntries("o=jans", SimpleGrant.class, null, SearchScope.SUB,
                 new String[] { "grtId" }, null, 1, 0, 0);
         LOG.info("Found grants: " + grants.size());
 
         try {
-            PagedResult<SimpleUser> listViewResponse = couchbaseEntryManager.findPagedEntries("o=gluu", SimpleUser.class, null,
-                    new String[] { "uid", "displayName", "gluuStatus" }, "uid", SortOrder.ASCENDING, 0, 6, 4);
+            PagedResult<SimpleUser> listViewResponse = couchbaseEntryManager.findPagedEntries("o=jans", SimpleUser.class, null,
+                    new String[] { "uid", "displayName", "status" }, "uid", SortOrder.ASCENDING, 0, 6, 4);
 
             LOG.info("Found persons: " + listViewResponse.getEntriesCount() + ", total persons: " + listViewResponse.getTotalEntriesCount());
             for (SimpleUser user : listViewResponse.getEntries()) {
@@ -102,8 +108,8 @@ public final class CouchbaseSample {
         }
 
         try {
-            PagedResult<SimpleUser> listViewResponse = couchbaseEntryManager.findPagedEntries("o=gluu", SimpleUser.class, null,
-                    new String[] { "uid", "displayName", "gluuStatus" }, "uid", SortOrder.DESCENDING, 0, 6, 4);
+            PagedResult<SimpleUser> listViewResponse = couchbaseEntryManager.findPagedEntries("o=jans", SimpleUser.class, null,
+                    new String[] { "uid", "displayName", "status" }, "uid", SortOrder.DESCENDING, 0, 6, 4);
 
             LOG.info("Found persons: " + listViewResponse.getEntriesCount() + ", total persons: " + listViewResponse.getTotalEntriesCount());
             for (SimpleUser user : listViewResponse.getEntries()) {

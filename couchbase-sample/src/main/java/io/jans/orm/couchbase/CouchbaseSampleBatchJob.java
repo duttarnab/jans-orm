@@ -1,3 +1,9 @@
+/*
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2020, Janssen Project
+ */
+
 package io.jans.orm.couchbase;
 
 import org.apache.log4j.Logger;
@@ -64,7 +70,7 @@ public final class CouchbaseSampleBatchJob {
         };
 
         final Filter filter1 = Filter.createPresenceFilter("exp");
-        couchbaseEntryManager.findEntries("o=gluu", SimpleTokenCouchbase.class, filter1, SearchScope.SUB, new String[] {"exp"},
+        couchbaseEntryManager.findEntries("o=jans", SimpleTokenCouchbase.class, filter1, SearchScope.SUB, new String[] {"exp"},
                 tokenCouchbaseBatchOperation, 0, 0, 100);
 
         BatchOperation<SimpleSession> sessionBatchOperation = new ProcessBatchOperation<SimpleSession>() {
@@ -89,7 +95,7 @@ public final class CouchbaseSampleBatchJob {
         };
 
         final Filter filter2 = Filter.createPresenceFilter("oxLastAccessTime");
-        couchbaseEntryManager.findEntries("o=gluu", SimpleSession.class, filter2, SearchScope.SUB, new String[] {"oxLastAccessTime"},
+        couchbaseEntryManager.findEntries("o=jans", SimpleSession.class, filter2, SearchScope.SUB, new String[] {"oxLastAccessTime"},
                 sessionBatchOperation, 0, 0, 100);
 
         BatchOperation<SimpleClient> clientBatchOperation = new ProcessBatchOperation<SimpleClient>() {
@@ -106,7 +112,7 @@ public final class CouchbaseSampleBatchJob {
         };
 
         final Filter filter3 = Filter.createPresenceFilter("exp");
-        List<SimpleClient> result3 = couchbaseEntryManager.findEntries("o=gluu", SimpleClient.class, filter3, SearchScope.SUB,
+        List<SimpleClient> result3 = couchbaseEntryManager.findEntries("o=jans", SimpleClient.class, filter3, SearchScope.SUB,
                 new String[] {"exp"}, clientBatchOperation, 0, 0, 1000);
 
         LOG.info("Result count (without collecting results): " + result3.size());
@@ -125,7 +131,7 @@ public final class CouchbaseSampleBatchJob {
         };
 
         final Filter filter4 = Filter.createPresenceFilter("exp");
-        List<SimpleClient> result4 = couchbaseEntryManager.findEntries("o=gluu", SimpleClient.class, filter4, SearchScope.SUB,
+        List<SimpleClient> result4 = couchbaseEntryManager.findEntries("o=jans", SimpleClient.class, filter4, SearchScope.SUB,
                 new String[] {"exp"}, clientBatchOperation2, 0, 0, 1000);
 
         LOG.info("Result count (with collecting results): " + result4.size());

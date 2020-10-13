@@ -1,3 +1,9 @@
+/*
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2020, Janssen Project
+ */
+
 package io.jans.orm.service;
 
 import java.io.File;
@@ -27,8 +33,8 @@ import io.jans.orm.util.properties.FileConfiguration;
 public class PersistanceFactoryService implements BaseFactoryService {
 
 	static {
-		if (System.getProperty("gluu.base") != null) {
-			BASE_DIR = System.getProperty("gluu.base");
+		if (System.getProperty("jans.base") != null) {
+			BASE_DIR = System.getProperty("jans.base");
 		} else if ((System.getProperty("catalina.base") != null) && (System.getProperty("catalina.base.ignore") == null)) {
 			BASE_DIR = System.getProperty("catalina.base");
 		} else if (System.getProperty("catalina.home") != null) {
@@ -42,7 +48,7 @@ public class PersistanceFactoryService implements BaseFactoryService {
 
 	public static final String BASE_DIR;
 	public static final String DIR = BASE_DIR + File.separator + "conf" + File.separator;
-	private static final String GLUU_FILE_PATH = DIR + "jans.properties";
+	private static final String JANS_FILE_PATH = DIR + "jans.properties";
 
 	@Inject
 	private Logger log;
@@ -59,9 +65,9 @@ public class PersistanceFactoryService implements BaseFactoryService {
 	public PersistenceConfiguration loadPersistenceConfiguration(String applicationPropertiesFile) {
 		PersistenceConfiguration currentPersistenceConfiguration = null;
 
-		String gluuFileName = determineJansConfigurationFileName(applicationPropertiesFile);
-		if (gluuFileName != null) {
-			currentPersistenceConfiguration = createPersistenceConfiguration(gluuFileName);
+		String jansFileName = determineJansConfigurationFileName(applicationPropertiesFile);
+		if (jansFileName != null) {
+			currentPersistenceConfiguration = createPersistenceConfiguration(jansFileName);
 		}
 
 		// Fall back to old LDAP persistence layer
@@ -75,12 +81,12 @@ public class PersistanceFactoryService implements BaseFactoryService {
 		return currentPersistenceConfiguration;
 	}
 
-	private PersistenceConfiguration createPersistenceConfiguration(String gluuFileName) {
+	private PersistenceConfiguration createPersistenceConfiguration(String jansFileName) {
 		try {
 			// Determine persistence type
-			FileConfiguration gluuFileConf = new FileConfiguration(gluuFileName);
+			FileConfiguration gluuFileConf = new FileConfiguration(jansFileName);
 			if (!gluuFileConf.isLoaded()) {
-				getLog().error("Unable to load configuration file '{}'", gluuFileName);
+				getLog().error("Unable to load configuration file '{}'", jansFileName);
 				return null;
 			}
 
@@ -187,9 +193,9 @@ public class PersistanceFactoryService implements BaseFactoryService {
 			return applicationFilePath;
 		}
 
-		File ldapFile = new File(GLUU_FILE_PATH);
+		File ldapFile = new File(JANS_FILE_PATH);
 		if (ldapFile.exists()) {
-			return GLUU_FILE_PATH;
+			return JANS_FILE_PATH;
 		}
 
 		return null;

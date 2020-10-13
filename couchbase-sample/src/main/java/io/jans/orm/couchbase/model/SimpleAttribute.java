@@ -1,7 +1,7 @@
 /*
- * oxCore is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
  *
- * Copyright (c) 2014, Gluu
+ * Copyright (c) 2020, Janssen Project
  */
 
 package io.jans.orm.couchbase.model;
@@ -23,7 +23,7 @@ import io.jans.orm.util.StringHelper;
  * Date: 12/30/2016
  */
 @DataEntry
-@ObjectClass(value = "gluuAttribute")
+@ObjectClass(value = "jansAttribute")
 public class SimpleAttribute implements Serializable {
 
     private static final long serialVersionUID = -1634191420188575733L;

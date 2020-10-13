@@ -1,3 +1,9 @@
+/*
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2020, Janssen Project
+ */
+
 package io.jans.orm.couchbase;
 
 import java.util.Properties;
@@ -17,15 +23,15 @@ public class CouchbaseSampleEntryManager {
     private Properties getSampleConnectionProperties() {
         Properties connectionProperties = new Properties();
 
-        connectionProperties.put("couchbase.servers", "test.gluu.info");
+        connectionProperties.put("couchbase.servers", "test.jans.info");
         connectionProperties.put("couchbase.auth.userName", "admin");
         connectionProperties.put("couchbase.auth.userPassword", "secret");
-//        connectionProperties.put("couchbase.buckets", "gluu");
-        connectionProperties.put("couchbase.buckets", "gluu, gluu_user, gluu_token");
+//        connectionProperties.put("couchbase.buckets", "jans");
+        connectionProperties.put("couchbase.buckets", "jans, jans_user, jans_token");
 
-        connectionProperties.put("couchbase.bucket.default", "gluu");
-        connectionProperties.put("couchbase.bucket.gluu_user.mapping", "people, groups");
-        connectionProperties.put("couchbase.bucket.gluu_token.mapping", "sessions");
+        connectionProperties.put("couchbase.bucket.default", "jans");
+        connectionProperties.put("couchbase.bucket.jans_user.mapping", "people, groups");
+        connectionProperties.put("couchbase.bucket.jans_token.mapping", "sessions");
 
         connectionProperties.put("couchbase.password.encryption.method", "CRYPT-SHA-256");
 

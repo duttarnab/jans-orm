@@ -1,8 +1,8 @@
 /*
  /*
- * oxCore is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
  *
- * Copyright (c) 2018, Gluu
+ * Copyright (c) 2020, Janssen Project
  */
 
 package io.jans.orm.couchbase.impl;
@@ -97,7 +97,7 @@ public class CouchbaseEntryManagerFactory extends Initializable implements Persi
     @Override
     public HashMap<String, String> getConfigurationFileNames() {
     	HashMap<String, String> confs = new HashMap<String, String>();
-    	confs.put(PERSISTENCE_TYPE, "gluu-couchbase.properties");
+    	confs.put(PERSISTENCE_TYPE, "jans-couchbase.properties");
 
     	return confs;
     }
@@ -144,7 +144,7 @@ public class CouchbaseEntryManagerFactory extends Initializable implements Persi
 /*
     public static void main(String[] args) throws FileNotFoundException, IOException {
     	Properties prop = new Properties();
-    	prop.load(new FileInputStream(new File("D:/Temp/gluu-couchbase.properties")));
+    	prop.load(new FileInputStream(new File("D:/Temp/jans-couchbase.properties")));
     	
     	CouchbaseEntryManagerFactory cemf = new CouchbaseEntryManagerFactory();
     	cemf.create();

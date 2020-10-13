@@ -1,3 +1,9 @@
+/*
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2020, Janssen Project
+ */
+
 package io.jans.couchbase.test;
 
 import com.couchbase.client.core.message.kv.subdoc.multi.Lookup;
@@ -27,7 +33,7 @@ public class ManualCouchbaseEntryManagerTest {
         CouchbaseEntryManager manager = createCouchbaseEntryManager();
 
         try {
-            List<SimpleClient> attributeList = manager.findEntries("o=gluu", SimpleClient.class, null);
+            List<SimpleClient> attributeList = manager.findEntries("o=jans", SimpleClient.class, null);
             System.out.println(attributeList);
         } finally {
             manager.destroy();
@@ -66,7 +72,7 @@ public class ManualCouchbaseEntryManagerTest {
     private SessionId createSessionId() {
         SessionId sessionId = new SessionId();
         sessionId.setId(UUID.randomUUID().toString());
-        sessionId.setDn(String.format("oxId=%s,%s", sessionId.getId(), "ou=sessions,o=gluu"));
+        sessionId.setDn(String.format("oxId=%s,%s", sessionId.getId(), "ou=sessions,o=jans"));
         sessionId.setCreationDate(new Date());
 
         updateSession(sessionId);
@@ -91,9 +97,9 @@ public class ManualCouchbaseEntryManagerTest {
     // MODIFY ACCORDING TO YOUR SERVER
     public static Properties loadProperties() throws IOException {
         Properties properties = new Properties();
-        properties.put("couchbase.auth.userPassword", "1234.Gluu");
+        properties.put("couchbase.auth.userPassword", "secret");
 
-        try (InputStream is = ManualCouchbaseEntryManagerTest.class.getResourceAsStream("cb-bench-backend.gluu.org.properties")) {
+        try (InputStream is = ManualCouchbaseEntryManagerTest.class.getResourceAsStream("cb-bench-backend.jans.io.properties")) {
             properties.load(is);
             return properties;
         }

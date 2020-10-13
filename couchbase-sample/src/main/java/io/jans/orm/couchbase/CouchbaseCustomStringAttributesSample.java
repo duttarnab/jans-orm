@@ -1,3 +1,9 @@
+/*
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2020, Janssen Project
+ */
+
 package io.jans.orm.couchbase;
 
 import java.util.Arrays;
@@ -34,7 +40,7 @@ public final class CouchbaseCustomStringAttributesSample {
 
 		// Add dummy user
 		SimpleCustomStringUser newUser = new SimpleCustomStringUser();
-		newUser.setDn(String.format("inum=%s,ou=people,o=gluu", System.currentTimeMillis()));
+		newUser.setDn(String.format("inum=%s,ou=people,o=jans", System.currentTimeMillis()));
 		newUser.setUserId("sample_user_" + System.currentTimeMillis());
 		newUser.setUserPassword("test");
 		newUser.getCustomAttributes().add(new CustomAttribute("streetAddress", Arrays.asList("London", "Texas", "Kiev")));
@@ -58,7 +64,7 @@ public final class CouchbaseCustomStringAttributesSample {
 
 		// Find by oxExternalUid
 		Filter oxExternalUidFilter = Filter.createEqualityFilter("oxExternalUid", randomExternalUid).multiValued();
-		List<SimpleCustomStringUser> foundUsers = couchbaseEntryManager.findEntries("ou=people,o=gluu", SimpleCustomStringUser.class, oxExternalUidFilter);
+		List<SimpleCustomStringUser> foundUsers = couchbaseEntryManager.findEntries("ou=people,o=jans", SimpleCustomStringUser.class, oxExternalUidFilter);
 		for (SimpleCustomStringUser foundUser2 : foundUsers) {
 			LOG.info("Found User '{}' by oxExternalUid with uid '{}' and key '{}'", foundUser2, foundUser2.getUserId(), foundUser2.getDn());
 		}
