@@ -3,6 +3,7 @@
  *
  * Copyright (c) 2020, Janssen Project
  */
+
 package io.jans.orm.util.init;
 
 import java.util.concurrent.locks.ReentrantLock;

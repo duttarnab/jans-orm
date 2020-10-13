@@ -3,6 +3,7 @@
  *
  * Copyright (c) 2020, Janssen Project
  */
+
 package io.jans.orm.couchbase.model;
 
 import com.couchbase.client.java.Bucket;
