@@ -84,13 +84,13 @@ public class PersistanceFactoryService implements BaseFactoryService {
 	private PersistenceConfiguration createPersistenceConfiguration(String jansFileName) {
 		try {
 			// Determine persistence type
-			FileConfiguration gluuFileConf = new FileConfiguration(jansFileName);
-			if (!gluuFileConf.isLoaded()) {
+			FileConfiguration jansFileConf = new FileConfiguration(jansFileName);
+			if (!jansFileConf.isLoaded()) {
 				getLog().error("Unable to load configuration file '{}'", jansFileName);
 				return null;
 			}
 
-			String persistenceType = gluuFileConf.getString("persistence.type");
+			String persistenceType = jansFileConf.getString("persistence.type");
 			PersistenceEntryManagerFactory persistenceEntryManagerFactory = getPersistenceEntryManagerFactory(persistenceType);
 			if (persistenceEntryManagerFactory == null) {
 				getLog().error("Unable to get Persistence Entry Manager Factory by type '{}'", persistenceType);
