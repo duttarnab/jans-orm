@@ -80,8 +80,8 @@ public final class CouchbaseSampleBatchJob {
             public void performAction(List<SimpleSession> objects) {
                 for (SimpleSession simpleSession : objects) {
                     try {
-                        CustomAttribute customAttribute = getUpdatedAttribute(couchbaseEntryManager, simpleSession.getDn(), "oxLastAccessTime",
-                                simpleSession.getAttribute("oxLastAccessTime"));
+                        CustomAttribute customAttribute = getUpdatedAttribute(couchbaseEntryManager, simpleSession.getDn(), "jsLastAccessTime",
+                                simpleSession.getAttribute("jsLastAccessTime"));
                         simpleSession.setCustomAttributes(Arrays.asList(new CustomAttribute[] {customAttribute}));
                         couchbaseEntryManager.merge(simpleSession);
                         processedCount++;
@@ -94,8 +94,8 @@ public final class CouchbaseSampleBatchJob {
             }
         };
 
-        final Filter filter2 = Filter.createPresenceFilter("oxLastAccessTime");
-        couchbaseEntryManager.findEntries("o=jans", SimpleSession.class, filter2, SearchScope.SUB, new String[] {"oxLastAccessTime"},
+        final Filter filter2 = Filter.createPresenceFilter("jsLastAccessTime");
+        couchbaseEntryManager.findEntries("o=jans", SimpleSession.class, filter2, SearchScope.SUB, new String[] {"jsLastAccessTime"},
                 sessionBatchOperation, 0, 0, 100);
 
         BatchOperation<SimpleClient> clientBatchOperation = new ProcessBatchOperation<SimpleClient>() {
@@ -140,8 +140,8 @@ public final class CouchbaseSampleBatchJob {
     private static CustomAttribute getUpdatedAttribute(CouchbaseEntryManager couchbaseEntryManager, String baseDn, String attributeName, String attributeValue) {
         try {
             Calendar calendar = Calendar.getInstance();
-            Date oxLastAccessTimeDate = new Date(); //TODO: Fix it StaticUtils.decodeGeneralizedTime(attributeValue);
-            calendar.setTime(oxLastAccessTimeDate);
+            Date jsLastAccessTimeDate = new Date(); //TODO: Fix it StaticUtils.decodeGeneralizedTime(attributeValue);
+            calendar.setTime(jsLastAccessTimeDate);
             calendar.add(Calendar.SECOND, -1);
 
             CustomAttribute customAttribute = new CustomAttribute();

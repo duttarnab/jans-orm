@@ -72,7 +72,7 @@ public class ManualCouchbaseEntryManagerTest {
     private SessionId createSessionId() {
         SessionId sessionId = new SessionId();
         sessionId.setId(UUID.randomUUID().toString());
-        sessionId.setDn(String.format("oxId=%s,%s", sessionId.getId(), "ou=sessions,o=jans"));
+        sessionId.setDn(String.format("jsId=%s,%s", sessionId.getId(), "ou=sessions,o=jans"));
         sessionId.setCreationDate(new Date());
 
         updateSession(sessionId);

@@ -37,10 +37,10 @@ public class SimpleUser implements Serializable {
     @AttributeName
     private Date updatedAt;
 
-    @AttributeName(name = "oxCreationTimestamp")
+    @AttributeName(name = "jsCreationTimestamp")
     private Date createdAt;
 
-    @AttributeName(name = "oxAuthPersistentJWT")
+    @AttributeName(name = "jsPersistentJWT")
     private String[] oxAuthPersistentJwt;
 
     @AttributesList(name = "name", value = "values", multiValued = "multiValued", sortByName = true)

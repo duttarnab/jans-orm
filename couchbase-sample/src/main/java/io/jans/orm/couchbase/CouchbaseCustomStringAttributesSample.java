@@ -44,7 +44,7 @@ public final class CouchbaseCustomStringAttributesSample {
 		newUser.setUserId("sample_user_" + System.currentTimeMillis());
 		newUser.setUserPassword("test");
 		newUser.getCustomAttributes().add(new CustomAttribute("streetAddress", Arrays.asList("London", "Texas", "Kiev")));
-		newUser.getCustomAttributes().add((new CustomAttribute("oxExternalUid", randomExternalUid)).setMultiValued(true));
+		newUser.getCustomAttributes().add((new CustomAttribute("jsExternalUid", randomExternalUid)).setMultiValued(true));
 
 		newUser.setUserRole(UserRole.ADMIN);
 		newUser.setNotes(Arrays.asList("note 1", "note 2", "note 3"));
@@ -62,11 +62,11 @@ public final class CouchbaseCustomStringAttributesSample {
 			LOG.info("Found custom attribute '{}' with value '{}'", customAttribute.getName(), customAttribute.getValue());
 		}
 
-		// Find by oxExternalUid
-		Filter oxExternalUidFilter = Filter.createEqualityFilter("oxExternalUid", randomExternalUid).multiValued();
-		List<SimpleCustomStringUser> foundUsers = couchbaseEntryManager.findEntries("ou=people,o=jans", SimpleCustomStringUser.class, oxExternalUidFilter);
+		// Find by jsExternalUid
+		Filter jsExternalUidFilter = Filter.createEqualityFilter("jsExternalUid", randomExternalUid).multiValued();
+		List<SimpleCustomStringUser> foundUsers = couchbaseEntryManager.findEntries("ou=people,o=jans", SimpleCustomStringUser.class, jsExternalUidFilter);
 		for (SimpleCustomStringUser foundUser2 : foundUsers) {
-			LOG.info("Found User '{}' by oxExternalUid with uid '{}' and key '{}'", foundUser2, foundUser2.getUserId(), foundUser2.getDn());
+			LOG.info("Found User '{}' by jsExternalUid with uid '{}' and key '{}'", foundUser2, foundUser2.getUserId(), foundUser2.getDn());
 		}
 	}
 
