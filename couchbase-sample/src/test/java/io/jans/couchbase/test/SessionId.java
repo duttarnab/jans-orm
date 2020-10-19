@@ -24,7 +24,7 @@ import java.util.Map;
  */
 @Named("sessionUser")
 @DataEntry
-@ObjectClass(value = "jsSessId")
+@ObjectClass(value = "jansSessId")
 public class SessionId implements Deletable, Serializable {
 
     private static final long serialVersionUID = -237476411915686378L;
@@ -32,35 +32,35 @@ public class SessionId implements Deletable, Serializable {
     @DN
     private String dn;
 
-    @AttributeName(name = "jsId")
+    @AttributeName(name = "jansId")
     private String id;
 
-    @AttributeName(name = "jsLastAccessTime")
+    @AttributeName(name = "jansLastAccessTime")
     private Date lastUsedAt;
 
-    @AttributeName(name = "jsUsrDN")
+    @AttributeName(name = "jansUsrDN")
     private String userDn;
 
     @AttributeName(name = "authnTime")
     private Date authenticationTime;
 
-    @AttributeName(name = "jsState")
+    @AttributeName(name = "jansState")
     private SessionIdState state;
 
-    @AttributeName(name = "jsSessState")
+    @AttributeName(name = "jansSessState")
     private String sessionState;
 
-    @AttributeName(name = "jsPermissionGranted")
+    @AttributeName(name = "jansPermissionGranted")
     private Boolean permissionGranted;
 
-    @AttributeName(name = "jsAsJwt")
+    @AttributeName(name = "jansAsJwt")
     private Boolean isJwt = false;
 
-    @AttributeName(name = "jsJwt")
+    @AttributeName(name = "jansJwt")
     private String jwt;
 
     @JsonObject
-    @AttributeName(name = "jsSessAttr")
+    @AttributeName(name = "jansSessAttr")
     private Map<String, String> sessionAttributes;
 
     @AttributeName(name = "exp")

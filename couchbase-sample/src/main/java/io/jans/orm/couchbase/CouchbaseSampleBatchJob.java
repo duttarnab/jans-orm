@@ -80,8 +80,8 @@ public final class CouchbaseSampleBatchJob {
             public void performAction(List<SimpleSession> objects) {
                 for (SimpleSession simpleSession : objects) {
                     try {
-                        CustomAttribute customAttribute = getUpdatedAttribute(couchbaseEntryManager, simpleSession.getDn(), "jsLastAccessTime",
-                                simpleSession.getAttribute("jsLastAccessTime"));
+                        CustomAttribute customAttribute = getUpdatedAttribute(couchbaseEntryManager, simpleSession.getDn(), "jansLastAccessTime",
+                                simpleSession.getAttribute("jansLastAccessTime"));
                         simpleSession.setCustomAttributes(Arrays.asList(new CustomAttribute[] {customAttribute}));
                         couchbaseEntryManager.merge(simpleSession);
                         processedCount++;
@@ -94,8 +94,8 @@ public final class CouchbaseSampleBatchJob {
             }
         };
 
-        final Filter filter2 = Filter.createPresenceFilter("jsLastAccessTime");
-        couchbaseEntryManager.findEntries("o=jans", SimpleSession.class, filter2, SearchScope.SUB, new String[] {"jsLastAccessTime"},
+        final Filter filter2 = Filter.createPresenceFilter("jansLastAccessTime");
+        couchbaseEntryManager.findEntries("o=jans", SimpleSession.class, filter2, SearchScope.SUB, new String[] {"jansLastAccessTime"},
                 sessionBatchOperation, 0, 0, 100);
 
         BatchOperation<SimpleClient> clientBatchOperation = new ProcessBatchOperation<SimpleClient>() {

@@ -82,8 +82,8 @@ public final class LdapSampleBatchJob {
             public void performAction(List<SimpleSession> objects) {
                 for (SimpleSession simpleSession : objects) {
                     try {
-                        CustomAttribute customAttribute = getUpdatedAttribute(ldapEntryManager, simpleSession.getDn(), "jsLastAccessTime",
-                                simpleSession.getAttribute("jsLastAccessTime"));
+                        CustomAttribute customAttribute = getUpdatedAttribute(ldapEntryManager, simpleSession.getDn(), "jansLastAccessTime",
+                                simpleSession.getAttribute("jansLastAccessTime"));
                         simpleSession.setCustomAttributes(Arrays.asList(new CustomAttribute[] {customAttribute}));
                         ldapEntryManager.merge(simpleSession);
                         processedCount++;
@@ -96,8 +96,8 @@ public final class LdapSampleBatchJob {
             }
         };
 
-        final Filter filter2 = Filter.createPresenceFilter("jsLastAccessTime");
-        ldapEntryManager.findEntries("o=jans", SimpleSession.class, filter2, SearchScope.SUB, new String[] {"jsLastAccessTime"},
+        final Filter filter2 = Filter.createPresenceFilter("jansLastAccessTime");
+        ldapEntryManager.findEntries("o=jans", SimpleSession.class, filter2, SearchScope.SUB, new String[] {"jansLastAccessTime"},
                 sessionBatchOperation, 0, 0, 100);
 
         BatchOperation<SimpleClient> clientBatchOperation = new ProcessBatchOperation<SimpleClient>() {
@@ -142,8 +142,8 @@ public final class LdapSampleBatchJob {
     private static CustomAttribute getUpdatedAttribute(LdapEntryManager ldapEntryManager, String baseDn, String attributeName, String attributeValue) {
         try {
             Calendar calendar = Calendar.getInstance();
-            Date jsLastAccessTimeDate = StaticUtils.decodeGeneralizedTime(attributeValue);
-            calendar.setTime(jsLastAccessTimeDate);
+            Date jansLastAccessTimeDate = StaticUtils.decodeGeneralizedTime(attributeValue);
+            calendar.setTime(jansLastAccessTimeDate);
             calendar.add(Calendar.SECOND, -1);
 
             CustomAttribute customAttribute = new CustomAttribute();
