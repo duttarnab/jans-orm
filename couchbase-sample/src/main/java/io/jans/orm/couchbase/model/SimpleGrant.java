@@ -23,7 +23,7 @@ import io.jans.orm.util.StringHelper;
  * Date: 12/30/2016
  */
 @DataEntry
-@ObjectClass(value = "oxAuthGrant")
+@ObjectClass(value = "jansAuthGrant")
 public class SimpleGrant implements Serializable {
 
     private static final long serialVersionUID = -1234191420188575733L;
