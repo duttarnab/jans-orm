@@ -23,7 +23,7 @@ import io.jans.orm.util.StringHelper;
  * Date: 12/30/2016
  */
 @DataEntry
-@ObjectClass(value = "jansAttribute")
+@ObjectClass(value = "jansAttr")
 public class SimpleAttribute implements Serializable {
 
     private static final long serialVersionUID = -1634191420188575733L;
