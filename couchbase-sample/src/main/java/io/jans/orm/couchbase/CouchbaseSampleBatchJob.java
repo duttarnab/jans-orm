@@ -140,8 +140,8 @@ public final class CouchbaseSampleBatchJob {
     private static CustomAttribute getUpdatedAttribute(CouchbaseEntryManager couchbaseEntryManager, String baseDn, String attributeName, String attributeValue) {
         try {
             Calendar calendar = Calendar.getInstance();
-            Date jsLastAccessTimeDate = new Date(); //TODO: Fix it StaticUtils.decodeGeneralizedTime(attributeValue);
-            calendar.setTime(jsLastAccessTimeDate);
+            Date jansLastAccessTimeDate = new Date(); //TODO: Fix it StaticUtils.decodeGeneralizedTime(attributeValue);
+            calendar.setTime(jansLastAccessTimeDate);
             calendar.add(Calendar.SECOND, -1);
 
             CustomAttribute customAttribute = new CustomAttribute();
