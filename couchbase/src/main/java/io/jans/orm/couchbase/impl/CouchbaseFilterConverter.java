@@ -154,7 +154,7 @@ public class CouchbaseFilterConverter {
         	Boolean isMultiValuedDetected = determineMultiValuedByType(currentGenericFilter.getAttributeName(), propertiesAnnotationsMap);
 
         	String internalAttribute = toInternalAttribute(currentGenericFilter);
-            if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
+    		if (Boolean.TRUE.equals(currentGenericFilter.getMultiValued()) || Boolean.TRUE.equals(isMultiValuedDetected)) {
             	if (hasSubFilters) {
             		Filter clonedFilter = currentGenericFilter.getFilters()[0];
             		clonedFilter.setAttributeName(internalAttribute + "_");
@@ -238,11 +238,11 @@ public class CouchbaseFilterConverter {
             if (currentGenericFilter.getSubFinal() != null) {
                 like.append(currentGenericFilter.getSubFinal());
             }
+        	String internalAttribute = toInternalAttribute(currentGenericFilter);
             if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
-            	String internalAttribute = toInternalAttribute(currentGenericFilter);
             	return ConvertedExpression.build(Collections.anyIn(internalAttribute + "_", Expression.path(Expression.path(toInternalAttribute(currentGenericFilter)))).satisfies(Expression.path(Expression.path(internalAttribute + "_")).like(Expression.s(StringHelper.escapeJson(like.toString())))), requiredConsistency);
             } else {
-            	return ConvertedExpression.build(Expression.path(Expression.path(toInternalAttribute(currentGenericFilter)).like(Expression.s(StringHelper.escapeJson(like.toString())))), requiredConsistency);
+            	return ConvertedExpression.build(Expression.path(Expression.path(internalAttribute).like(Expression.s(StringHelper.escapeJson(like.toString())))), requiredConsistency);
             }
         }
 

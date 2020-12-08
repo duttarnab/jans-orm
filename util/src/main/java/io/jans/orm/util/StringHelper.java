@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.text.StringEscapeUtils;
 
 public final class StringHelper {
@@ -402,6 +403,12 @@ public final class StringHelper {
 
 	public static String unescapeJson(Object str) {
 		String result = StringEscapeUtils.unescapeJson(String.valueOf(str));
+		
+		return result;
+	}
+
+	public static String escapeSql(Object str) {
+		String result = org.apache.commons.lang.StringEscapeUtils.escapeSql(String.valueOf(str));
 		
 		return result;
 	}
