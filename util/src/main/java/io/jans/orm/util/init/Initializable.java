@@ -44,4 +44,8 @@ public abstract class Initializable {
 
     protected abstract void initInternal();
 
+    protected void resetInitialized() {
+        this.initialized = false;
+    }
+
 }

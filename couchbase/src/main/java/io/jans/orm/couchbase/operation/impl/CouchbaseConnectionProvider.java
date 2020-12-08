@@ -157,7 +157,7 @@ public class CouchbaseConnectionProvider {
                 	break;
                 } else {
                     LOG.info("Failed to connect to Couchbase");
-                    destory();
+                    destroy();
                 }
             } catch (CouchbaseException ex) {
                 lastException = ex;
@@ -205,7 +205,7 @@ public class CouchbaseConnectionProvider {
         }
     }
 
-    public boolean destory() {
+    public boolean destroy() {
     	boolean result = true;
     	if (bucketToBaseNameMapping != null) {
 	        for (BucketMapping bucketMapping : bucketToBaseNameMapping.values()) {
