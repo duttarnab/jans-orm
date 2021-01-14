@@ -8,7 +8,10 @@ package io.jans.orm.hybrid.impl;
 
 import java.util.List;
 
+import io.jans.orm.exception.AuthenticationException;
 import io.jans.orm.exception.extension.PersistenceExtension;
+import io.jans.orm.exception.operation.ConnectionException;
+import io.jans.orm.exception.operation.SearchException;
 import io.jans.orm.operation.PersistenceOperationService;
 
 /**
@@ -44,6 +47,11 @@ public class HybridPersistenceOperationService implements PersistenceOperationSe
 		for(PersistenceOperationService persistenceOperationService : persistenceOperationServices) {
 			persistenceOperationService.setPersistenceExtension(persistenceExtension);
 		}
+	}
+
+	@Override
+	public boolean authenticate(String key, String password, String objectClass) throws ConnectionException, SearchException, AuthenticationException {
+        throw new UnsupportedOperationException("Method not implemented.");
 	}
 
 }

@@ -95,9 +95,15 @@ public class HybridEntryManager extends BaseEntryManager implements Serializable
     }
 
     @Override
+    @Deprecated
     public boolean authenticate(String bindDn, String password) {
+    	return authenticate(bindDn, password, null);
+    }
+
+    @Override
+    public <T> boolean authenticate(String bindDn, String password, Class<T> entryClass) {
     	PersistenceEntryManager persistenceEntryManager = getEntryManagerForDn(bindDn);
-    	return persistenceEntryManager.authenticate(bindDn, password);
+    	return persistenceEntryManager.authenticate(bindDn, password, entryClass);
     }
 
     @Override
@@ -184,7 +190,7 @@ public class HybridEntryManager extends BaseEntryManager implements Serializable
     }
 
 	@Override
-	public void importEntry(String dn, List<AttributeData> data) {
+	public <T> void importEntry(String dn, Class<T> entryClass, List<AttributeData> data) {
 		throw new UnsupportedOperationException("Method not implemented.");
 	}
 
@@ -369,7 +375,7 @@ public class HybridEntryManager extends BaseEntryManager implements Serializable
     }
 
 	@Override
-	public void remove(String primaryKey) {
+	public <T> void removeByDn(String primaryKey, Class<T> entryClass) {
 		PersistenceEntryManager persistenceEntryManager = getEntryManagerForDn(primaryKey);
     	persistenceEntryManager.remove(primaryKey);
 	}
@@ -392,7 +398,7 @@ public class HybridEntryManager extends BaseEntryManager implements Serializable
     }
 
 	@Override
-    public void removeRecursively(String dn) {
+    public <T> void removeRecursivelyFromDn(String dn, Class<T> entryClass) {
     	PersistenceEntryManager persistenceEntryManager = getEntryManagerForDn(dn);
     	persistenceEntryManager.removeRecursively(dn);
     }
@@ -402,22 +408,22 @@ public class HybridEntryManager extends BaseEntryManager implements Serializable
     //*************************************************************************
 
 	@Override
-	protected void persist(String dn, List<AttributeData> attributes, Integer expiration) {
+	protected void persist(String dn, String[] objectClasses, List<AttributeData> attributes, Integer expiration) {
         throw new UnsupportedOperationException("Method not implemented.");
 	}
 
     @Override
-	protected void merge(String dn, List<AttributeDataModification> attributeDataModifications, Integer expiration) {
+	protected void merge(String dn, String[] objectClasses, List<AttributeDataModification> attributeDataModifications, Integer expiration) {
         throw new UnsupportedOperationException("Method not implemented.");
 	}
 
 	@Override
-    protected List<AttributeData> find(String dn, Map<String, PropertyAnnotation> propertiesAnnotationsMap, String... ldapReturnAttributes) {
+    protected List<AttributeData> find(String dn, String[] objectClasses, Map<String, PropertyAnnotation> propertiesAnnotationsMap, String... ldapReturnAttributes) {
         throw new UnsupportedOperationException("Method not implemented.");
 	}
 
     @Override
-	protected <T> boolean contains(String baseDN, Class<T> entryClass, List<PropertyAnnotation> propertiesAnnotations, Filter filter, String[] objectClasses, String[] ldapReturnAttributes) {
+	protected <T> boolean contains(String baseDN, String[] objectClasses, Class<T> entryClass, List<PropertyAnnotation> propertiesAnnotations, Filter filter, String[] ldapReturnAttributes) {
         throw new UnsupportedOperationException("Method not implemented.");
 	}
 

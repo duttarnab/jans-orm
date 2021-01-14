@@ -158,6 +158,7 @@ public class CouchbaseConnectionProvider {
                 } else {
                     LOG.info("Failed to connect to Couchbase");
                     destroy();
+                    throw new CouchbaseException("Failed to create connection");
                 }
             } catch (CouchbaseException ex) {
                 lastException = ex;

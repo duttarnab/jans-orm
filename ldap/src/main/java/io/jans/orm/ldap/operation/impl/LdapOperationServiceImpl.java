@@ -23,6 +23,8 @@ import io.jans.orm.ldap.exception.InvalidSimplePageControlException;
 import io.jans.orm.ldap.impl.LdapBatchOperationWraper;
 import io.jans.orm.ldap.operation.watch.OperationDurationUtil;
 import org.apache.commons.lang.StringUtils;
+
+import io.jans.orm.exception.AuthenticationException;
 import io.jans.orm.exception.MappingException;
 import io.jans.orm.exception.extension.PersistenceExtension;
 import io.jans.orm.exception.operation.ConnectionException;
@@ -157,7 +159,7 @@ public class LdapOperationServiceImpl implements LdapOperationService {
     }
 
     @Override
-    public boolean authenticate(final String bindDn, final String password) throws ConnectionException {
+	public boolean authenticate(String bindDn, String password, String objectClass) throws ConnectionException, SearchException, AuthenticationException {
         try {
             return authenticateImpl(bindDn, password);
         } catch (LDAPException ex) {
@@ -959,9 +961,7 @@ public class LdapOperationServiceImpl implements LdapOperationService {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
-
     }
-
 
     private static final class SearchResultEntryComparator<T> implements Comparator<T>, Serializable {
 

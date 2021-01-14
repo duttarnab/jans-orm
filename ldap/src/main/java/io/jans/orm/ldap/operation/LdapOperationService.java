@@ -52,8 +52,6 @@ public interface LdapOperationService extends PersistenceOperationService {
 
     void releaseConnection(LDAPConnection connection);
 
-    boolean authenticate(String bindDn, String password) throws ConnectionException;
-
     <T> SearchResult search(String dn, Filter filter, SearchScope scope, LdapBatchOperationWraper<T> batchOperationWraper, int start,
                             int searchLimit, int count, Control[] controls, String... attributes) throws SearchException;
 

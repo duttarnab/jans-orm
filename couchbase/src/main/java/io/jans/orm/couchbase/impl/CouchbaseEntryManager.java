@@ -19,7 +19,19 @@ import java.util.function.Function;
 
 import javax.inject.Inject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.couchbase.client.core.message.kv.subdoc.multi.Mutation;
+import com.couchbase.client.java.document.json.JsonArray;
+import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.query.consistency.ScanConsistency;
+import com.couchbase.client.java.query.dsl.Expression;
+import com.couchbase.client.java.query.dsl.Sort;
+import com.couchbase.client.java.subdoc.MutationSpec;
+
 import io.jans.orm.PersistenceEntryManager;
+import io.jans.orm.annotation.AttributeName;
 import io.jans.orm.couchbase.model.ConvertedExpression;
 import io.jans.orm.couchbase.model.SearchReturnDataType;
 import io.jans.orm.couchbase.operation.CouchbaseOperationService;
@@ -34,29 +46,18 @@ import io.jans.orm.impl.BaseEntryManager;
 import io.jans.orm.impl.GenericKeyConverter;
 import io.jans.orm.impl.model.ParsedKey;
 import io.jans.orm.model.AttributeData;
+import io.jans.orm.model.AttributeDataModification;
+import io.jans.orm.model.AttributeDataModification.AttributeModificationType;
 import io.jans.orm.model.BatchOperation;
 import io.jans.orm.model.DefaultBatchOperation;
 import io.jans.orm.model.PagedResult;
+import io.jans.orm.model.SearchScope;
+import io.jans.orm.model.SortOrder;
 import io.jans.orm.reflect.property.PropertyAnnotation;
 import io.jans.orm.reflect.util.ReflectHelper;
 import io.jans.orm.search.filter.Filter;
-import io.jans.orm.annotation.AttributeName;
-import io.jans.orm.model.AttributeDataModification;
-import io.jans.orm.model.AttributeDataModification.AttributeModificationType;
-import io.jans.orm.model.SearchScope;
-import io.jans.orm.model.SortOrder;
 import io.jans.orm.util.ArrayHelper;
 import io.jans.orm.util.StringHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.couchbase.client.core.message.kv.subdoc.multi.Mutation;
-import com.couchbase.client.java.document.json.JsonArray;
-import com.couchbase.client.java.document.json.JsonObject;
-import com.couchbase.client.java.query.consistency.ScanConsistency;
-import com.couchbase.client.java.query.dsl.Expression;
-import com.couchbase.client.java.query.dsl.Sort;
-import com.couchbase.client.java.subdoc.MutationSpec;
 
 /**
  * Couchbase Entry Manager
@@ -163,7 +164,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
     }
 
     @Override
-    protected void persist(String dn, List<AttributeData> attributes, Integer expiration) {
+    protected void persist(String dn, String[] objectClasses, List<AttributeData> attributes, Integer expiration) {
         JsonObject jsonObject = JsonObject.create();
         for (AttributeData attribute : attributes) {
             String attributeName = attribute.getName();
@@ -210,7 +211,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
     }
 
     @Override
-    public void merge(String dn, List<AttributeDataModification> attributeDataModifications, Integer expirationValue) {
+    public void merge(String dn, String[] objectClasses, List<AttributeDataModification> attributeDataModifications, Integer expirationValue) {
         // Update entry
         try {
             List<MutationSpec> modifications = new ArrayList<MutationSpec>(attributeDataModifications.size());
@@ -262,7 +263,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
     }
 
     @Override
-    public void remove(String dn) {
+    protected <T> void removeByDn(String dn, Class<T> entryClass) {
         // Remove entry
         try {
             for (DeleteNotifier subscriber : subscribers) {
@@ -278,7 +279,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
     }
 
     @Override
-    public void removeRecursively(String dn) {
+    public <T> void removeRecursivelyFromDn(String dn, Class<T> entryClass) {
         try {
             for (DeleteNotifier subscriber : subscribers) {
                 subscriber.onBeforeRemove(dn);
@@ -345,7 +346,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
     }
 
 	@Override
-    protected List<AttributeData> find(String dn, Map<String, PropertyAnnotation> propertiesAnnotationsMap, String... ldapReturnAttributes) {
+    protected List<AttributeData> find(String dn, String[] objectClasses, Map<String, PropertyAnnotation> propertiesAnnotationsMap, String... ldapReturnAttributes) {
         try {
             // Load entry
             ParsedKey keyWithInum = toCouchbaseKey(dn);
@@ -477,7 +478,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
     }
 
 	@Override
-    protected <T> boolean contains(String baseDN, Class<T> entryClass, List<PropertyAnnotation> propertiesAnnotations, Filter filter, String[] objectClasses, String[] ldapReturnAttributes) {
+    protected <T> boolean contains(String baseDN, String[] objectClasses, Class<T> entryClass, List<PropertyAnnotation> propertiesAnnotations, Filter filter, String[] ldapReturnAttributes) {
         if (StringHelper.isEmptyString(baseDN)) {
             throw new MappingException("Base DN to check contain entries is null");
         }
@@ -659,9 +660,15 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
     }
 
     @Override
+    @Deprecated
     public boolean authenticate(String bindDn, String password) {
+    	return authenticate(bindDn, password, null);
+    }
+
+    @Override
+    public <T> boolean authenticate(String bindDn, String password, Class<T> entryClass) {
         try {
-            return getOperationService().authenticate(toCouchbaseKey(bindDn).getKey(), escapeValue(password));
+            return getOperationService().authenticate(toCouchbaseKey(bindDn).getKey(), escapeValue(password), null);
         } catch (Exception ex) {
             throw new AuthenticationException(String.format("Failed to authenticate DN: %s", bindDn), ex);
         }
@@ -773,10 +780,6 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
         } catch (Exception ex) {
             throw new EntryPersistenceException(String.format("Failed to find entry: %s", dn), ex);
         }
-    }
-    @Override
-    public void importEntry(String dn, List<AttributeData> attributes) {
-    	persist(dn, attributes, 0);
     }
 
     private ConvertedExpression toCouchbaseFilter(Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap) throws SearchException {

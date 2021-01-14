@@ -22,19 +22,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import io.jans.orm.PersistenceEntryManager;
-import io.jans.orm.exception.EntryPersistenceException;
-import io.jans.orm.exception.InvalidArgumentException;
-import io.jans.orm.exception.MappingException;
-import io.jans.orm.exception.extension.PersistenceExtension;
-import io.jans.orm.operation.PersistenceOperationService;
-import io.jans.orm.reflect.property.Getter;
-import io.jans.orm.reflect.property.PropertyAnnotation;
-import io.jans.orm.reflect.property.Setter;
-import io.jans.orm.reflect.util.ReflectHelper;
-import io.jans.orm.search.filter.Filter;
-
 import org.apache.commons.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.jans.orm.PersistenceEntryManager;
 import io.jans.orm.annotation.AttributeEnum;
 import io.jans.orm.annotation.AttributeName;
 import io.jans.orm.annotation.AttributesList;
@@ -45,16 +39,22 @@ import io.jans.orm.annotation.Expiration;
 import io.jans.orm.annotation.JsonObject;
 import io.jans.orm.annotation.ObjectClass;
 import io.jans.orm.annotation.SchemaEntry;
+import io.jans.orm.exception.EntryPersistenceException;
+import io.jans.orm.exception.InvalidArgumentException;
+import io.jans.orm.exception.MappingException;
+import io.jans.orm.exception.extension.PersistenceExtension;
 import io.jans.orm.model.AttributeData;
 import io.jans.orm.model.AttributeDataModification;
 import io.jans.orm.model.AttributeDataModification.AttributeModificationType;
 import io.jans.orm.model.SearchScope;
+import io.jans.orm.operation.PersistenceOperationService;
+import io.jans.orm.reflect.property.Getter;
+import io.jans.orm.reflect.property.PropertyAnnotation;
+import io.jans.orm.reflect.property.Setter;
+import io.jans.orm.reflect.util.ReflectHelper;
+import io.jans.orm.search.filter.Filter;
 import io.jans.orm.util.ArrayHelper;
 import io.jans.orm.util.StringHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Abstract Entry Manager
@@ -124,10 +124,10 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 		LOG.debug(String.format("LDAP attributes for persist: %s", attributes));
 
-		persist(dnValue.toString(), attributes, expirationValue);
+		persist(dnValue.toString(), objectClasses, attributes, expirationValue);
 	}
 
-	protected abstract void persist(String dn, List<AttributeData> attributes, Integer expiration);
+	protected abstract void persist(String dn, String[] objectClasses, List<AttributeData> attributes, Integer expiration);
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -209,6 +209,8 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 		Class<?> entryClass = entry.getClass();
 		checkEntryClass(entryClass, isSchemaUpdate);
+		String[] objectClasses = getObjectClasses(entry, entryClass);
+
 		List<PropertyAnnotation> propertiesAnnotations = getEntryPropertyAnnotations(entryClass);
         Map<String, PropertyAnnotation> propertiesAnnotationsMap = prepareEntryPropertiesTypes(entryClass, propertiesAnnotations);
 
@@ -231,7 +233,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 				currentLdapReturnAttributesList.add("objectClass");
 			}
 
-			attributesFromLdap = find(dnValue.toString(), propertiesAnnotationsMap, currentLdapReturnAttributesList.toArray(EMPTY_STRING_ARRAY));
+			attributesFromLdap = find(dnValue.toString(), objectClasses, propertiesAnnotationsMap, currentLdapReturnAttributesList.toArray(EMPTY_STRING_ARRAY));
 		}
 		Map<String, AttributeData> attributesFromLdapMap = getAttributesMap(attributesFromLdap);
 
@@ -246,7 +248,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 		LOG.debug(String.format("LDAP attributes for merge: %s", attributeDataModifications));
 
-		merge(dnValue.toString(), attributeDataModifications, expirationValue);
+		merge(dnValue.toString(), objectClasses, attributeDataModifications, expirationValue);
 
 		return null;
 	}
@@ -415,9 +417,31 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 				|| ((attributeToPersistValues.length == 1) && StringHelper.isEmpty(String.valueOf(attributeToPersistValues[0])));
 	}
 
-	protected abstract void merge(String dn, List<AttributeDataModification> attributeDataModifications, Integer expiration);
+	protected abstract void merge(String dn, String[] objectClasses, List<AttributeDataModification> attributeDataModifications, Integer expiration);
 
-	public abstract void remove(String dn);
+	protected abstract <T> void removeByDn(String dn, Class<T> entryClass);
+
+	@Deprecated
+	public void remove(String primaryKey) {
+		removeByDn(primaryKey, null);
+	}
+
+	@Override
+	public <T> void remove(String primaryKey, Class<T> entryClass) {
+		removeByDn(primaryKey, entryClass);
+	}
+
+	protected abstract <T> void removeRecursivelyFromDn(String primaryKey, Class<T> entryClass);
+
+	@Deprecated
+	public void removeRecursively(String primaryKey) {
+		removeRecursivelyFromDn(primaryKey, null);
+	}
+
+	@Override
+	public <T> void removeRecursively(String primaryKey, Class<T> entryClass) {
+		removeRecursivelyFromDn(primaryKey, entryClass);
+	}
 
 	@Override
 	public boolean contains(Object entry) {
@@ -446,11 +470,13 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		}
 
 		checkEntryClass(entryClass, true);
+		String[] objectClasses = getTypeObjectClasses(entryClass);
+
 		List<PropertyAnnotation> propertiesAnnotations = getEntryPropertyAnnotations(entryClass);
         Map<String, PropertyAnnotation> propertiesAnnotationsMap = prepareEntryPropertiesTypes(entryClass, propertiesAnnotations);
 
         try {
-			List<AttributeData> results = find(primaryKey, propertiesAnnotationsMap, ldapReturnAttributes);
+			List<AttributeData> results = find(primaryKey, objectClasses, propertiesAnnotationsMap, ldapReturnAttributes);
 			return (results != null) && (results.size() > 0);
 		} catch (EntryPersistenceException ex) {
 			return false;
@@ -465,7 +491,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		List<PropertyAnnotation> propertiesAnnotations = getEntryPropertyAnnotations(entryClass);
 		String[] ldapReturnAttributes = getAttributes(null, propertiesAnnotations, false);
 
-		return contains(baseDN, entryClass, propertiesAnnotations, filter, objectClasses, ldapReturnAttributes);
+		return contains(baseDN, objectClasses, entryClass, propertiesAnnotations, filter, ldapReturnAttributes);
 	}
 
 	protected <T> boolean contains(String baseDN, Class<T> entryClass, List<PropertyAnnotation> propertiesAnnotations, List<AttributeData> attributes, String[] objectClasses,
@@ -476,11 +502,11 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 			attributesFilter = Filter.createANDFilter(attributesFilters);
 		}
 
-		return contains(baseDN, entryClass, propertiesAnnotations, attributesFilter, objectClasses, ldapReturnAttributes);
+		return contains(baseDN, objectClasses, entryClass, propertiesAnnotations, attributesFilter, ldapReturnAttributes);
 	}
 
-	protected abstract <T> boolean contains(String baseDN, Class<T> entryClass, List<PropertyAnnotation> propertiesAnnotations,
-			Filter filter, String[] objectClasses, String[] ldapReturnAttributes);
+	protected abstract <T> boolean contains(String baseDN, String[] objectClasses, Class<T> entryClass,
+			List<PropertyAnnotation> propertiesAnnotations, Filter filter, String[] ldapReturnAttributes);
 
 	@Override
 	public <T> boolean contains(String primaryKey, Class<T> entryClass) {
@@ -622,14 +648,15 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 			currentLdapReturnAttributes = getAttributes(null, propertiesAnnotations, false);
 		}
 
-		List<AttributeData> ldapAttributes = find(primaryKey.toString(), propertiesAnnotationsMap, currentLdapReturnAttributes);
+		String[] objectClasses = getTypeObjectClasses(entryClass);
+		List<AttributeData> ldapAttributes = find(primaryKey.toString(), objectClasses, propertiesAnnotationsMap, currentLdapReturnAttributes);
 
 		entriesAttributes.put(String.valueOf(primaryKey), ldapAttributes);
 		List<T> results = createEntities(entryClass, propertiesAnnotations, entriesAttributes);
 		return results.get(0);
 	}
 
-	protected abstract List<AttributeData> find(String dn, Map<String, PropertyAnnotation> propertiesAnnotationsMap, String... attributes);
+	protected abstract List<AttributeData> find(String dn, String[] objectClasses, Map<String, PropertyAnnotation> propertiesAnnotationsMap, String... attributes);
 
 	protected boolean checkEntryClass(Class<?> entryClass, boolean isAllowSchemaEntry) {
 		if (entryClass == null) {
@@ -1016,6 +1043,15 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 		sortListByProperties(entryClass, entries, sortByProperties);
 	}
+
+    @Override
+    public <T> void importEntry(String dn, Class<T> entryClass, List<AttributeData> data) {
+    	// Check entry class
+		checkEntryClass(entryClass, false);
+		String[] objectClasses = getTypeObjectClasses(entryClass);
+
+		persist(dn, objectClasses, data, 0);
+    }
 
 	@Override
 	public <T> void sortListByProperties(Class<T> entryClass, List<T> entries, boolean caseSensetive,

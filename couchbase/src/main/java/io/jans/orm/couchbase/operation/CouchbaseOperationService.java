@@ -8,7 +8,6 @@ package io.jans.orm.couchbase.operation;
 
 import java.util.List;
 
-import io.jans.orm.exception.AuthenticationException;
 import io.jans.orm.operation.PersistenceOperationService;
 import io.jans.orm.couchbase.impl.CouchbaseBatchOperationWraper;
 import io.jans.orm.couchbase.model.SearchReturnDataType;
@@ -42,8 +41,6 @@ public interface CouchbaseOperationService extends PersistenceOperationService {
     static String META_DOC_ID = "meta_doc_id";
 
     CouchbaseConnectionProvider getConnectionProvider();
-
-    boolean authenticate(String key, String password) throws SearchException, AuthenticationException;
 
     boolean addEntry(String key, JsonObject atts) throws DuplicateEntryException, PersistenceException;
 	boolean addEntry(String key, JsonObject jsonObject, Integer expiration) throws DuplicateEntryException, PersistenceException;

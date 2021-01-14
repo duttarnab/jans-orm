@@ -34,12 +34,12 @@
 		<module>core</module>
 		<module>ldap</module>
 		<module>couchbase</module>
-<!-- 		<module>sql</module> -->
+ 		<module>sql</module>
 		<module>hybrid</module>
 		<module>cdi</module>
 		<module>standalone</module>
 		<module>ldap-sample</module>
-<!-- 		<module>sql-sample</module> -->
+ 		<module>sql-sample</module>
 		<module>couchbase-sample</module>
 	</modules>
 

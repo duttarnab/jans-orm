@@ -6,40 +6,64 @@
 
 package io.jans.orm.couchbase.operation.impl;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.couchbase.client.core.CouchbaseException;
 import com.couchbase.client.core.message.kv.subdoc.multi.Mutation;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
-import com.couchbase.client.java.query.*;
+import com.couchbase.client.java.query.Delete;
+import com.couchbase.client.java.query.N1qlParams;
+import com.couchbase.client.java.query.N1qlQuery;
+import com.couchbase.client.java.query.N1qlQueryResult;
+import com.couchbase.client.java.query.N1qlQueryRow;
+import com.couchbase.client.java.query.Select;
+import com.couchbase.client.java.query.Statement;
 import com.couchbase.client.java.query.consistency.ScanConsistency;
 import com.couchbase.client.java.query.dsl.Expression;
 import com.couchbase.client.java.query.dsl.Sort;
-import com.couchbase.client.java.query.dsl.path.*;
+import com.couchbase.client.java.query.dsl.path.GroupByPath;
+import com.couchbase.client.java.query.dsl.path.LimitPath;
+import com.couchbase.client.java.query.dsl.path.MutateLimitPath;
+import com.couchbase.client.java.query.dsl.path.OffsetPath;
+import com.couchbase.client.java.query.dsl.path.ReturningPath;
 import com.couchbase.client.java.subdoc.DocumentFragment;
 import com.couchbase.client.java.subdoc.MutateInBuilder;
 import com.couchbase.client.java.subdoc.MutationSpec;
+
+import io.jans.orm.couchbase.impl.CouchbaseBatchOperationWraper;
 import io.jans.orm.couchbase.model.BucketMapping;
 import io.jans.orm.couchbase.model.SearchReturnDataType;
 import io.jans.orm.couchbase.operation.CouchbaseOperationService;
 import io.jans.orm.couchbase.operation.watch.OperationDurationUtil;
+import io.jans.orm.exception.AuthenticationException;
 import io.jans.orm.exception.extension.PersistenceExtension;
-import io.jans.orm.exception.operation.*;
+import io.jans.orm.exception.operation.ConnectionException;
+import io.jans.orm.exception.operation.DeleteException;
+import io.jans.orm.exception.operation.DuplicateEntryException;
+import io.jans.orm.exception.operation.EntryNotFoundException;
+import io.jans.orm.exception.operation.PersistenceException;
+import io.jans.orm.exception.operation.SearchException;
 import io.jans.orm.model.BatchOperation;
-import io.jans.orm.operation.auth.PasswordEncryptionHelper;
-import io.jans.orm.couchbase.impl.CouchbaseBatchOperationWraper;
 import io.jans.orm.model.PagedResult;
 import io.jans.orm.model.SearchScope;
+import io.jans.orm.operation.auth.PasswordEncryptionHelper;
 import io.jans.orm.util.ArrayHelper;
 import io.jans.orm.util.StringHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * Base service which performs all supported Couchbase operations
@@ -48,7 +72,7 @@ import java.util.Map.Entry;
  */
 public class CouchbaseOperationServiceImpl implements CouchbaseOperationService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CouchbaseConnectionProvider.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CouchbaseOperationServiceImpl.class);
 
     private Properties props;
     private CouchbaseConnectionProvider connectionProvider;
@@ -106,10 +130,10 @@ public class CouchbaseOperationServiceImpl implements CouchbaseOperationService 
         return connectionProvider;
     }
 
-    @Override
-    public boolean authenticate(final String key, final String password) throws SearchException {
-        return authenticateImpl(key, password);
-    }
+	@Override
+	public boolean authenticate(String key, String password, String objectClass) throws ConnectionException, SearchException, AuthenticationException {
+		return authenticateImpl(key, password);
+	}
 
     private boolean authenticateImpl(final String key, final String password) throws SearchException {
         Instant startTime = OperationDurationUtil.instance().now();
@@ -183,7 +207,7 @@ public class CouchbaseOperationServiceImpl implements CouchbaseOperationService 
 	}
 
     @Deprecated
-    protected boolean updateEntry(String key, JsonObject attrs) throws UnsupportedOperationException, SearchException {
+    protected boolean updateEntry(String key, JsonObject attrs) throws UnsupportedOperationException, PersistenceException {
         List<MutationSpec> mods = new ArrayList<MutationSpec>();
 
         for (Entry<String, Object> attrEntry : attrs.toMap().entrySet()) {
@@ -203,7 +227,7 @@ public class CouchbaseOperationServiceImpl implements CouchbaseOperationService 
     }
 
     @Override
-    public boolean updateEntry(String key, List<MutationSpec> mods, Integer expiration) throws UnsupportedOperationException, SearchException {
+    public boolean updateEntry(String key, List<MutationSpec> mods, Integer expiration) throws UnsupportedOperationException, PersistenceException {
         Instant startTime = OperationDurationUtil.instance().now();
         
         BucketMapping bucketMapping = connectionProvider.getBucketMappingByKey(key);
@@ -215,7 +239,7 @@ public class CouchbaseOperationServiceImpl implements CouchbaseOperationService 
         return result;
     }
 
-	private boolean updateEntryImpl(BucketMapping bucketMapping, String key, List<MutationSpec> mods, Integer expiration) throws SearchException {
+	private boolean updateEntryImpl(BucketMapping bucketMapping, String key, List<MutationSpec> mods, Integer expiration) throws PersistenceException {
 		try {
             MutateInBuilder builder = bucketMapping.getBucket().mutateIn(key);
             if (expiration != null) {
@@ -224,11 +248,11 @@ public class CouchbaseOperationServiceImpl implements CouchbaseOperationService 
 
             return modifyEntry(builder, mods);
         } catch (final CouchbaseException ex) {
-            throw new SearchException("Failed to update entry", ex);
+            throw new PersistenceException("Failed to update entry", ex);
         }
 	}
 
-    protected boolean modifyEntry(MutateInBuilder builder, List<MutationSpec> mods) throws UnsupportedOperationException, SearchException {
+    protected boolean modifyEntry(MutateInBuilder builder, List<MutationSpec> mods) throws UnsupportedOperationException, PersistenceException {
         try {
             for (MutationSpec mod : mods) {
                 Mutation type = mod.type();
@@ -250,7 +274,7 @@ public class CouchbaseOperationServiceImpl implements CouchbaseOperationService 
 
             return false;
         } catch (final CouchbaseException ex) {
-            throw new SearchException("Failed to update entry", ex);
+            throw new PersistenceException("Failed to update entry", ex);
         }
     }
 
@@ -400,6 +424,7 @@ public class CouchbaseOperationServiceImpl implements CouchbaseOperationService 
                 JsonDocument doc = bucket.get(key);
                 if (doc != null) {
                 	Set<String> docAtributesKeep = new HashSet<String>(Arrays.asList(attributes));
+                	docAtributesKeep.add(CouchbaseOperationService.DN);
 
                 	for (Iterator<String> it = doc.content().getNames().iterator(); it.hasNext();) {
 						String docAtribute = (String) it.next();
@@ -479,9 +504,9 @@ public class CouchbaseOperationServiceImpl implements CouchbaseOperationService 
             CouchbaseBatchOperationWraper<O> batchOperationWraper, SearchReturnDataType returnDataType, int start, int count, int pageSize) throws SearchException {
         Bucket bucket = bucketMapping.getBucket();
 
-        BatchOperation<O> ldapBatchOperation = null;
+        BatchOperation<O> batchOperation = null;
         if (batchOperationWraper != null) {
-            ldapBatchOperation = (BatchOperation<O>) batchOperationWraper.getBatchOperation();
+            batchOperation = (BatchOperation<O>) batchOperationWraper.getBatchOperation();
         }
 
         if (LOG.isTraceEnabled()) {
@@ -516,7 +541,7 @@ public class CouchbaseOperationServiceImpl implements CouchbaseOperationService 
         if (select == null) {
             select = new String[] { "jans_doc.*", CouchbaseOperationService.DN };
         } else if ((select.length == 1) && StringHelper.isEmpty(select[0])) {
-        	// Compatibility with Couchbase persistence layer when application pass filter new String[] { "" }
+        	// Compatibility with base persistence layer when application pass filter new String[] { "" }
             select = new String[] { CouchbaseOperationService.DN };
         } else {
             boolean hasDn = Arrays.asList(select).contains(CouchbaseOperationService.DN);
@@ -561,16 +586,16 @@ public class CouchbaseOperationServiceImpl implements CouchbaseOperationService 
 	
 	                    lastSearchResultList = lastResult.allRows();
 	
-	                    if (ldapBatchOperation != null) {
-	                        collectSearchResult = ldapBatchOperation.collectSearchResult(lastSearchResultList.size());
+	                    if (batchOperation != null) {
+	                        collectSearchResult = batchOperation.collectSearchResult(lastSearchResultList.size());
 	                    }
 	                    if (collectSearchResult) {
 	                        searchResultList.addAll(lastSearchResultList);
 	                    }
 	
-	                    if (ldapBatchOperation != null) {
+	                    if (batchOperation != null) {
 	                        List<O> entries = batchOperationWraper.createEntities(lastSearchResultList);
-	                        ldapBatchOperation.performAction(entries);
+	                        batchOperation.performAction(entries);
 	                    }
 	
 	                    resultCount += lastSearchResultList.size();

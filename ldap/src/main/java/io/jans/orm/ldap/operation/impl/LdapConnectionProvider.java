@@ -62,15 +62,21 @@ public class LdapConnectionProvider {
 
     private boolean supportsSubtreeDeleteRequestControl;
 
+	private Properties props;
 
     protected LdapConnectionProvider() {
     }
 
     public LdapConnectionProvider(Properties props) {
-        create(props);
+        this.props = props;
     }
 
-    protected void create(Properties props) {
+    public void create(Properties props) {
+    	this.props = props;
+    	create();
+    }
+
+    public void create() {
         try {
             init(props);
         } catch (LDAPException ex) {

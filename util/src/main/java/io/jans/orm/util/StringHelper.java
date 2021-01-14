@@ -317,7 +317,7 @@ public final class StringHelper {
         }
     }
 
-    public static long toLong(String string, int defaultValue) {
+    public static long toLong(String string, long defaultValue) {
         if (isEmpty(string)) {
             return defaultValue;
         }

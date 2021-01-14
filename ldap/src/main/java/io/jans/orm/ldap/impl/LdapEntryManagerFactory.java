@@ -52,6 +52,7 @@ public class LdapEntryManagerFactory implements PersistenceEntryManagerFactory {
 		Properties entryManagerConf = PropertiesHelper.filterProperties(conf, PERSISTENCE_TYPE);
 
 		LdapConnectionProvider connectionProvider = new LdapConnectionProvider(entryManagerConf);
+		connectionProvider.create();
         if (!connectionProvider.isCreated()) {
             throw new ConfigurationException(
                     String.format("Failed to create LDAP connection pool! Result code: '%s'", connectionProvider.getCreationResultCode()));
@@ -59,6 +60,7 @@ public class LdapEntryManagerFactory implements PersistenceEntryManagerFactory {
         LOG.debug("Created connectionProvider '{}' with code '{}'", connectionProvider, connectionProvider.getCreationResultCode());
 
         LdapConnectionProvider bindConnectionProvider = new LdapAuthConnectionProvider(entryManagerConf);
+		connectionProvider.create();
         if (!bindConnectionProvider.isCreated()) {
             throw new ConfigurationException(
                     String.format("Failed to create LDAP bind connection pool! Result code: '%s'", bindConnectionProvider.getCreationResultCode()));

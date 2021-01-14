@@ -158,12 +158,8 @@ public class LdapEntryManager extends BaseEntryManager implements Serializable {
         remove(dnValue.toString());
     }
 
-    protected void persist(String dn, List<AttributeData> attributes) {
-    	persist(dn, attributes);
-    }
-
     @Override
-    protected void persist(String dn, List<AttributeData> attributes, Integer expiration) {
+    protected void persist(String dn, String[] objectClasses, List<AttributeData> attributes, Integer expiration) {
         List<Attribute> ldapAttributes = new ArrayList<Attribute>(attributes.size());
         for (AttributeData attribute : attributes) {
             String attributeName = attribute.getName();
@@ -194,7 +190,7 @@ public class LdapEntryManager extends BaseEntryManager implements Serializable {
     }
 
     @Override
-    public void merge(String dn, List<AttributeDataModification> attributeDataModifications, Integer expiration) {
+    public void merge(String dn, String[] objectClasses, List<AttributeDataModification> attributeDataModifications, Integer expiration) {
         // Update entry
         try {
             List<Modification> modifications = new ArrayList<Modification>(attributeDataModifications.size());
@@ -297,7 +293,7 @@ public class LdapEntryManager extends BaseEntryManager implements Serializable {
     }
 
     @Override
-    public void remove(String dn) {
+    public <T> void removeByDn(String dn, Class<T> entryClass) {
         // Remove entry
         try {
             for (DeleteNotifier subscriber : subscribers) {
@@ -351,7 +347,7 @@ public class LdapEntryManager extends BaseEntryManager implements Serializable {
     }
 
 	@Override
-    public void removeRecursively(String dn) {
+    public <T> void removeRecursivelyFromDn(String dn, Class<T> entryClass) {
         try {
             if (getOperationService().getConnectionProvider().isSupportsSubtreeDeleteRequestControl()) {
                 for (DeleteNotifier subscriber : subscribers) {
@@ -397,7 +393,7 @@ public class LdapEntryManager extends BaseEntryManager implements Serializable {
     }
 
 	@Override
-    protected List<AttributeData> find(String dn, Map<String, PropertyAnnotation> propertiesAnnotationsMap, String... ldapReturnAttributes) {
+    protected List<AttributeData> find(String dn, String[] objectClasses, Map<String, PropertyAnnotation> propertiesAnnotationsMap, String... ldapReturnAttributes) {
         try {
             // Load entry
             SearchResultEntry entry = getOperationService().lookup(dn, ldapReturnAttributes);
@@ -555,7 +551,7 @@ public class LdapEntryManager extends BaseEntryManager implements Serializable {
     }
 
     @Override
-    protected <T> boolean contains(String baseDN, Class<T> entryClass, List<PropertyAnnotation> propertiesAnnotations, Filter filter, String[] objectClasses, String[] ldapReturnAttributes) {
+    protected <T> boolean contains(String baseDN, String[] objectClasses, Class<T> entryClass, List<PropertyAnnotation> propertiesAnnotations, Filter filter, String[] ldapReturnAttributes) {
         if (StringHelper.isEmptyString(baseDN)) {
             throw new MappingException("Base DN to check contain entries is null");
         }
@@ -727,7 +723,7 @@ public class LdapEntryManager extends BaseEntryManager implements Serializable {
 
             String bindDn = searchResult.getSearchEntries().get(0).getDN();
 
-            return getOperationService().authenticate(bindDn, password);
+            return getOperationService().authenticate(bindDn, password, null);
         } catch (ConnectionException ex) {
             throw new AuthenticationException(String.format("Failed to authenticate user: %s", userName), ex);
         } catch (SearchScopeException ex) {
@@ -738,10 +734,16 @@ public class LdapEntryManager extends BaseEntryManager implements Serializable {
     }
 
     @Override
+    @Deprecated
     public boolean authenticate(String bindDn, String password) {
+    	return authenticate(bindDn, password, null);
+    }
+
+    @Override
+    public <T> boolean authenticate(String bindDn, String password, Class<T> entryClass) {
         try {
-            return getOperationService().authenticate(bindDn, password);
-        } catch (ConnectionException ex) {
+            return getOperationService().authenticate(bindDn, password, null);
+        } catch (Exception ex) {
             throw new AuthenticationException(String.format("Failed to authenticate DN: %s", bindDn), ex);
         }
     }
@@ -877,11 +879,6 @@ public class LdapEntryManager extends BaseEntryManager implements Serializable {
         } catch (ConnectionException ex) {
             throw new EntryPersistenceException(String.format("Failed to find entry: %s", dn), ex);
         }
-    }
-
-    @Override
-    public void importEntry(String dn, List<AttributeData> data) {
-    	persist(dn, data);
     }
 
     public int getSupportedLDAPVersion() {

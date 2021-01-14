@@ -1,0 +1,70 @@
+/*
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
+ *
+ * Copyright (c) 2020, Janssen Project
+ */
+
+package io.jans.orm.sql.operation;
+
+import java.sql.ResultSet;
+import java.util.Collection;
+import java.util.List;
+
+import com.querydsl.core.types.OrderSpecifier;
+
+import io.jans.orm.exception.AuthenticationException;
+import io.jans.orm.exception.operation.DeleteException;
+import io.jans.orm.exception.operation.DuplicateEntryException;
+import io.jans.orm.exception.operation.EntryNotFoundException;
+import io.jans.orm.exception.operation.PersistenceException;
+import io.jans.orm.exception.operation.SearchException;
+import io.jans.orm.model.AttributeData;
+import io.jans.orm.model.AttributeDataModification;
+import io.jans.orm.model.PagedResult;
+import io.jans.orm.model.SearchScope;
+import io.jans.orm.operation.PersistenceOperationService;
+import io.jans.orm.sql.impl.SqlBatchOperationWraper;
+import io.jans.orm.sql.model.ConvertedExpression;
+import io.jans.orm.sql.model.SearchReturnDataType;
+import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
+
+/**
+ * SQL operation service interface
+ *
+ * @author Yuriy Movchan Date: 12/22/2020
+ */
+public interface SqlOperationService extends PersistenceOperationService {
+
+    static String DN = "dn";
+    static String UID = "uid";
+    static String USER_PASSWORD = "userPassword";
+    static String OBJECT_CLASS = "objectClass";
+
+    static String DOC_ALIAS = "doc";
+    static String DOC_ID = "doc_id";
+
+    SqlConnectionProvider getConnectionProvider();
+
+    boolean addEntry(String key, String objectClass, Collection<AttributeData> attributes) throws DuplicateEntryException, PersistenceException;
+
+    boolean updateEntry(String key, String objectClass, List<AttributeDataModification> mods) throws UnsupportedOperationException, PersistenceException;
+
+    boolean delete(String key, String objectClass) throws EntryNotFoundException;
+	long delete(String key, String objectClass, ConvertedExpression expression, int count) throws DeleteException;
+
+	boolean deleteRecursively(String key, String objectClass) throws EntryNotFoundException, SearchException;
+
+    ResultSet lookup(String key, String objectClass, String... attributes) throws SearchException;
+
+    <O> PagedResult<ResultSet> search(String key, String objectClass, ConvertedExpression expression, SearchScope scope,
+            String[] attributes, OrderSpecifier<?>[] orderBy, SqlBatchOperationWraper<O> batchOperationWraper, SearchReturnDataType returnDataType,
+            int start, int count, int pageSize) throws SearchException;
+
+    String[] createStoragePassword(String[] passwords);
+
+    boolean isBinaryAttribute(String attribute);
+    boolean isCertificateAttribute(String attribute);
+
+    boolean destroy();
+
+}

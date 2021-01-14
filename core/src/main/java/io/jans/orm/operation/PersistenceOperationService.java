@@ -6,7 +6,10 @@
 
 package io.jans.orm.operation;
 
+import io.jans.orm.exception.AuthenticationException;
 import io.jans.orm.exception.extension.PersistenceExtension;
+import io.jans.orm.exception.operation.ConnectionException;
+import io.jans.orm.exception.operation.SearchException;
 
 /**
  * Base interface for Operation Service
@@ -16,6 +19,8 @@ import io.jans.orm.exception.extension.PersistenceExtension;
 public interface PersistenceOperationService {
 
     boolean isConnected();
+
+    boolean authenticate(String key, String password, String objectClass) throws ConnectionException, SearchException, AuthenticationException;
 
 	public void setPersistenceExtension(PersistenceExtension persistenceExtension);
 

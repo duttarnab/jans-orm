@@ -16,15 +16,15 @@ import javax.persistence.FlushModeType;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
 
-import io.jans.orm.exception.extension.PersistenceExtension;
-import io.jans.orm.model.BatchOperation;
-import io.jans.orm.operation.PersistenceOperationService;
-import io.jans.orm.search.filter.Filter;
 import io.jans.orm.event.DeleteNotifier;
+import io.jans.orm.exception.extension.PersistenceExtension;
 import io.jans.orm.model.AttributeData;
+import io.jans.orm.model.BatchOperation;
 import io.jans.orm.model.PagedResult;
 import io.jans.orm.model.SearchScope;
 import io.jans.orm.model.SortOrder;
+import io.jans.orm.operation.PersistenceOperationService;
+import io.jans.orm.search.filter.Filter;
 
 /**
  * Methods which Entry Manager must provide
@@ -33,7 +33,10 @@ import io.jans.orm.model.SortOrder;
  */
 public interface PersistenceEntryManager extends EntityManager {
 
+	@Deprecated
     boolean authenticate(String primaryKey, String password);
+    <T> boolean authenticate(String primaryKey, String password, Class<T> entryClass);
+
     <T> boolean authenticate(String baseDN, Class<T> entryClass, String userName, String password);
 
 	void persist(Object entry);
@@ -78,9 +81,17 @@ public interface PersistenceEntryManager extends EntityManager {
                                         SortOrder sortOrder, int start, int count, int chunkSize);
 
 	void remove(Object entry);
-    void remove(String dn);
-	<T> int remove(String dn, Class<T> entryClass, Filter filter, int count);
+
+	@Deprecated
+	void remove(String dn);
+	<T> void remove(String primaryKey, Class<T> entryClass);
+
+	<T> int remove(String primaryKey, Class<T> entryClass, Filter filter, int count);
+	
+	@Deprecated
     void removeRecursively(String primaryKey);
+
+	<T> void removeRecursively(String primaryKey, Class<T> entryClass);
 
     boolean hasBranchesSupport(String primaryKey);
     boolean hasExpirationSupport(String primaryKey);
@@ -104,7 +115,7 @@ public interface PersistenceEntryManager extends EntityManager {
 
     List<AttributeData> exportEntry(String dn);
 
-    void importEntry(String dn, List<AttributeData> data);
+    <T> void importEntry(String dn, Class<T> entryClass, List<AttributeData> data);
 
     PersistenceOperationService getOperationService();
     PersistenceEntryManager getPersistenceEntryManager(String persistenceType);

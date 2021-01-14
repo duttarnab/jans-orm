@@ -96,8 +96,10 @@ public class CouchbaseFilterConverter {
 
                     Boolean isMultiValuedDetected = determineMultiValuedByType(tmpFilter.getAttributeName(), propertiesAnnotationsMap);
                 	if (!Boolean.FALSE.equals(isMultiValuedDetected)) {
-                		canJoinOrFilters = false;
-                    	continue;
+                		if (!Boolean.FALSE.equals(currentGenericFilter.getMultiValued())) { 
+                			canJoinOrFilters = false;
+                			continue;
+                		}
                 	}
                 	
             		if (joinOrAttributeName == null) {
@@ -134,8 +136,9 @@ public class CouchbaseFilterConverter {
                 		for (Filter eqFilter : joinOrFilters) {
                 			jsonArrayValues.add(eqFilter.getAssertionValue());
             			}
+                		String internalAttributeName = toInternalAttribute(joinOrAttributeName);
                         Expression exp = Expression
-                                .par(Expression.path(Expression.path(joinOrAttributeName)).in(jsonArrayValues));
+                                .par(Expression.path(Expression.path(internalAttributeName)).in(jsonArrayValues));
                         return ConvertedExpression.build(exp, requiredConsistency);
                 	} else {
 	                    Expression result = expFilters[0].expression();
@@ -159,24 +162,24 @@ public class CouchbaseFilterConverter {
             		Filter clonedFilter = currentGenericFilter.getFilters()[0];
             		clonedFilter.setAttributeName(internalAttribute + "_");
 
-            		ConvertedExpression nameConvertedExpression = convertToCouchbaseFilter(clonedFilter, propertiesAnnotationsMap);
+            		ConvertedExpression nameConvertedExpression = convertToCouchbaseFilter(clonedFilter, propertiesAnnotationsMap, processor);
                 	return ConvertedExpression.build(Collections.anyIn(internalAttribute + "_", Expression.path(Expression.path(internalAttribute))).satisfies(nameConvertedExpression.expression().eq(buildTypedExpression(currentGenericFilter))), requiredConsistency);
             	}
 
             	return ConvertedExpression.build(Collections.anyIn(internalAttribute + "_", Expression.path(Expression.path(internalAttribute))).satisfies(Expression.path(Expression.path(internalAttribute + "_").eq(buildTypedExpression(currentGenericFilter)))), requiredConsistency);
             } else if (Boolean.FALSE.equals(currentGenericFilter.getMultiValued()) || Boolean.FALSE.equals(isMultiValuedDetected)) {
             	if (hasSubFilters) {
-            		ConvertedExpression nameConvertedExpression = convertToCouchbaseFilter(currentGenericFilter.getFilters()[0], propertiesAnnotationsMap);
+            		ConvertedExpression nameConvertedExpression = convertToCouchbaseFilter(currentGenericFilter.getFilters()[0], propertiesAnnotationsMap, processor);
                 	return ConvertedExpression.build(nameConvertedExpression.expression().eq(buildTypedExpression(currentGenericFilter)), requiredConsistency);
             	}
             	return ConvertedExpression.build(Expression.path(Expression.path(toInternalAttribute(currentGenericFilter))).eq(buildTypedExpression(currentGenericFilter)), requiredConsistency);
             } else if (hasSubFilters && (isMultiValuedDetected == null)) {
-        		ConvertedExpression nameConvertedExpression = convertToCouchbaseFilter(currentGenericFilter.getFilters()[0], propertiesAnnotationsMap);
+        		ConvertedExpression nameConvertedExpression = convertToCouchbaseFilter(currentGenericFilter.getFilters()[0], propertiesAnnotationsMap, processor);
             	return ConvertedExpression.build(nameConvertedExpression.expression().eq(buildTypedExpression(currentGenericFilter)), nameConvertedExpression.consistency() || requiredConsistency);
             } else {
             	Expression nameExpression;
             	if (hasSubFilters) {
-            		ConvertedExpression nameConvertedExpression = convertToCouchbaseFilter(currentGenericFilter.getFilters()[0], propertiesAnnotationsMap);
+            		ConvertedExpression nameConvertedExpression = convertToCouchbaseFilter(currentGenericFilter.getFilters()[0], propertiesAnnotationsMap, processor);
             		nameExpression = nameConvertedExpression.expression();
             	} else {
             		nameExpression = Expression.path(toInternalAttribute(currentGenericFilter));
@@ -275,6 +278,10 @@ public class CouchbaseFilterConverter {
 			}
 		}
 
+		return toInternalAttribute(attributeName);
+	}
+
+	private String toInternalAttribute(String attributeName) {
 		if (couchbaseEntryManager == null) {
 			return attributeName;
 		}
