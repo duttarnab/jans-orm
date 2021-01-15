@@ -16,6 +16,16 @@ import io.jans.orm.util.StringHelper;
  * @author Yuriy Movchan Date: 05/30/2018
  */
 public class GenericKeyConverter {
+	
+	private boolean useAllRdn;
+
+	public GenericKeyConverter() {
+		this.useAllRdn = true;
+	}
+
+	public GenericKeyConverter(boolean useAllRdn) {
+		this.useAllRdn = useAllRdn;
+	}
 
     public ParsedKey convertToKey(String dn) {
         if (StringHelper.isEmpty(dn)) {
@@ -46,6 +56,9 @@ public class GenericKeyConverter {
             }
 
             result.insert(0, "_" + value);
+            if (!useAllRdn) {
+            	break;
+            }
         }
 
         String key = result.toString();

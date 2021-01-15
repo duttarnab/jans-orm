@@ -375,7 +375,7 @@ public class HybridEntryManager extends BaseEntryManager implements Serializable
     }
 
 	@Override
-	public <T> void removeByDn(String primaryKey, Class<T> entryClass) {
+	public <T> void removeByDn(String primaryKey, String[] objectClasses) {
 		PersistenceEntryManager persistenceEntryManager = getEntryManagerForDn(primaryKey);
     	persistenceEntryManager.remove(primaryKey);
 	}
@@ -398,7 +398,7 @@ public class HybridEntryManager extends BaseEntryManager implements Serializable
     }
 
 	@Override
-    public <T> void removeRecursivelyFromDn(String dn, Class<T> entryClass) {
+    public <T> void removeRecursivelyFromDn(String dn, String[] objectClasses) {
     	PersistenceEntryManager persistenceEntryManager = getEntryManagerForDn(dn);
     	persistenceEntryManager.removeRecursively(dn);
     }

@@ -263,7 +263,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
     }
 
     @Override
-    protected <T> void removeByDn(String dn, Class<T> entryClass) {
+    protected <T> void removeByDn(String dn, String[] objectClasses) {
         // Remove entry
         try {
             for (DeleteNotifier subscriber : subscribers) {
@@ -279,7 +279,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
     }
 
     @Override
-    public <T> void removeRecursivelyFromDn(String dn, Class<T> entryClass) {
+    public <T> void removeRecursivelyFromDn(String dn, String[] objectClasses) {
         try {
             for (DeleteNotifier subscriber : subscribers) {
                 subscriber.onBeforeRemove(dn);

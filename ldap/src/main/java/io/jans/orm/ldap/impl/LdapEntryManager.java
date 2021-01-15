@@ -293,7 +293,7 @@ public class LdapEntryManager extends BaseEntryManager implements Serializable {
     }
 
     @Override
-    public <T> void removeByDn(String dn, Class<T> entryClass) {
+    public <T> void removeByDn(String dn, String[] objectClasses) {
         // Remove entry
         try {
             for (DeleteNotifier subscriber : subscribers) {
@@ -347,7 +347,7 @@ public class LdapEntryManager extends BaseEntryManager implements Serializable {
     }
 
 	@Override
-    public <T> void removeRecursivelyFromDn(String dn, Class<T> entryClass) {
+    public <T> void removeRecursivelyFromDn(String dn, String[] objectClasses) {
         try {
             if (getOperationService().getConnectionProvider().isSupportsSubtreeDeleteRequestControl()) {
                 for (DeleteNotifier subscriber : subscribers) {

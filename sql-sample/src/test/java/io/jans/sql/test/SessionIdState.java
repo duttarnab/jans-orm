@@ -4,7 +4,7 @@
  * Copyright (c) 2020, Janssen Project
  */
 
-package io.jans.couchbase.test;
+package io.jans.sql.test;
 
 import io.jans.orm.annotation.AttributeEnum;
 
@@ -12,8 +12,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author Yuriy Zabrovarnyy
- */
+*
+* @author Yuriy Movchan Date: 01/15/2020
+*/
 public enum SessionIdState implements AttributeEnum {
 
     UNAUTHENTICATED("unauthenticated"), AUTHENTICATED("authenticated");

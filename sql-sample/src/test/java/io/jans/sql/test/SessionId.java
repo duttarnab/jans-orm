@@ -4,28 +4,34 @@
  * Copyright (c) 2020, Janssen Project
  */
 
-package io.jans.couchbase.test;
+package io.jans.sql.test;
 
-import com.couchbase.client.java.cluster.User;
 import com.google.common.collect.Maps;
+
 import io.jans.orm.annotation.*;
 import io.jans.orm.model.base.Deletable;
 
+import javax.annotation.Nonnull;
 import javax.inject.Named;
 import javax.persistence.Transient;
+
+import org.apache.commons.lang.StringUtils;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * @author Yuriy Zabrovarnyy
- * @author Javier Rojas Blum
- * @version December 8, 2018
- */
+*
+* @author Yuriy Movchan Date: 01/15/2020
+*/
 @Named("sessionUser")
 @DataEntry
 @ObjectClass(value = "jansSessId")
 public class SessionId implements Deletable, Serializable {
+
+    public static final String OLD_SESSION_ID_ATTR_KEY = "old_session_id";
 
     private static final long serialVersionUID = -237476411915686378L;
 
@@ -34,6 +40,9 @@ public class SessionId implements Deletable, Serializable {
 
     @AttributeName(name = "jansId")
     private String id;
+
+    @AttributeName(name = "sid")
+    private String outsideSid;
 
     @AttributeName(name = "jansLastAccessTime")
     private Date lastUsedAt;
@@ -74,9 +83,6 @@ public class SessionId implements Deletable, Serializable {
 
     @Transient
     private transient boolean persisted;
-
-    @Transient
-    private User user;
 
     @Expiration
     private int ttl;
@@ -156,14 +162,6 @@ public class SessionId implements Deletable, Serializable {
         userDn = p_userDn != null ? p_userDn : "";
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
     public Date getAuthenticationTime() {
         return authenticationTime;
     }
@@ -180,6 +178,7 @@ public class SessionId implements Deletable, Serializable {
         this.permissionGranted = permissionGranted;
     }
 
+    @Nonnull
     public Map<String, String> getSessionAttributes() {
         if (sessionAttributes == null) {
             sessionAttributes = Maps.newHashMap();
@@ -223,6 +222,17 @@ public class SessionId implements Deletable, Serializable {
         this.creationDate = creationDate;
     }
 
+    public void setOutsideSid(String outsideSid) {
+        this.outsideSid = outsideSid;
+    }
+
+    public String getOutsideSid() {
+        if (StringUtils.isBlank(outsideSid)) {
+            outsideSid = UUID.randomUUID().toString();
+        }
+        return outsideSid;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -239,22 +249,12 @@ public class SessionId implements Deletable, Serializable {
     }
 
     @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("SessionIdTest {");
-        sb.append("dn='").append(dn).append('\'');
-        sb.append(", id='").append(id).append('\'');
-        sb.append(", lastUsedAt=").append(lastUsedAt);
-        sb.append(", userDn='").append(userDn).append('\'');
-        sb.append(", authenticationTime=").append(authenticationTime);
-        sb.append(", state=").append(state);
-        sb.append(", sessionState='").append(sessionState).append('\'');
-        sb.append(", permissionGranted=").append(permissionGranted);
-        sb.append(", isJwt=").append(isJwt);
-        sb.append(", jwt=").append(jwt);
-        sb.append(", sessionAttributes=").append(sessionAttributes);
-        sb.append(", persisted=").append(persisted);
-        sb.append("}");
-        return sb.toString();
-    }
+	public String toString() {
+		return "SessionId [dn=" + dn + ", id=" + id + ", outsideSid=" + outsideSid + ", lastUsedAt=" + lastUsedAt
+				+ ", userDn=" + userDn + ", authenticationTime=" + authenticationTime + ", state=" + state
+				+ ", sessionState=" + sessionState + ", permissionGranted=" + permissionGranted + ", isJwt=" + isJwt
+				+ ", jwt=" + jwt + ", sessionAttributes=" + sessionAttributes + ", expirationDate=" + expirationDate
+				+ ", deletable=" + deletable + ", creationDate=" + creationDate + ", persisted=" + persisted + ", ttl="
+				+ ttl + "]";
+	}
 }

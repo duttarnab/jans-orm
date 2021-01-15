@@ -174,7 +174,7 @@ public class SqlConnectionProvider {
 
         try (Connection con = this.poolingDataSource.getConnection()) {
         	DatabaseMetaData databaseMetaData = con.getMetaData();
-        	this.dbType = databaseMetaData.getDatabaseProductName();
+        	this.dbType = databaseMetaData.getDatabaseProductName().toLowerCase();
             LOG.debug("Database product name: '{}'", dbType);
         } catch (Exception ex) {
             new ConnectionException("Failed to detect database product name", ex);
@@ -193,7 +193,6 @@ public class SqlConnectionProvider {
 
 			this.sqlQueryFactory = new SQLQueryFactory(configuration, dataSource);
 		}
-
 	}
 
     private void openWithWaitImpl() throws Exception {

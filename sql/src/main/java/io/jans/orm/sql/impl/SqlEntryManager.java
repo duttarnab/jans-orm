@@ -70,7 +70,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
     private Logger log;
 
     private final SqlFilterConverter FILTER_CONVERTER;
-    private static final GenericKeyConverter KEY_CONVERTER = new GenericKeyConverter();
+    private static final GenericKeyConverter KEY_CONVERTER = new GenericKeyConverter(false);
 
     private List<DeleteNotifier> subscribers;
 
@@ -190,13 +190,18 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
                 } else {
                 	resultAttributeData = new AttributeData(toInternalAttribute(attributeName), realValues);
                 }
+
+                resultAttributes.add(resultAttributeData);
             }
         }
-        resultAttributes.add(new AttributeData(SqlOperationService.DN, dn));
 
         // Persist entry
         try {
-            boolean result = getOperationService().addEntry(toSQLKey(dn).getKey(), objectClasses[0], resultAttributes);
+        	ParsedKey parsedKey = toSQLKey(dn);
+            resultAttributes.add(new AttributeData(SqlOperationService.DN, dn));
+            resultAttributes.add(new AttributeData(SqlOperationService.DOC_ID, parsedKey.getKey()));
+
+            boolean result = getOperationService().addEntry(parsedKey.getKey(), objectClasses[0], resultAttributes);
             if (!result) {
                 throw new EntryPersistenceException(String.format("Failed to persist entry: '%s'", dn));
             }
@@ -258,14 +263,10 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
     }
 
     @Override
-    protected <T> void removeByDn(String dn, Class<T> entryClass) {
-    	if (entryClass == null) {
+    protected <T> void removeByDn(String dn, String[] objectClasses) {
+    	if (ArrayHelper.isEmpty(objectClasses)) {
     		throw new UnsupportedOperationException("Entry class is manadatory for remove operation!");
     	}
-
-    	// Check entry class
-		checkEntryClass(entryClass, false);
-		String[] objectClasses = getTypeObjectClasses(entryClass);
 
 		// Remove entry
         try {
@@ -282,16 +283,12 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
     }
 
     @Override
-    protected <T> void removeRecursivelyFromDn(String dn, Class<T> entryClass) {
-    	if (entryClass == null) {
+    protected <T> void removeRecursivelyFromDn(String dn, String[] objectClasses) {
+    	if (ArrayHelper.isEmpty(objectClasses)) {
     		throw new UnsupportedOperationException("Entry class is manadatory for recursive remove operation!");
     	}
-
-		// Check entry class
-		checkEntryClass(entryClass, false);
-		String[] objectClasses = getTypeObjectClasses(entryClass);
 		
-		remove(dn, entryClass);
+    	removeByDn(dn, objectClasses);
 
 		try {
             for (DeleteNotifier subscriber : subscribers) {

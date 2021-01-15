@@ -95,11 +95,9 @@ public class CouchbaseFilterConverter {
                     }
 
                     Boolean isMultiValuedDetected = determineMultiValuedByType(tmpFilter.getAttributeName(), propertiesAnnotationsMap);
-                	if (!Boolean.FALSE.equals(isMultiValuedDetected)) {
-                		if (!Boolean.FALSE.equals(currentGenericFilter.getMultiValued())) { 
-                			canJoinOrFilters = false;
-                			continue;
-                		}
+                	if (!Boolean.FALSE.equals(isMultiValuedDetected) && !Boolean.FALSE.equals(currentGenericFilter.getMultiValued())) {
+            			canJoinOrFilters = false;
+            			continue;
                 	}
                 	
             		if (joinOrAttributeName == null) {

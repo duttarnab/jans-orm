@@ -419,7 +419,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 	protected abstract void merge(String dn, String[] objectClasses, List<AttributeDataModification> attributeDataModifications, Integer expiration);
 
-	protected abstract <T> void removeByDn(String dn, Class<T> entryClass);
+	protected abstract <T> void removeByDn(String dn, String[] objectClasses);
 
 	@Deprecated
 	public void remove(String primaryKey) {
@@ -428,10 +428,18 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 	@Override
 	public <T> void remove(String primaryKey, Class<T> entryClass) {
-		removeByDn(primaryKey, entryClass);
+		String[] objectClasses = null;
+		
+		if (entryClass == null) {
+			// Check entry class
+			checkEntryClass(entryClass, false);
+			objectClasses = getTypeObjectClasses(entryClass);
+		}
+
+		removeByDn(primaryKey, objectClasses);
 	}
 
-	protected abstract <T> void removeRecursivelyFromDn(String primaryKey, Class<T> entryClass);
+	protected abstract <T> void removeRecursivelyFromDn(String primaryKey, String[] objectClasses);
 
 	@Deprecated
 	public void removeRecursively(String primaryKey) {
@@ -440,7 +448,15 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 	@Override
 	public <T> void removeRecursively(String primaryKey, Class<T> entryClass) {
-		removeRecursivelyFromDn(primaryKey, entryClass);
+		String[] objectClasses = null;
+		
+		if (entryClass == null) {
+			// Check entry class
+			checkEntryClass(entryClass, false);
+			objectClasses = getTypeObjectClasses(entryClass);
+		}
+
+		removeRecursivelyFromDn(primaryKey, objectClasses);
 	}
 
 	@Override

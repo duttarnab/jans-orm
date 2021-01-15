@@ -6,12 +6,7 @@
 
 package io.jans.orm.sql.impl;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
@@ -83,26 +78,5 @@ public class SqlEntryManagerFactory implements PersistenceEntryManagerFactory {
 
 	@Override
 	public void initStandalone(BaseFactoryService persistanceFactoryService) {}
-
-
-
-    public static void main(String[] args) throws FileNotFoundException, IOException {
-    	Properties prop = new Properties();
-    	prop.load(new FileInputStream(new File("V:/Development/gluu/conf/gluu-sql.properties")));
-
-    	Properties prop2 = new Properties();
-    	
-    	for (Entry<Object, Object> entry :  prop.entrySet()) {
-        	prop2.put(PERSISTENCE_TYPE + "." +entry.getKey(), entry.getValue());
-    	}
-    	
-    	SqlEntryManagerFactory emf = new SqlEntryManagerFactory();
-    	emf.create();
-    	
-    	SqlEntryManager cem = emf.createEntryManager(prop2);
-        
-        System.out.println(cem.getOperationService().getConnectionProvider().isCreated());
-        
-	}
 
 }
