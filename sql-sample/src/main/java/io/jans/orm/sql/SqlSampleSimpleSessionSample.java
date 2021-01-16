@@ -4,7 +4,7 @@
  * Copyright (c) 2020, Janssen Project
  */
 
-package io.jans.orm.couchbase;
+package io.jans.orm.sql;
 
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
@@ -15,29 +15,29 @@ import org.apache.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
 
-import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
-import io.jans.orm.couchbase.model.SimpleSessionState;
+import io.jans.orm.sql.impl.SqlEntryManager;
+import io.jans.orm.sql.model.SimpleSessionState;
 
 /**
  * @author Yuriy Movchan Date: 01/25/2016
  */
-public final class CouchbaseSampleSimpleSessionSample {
+public final class SqlSampleSimpleSessionSample {
 
     private static final Logger LOG;
 
     static {
         StatusLogger.getLogger().setLevel(Level.OFF);
         LoggingHelper.configureConsoleAppender();
-        LOG = Logger.getLogger(CouchbaseSampleSimpleSessionSample.class);
+        LOG = Logger.getLogger(SqlSampleSimpleSessionSample.class);
     }
 
-    private CouchbaseSampleSimpleSessionSample() {
+    private SqlSampleSimpleSessionSample() {
     }
 
     public static void main(String[] args) throws InterruptedException {
         // Prepare sample connection details
-        CouchbaseSampleEntryManager couchbaseSampleEntryManager = new CouchbaseSampleEntryManager();
-        final CouchbaseEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createCouchbaseEntryManager();
+        SqlSampleEntryManager couchbaseSampleEntryManager = new SqlSampleEntryManager();
+        final SqlEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createSqlEntryManager();
 
         try {
             // Create Couchbase entry manager

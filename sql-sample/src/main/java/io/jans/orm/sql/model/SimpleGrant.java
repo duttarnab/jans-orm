@@ -4,7 +4,7 @@
  * Copyright (c) 2020, Janssen Project
  */
 
-package io.jans.orm.couchbase.model;
+package io.jans.orm.sql.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;

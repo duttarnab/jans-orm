@@ -4,7 +4,7 @@
  * Copyright (c) 2020, Janssen Project
  */
 
-package io.jans.orm.couchbase;
+package io.jans.orm.sql;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;

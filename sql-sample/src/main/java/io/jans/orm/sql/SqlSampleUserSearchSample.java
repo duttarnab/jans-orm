@@ -4,7 +4,7 @@
  * Copyright (c) 2020, Janssen Project
  */
 
-package io.jans.orm.couchbase;
+package io.jans.orm.sql;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -16,22 +16,22 @@ import org.apache.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
 
-import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
-import io.jans.orm.couchbase.model.SimpleUser;
+import io.jans.orm.sql.impl.SqlEntryManager;
+import io.jans.orm.sql.model.SimpleUser;
 import io.jans.orm.search.filter.Filter;
 import io.jans.orm.util.StringHelper;
 
 /**
  * @author Yuriy Movchan Date: 09/18/2019
  */
-public final class CouchbaseSampleUserSearchSample {
+public final class SqlSampleUserSearchSample {
 
     private static final Logger LOG;
 
     static {
         StatusLogger.getLogger().setLevel(Level.OFF);
         LoggingHelper.configureConsoleAppender();
-        LOG = Logger.getLogger(CouchbaseSampleUserSearchSample.class);
+        LOG = Logger.getLogger(SqlSampleUserSearchSample.class);
     }
 
     private static AtomicLong successResult = new AtomicLong(0) ;
@@ -40,13 +40,13 @@ public final class CouchbaseSampleUserSearchSample {
     private static AtomicLong totalTime = new AtomicLong(0) ;
     private static AtomicLong activeCount = new AtomicLong(0) ;
 
-    private CouchbaseSampleUserSearchSample() {
+    private SqlSampleUserSearchSample() {
     }
 
     public static void main(String[] args) throws InterruptedException {
         // Prepare sample connection details
-        CouchbaseSampleEntryManager couchbaseSampleEntryManager = new CouchbaseSampleEntryManager();
-        final CouchbaseEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createCouchbaseEntryManager();
+        SqlSampleEntryManager couchbaseSampleEntryManager = new SqlSampleEntryManager();
+        final SqlEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createSqlEntryManager();
         
         int countUsers = 1000000;
         int threadCount = 200;

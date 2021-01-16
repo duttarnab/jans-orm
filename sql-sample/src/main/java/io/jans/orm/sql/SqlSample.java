@@ -4,17 +4,17 @@
  * Copyright (c) 2020, Janssen Project
  */
 
-package io.jans.orm.couchbase;
+package io.jans.orm.sql;
 
 import java.util.Arrays;
 import java.util.List;
 
-import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
-import io.jans.orm.couchbase.model.SimpleAttribute;
-import io.jans.orm.couchbase.model.SimpleGrant;
-import io.jans.orm.couchbase.model.SimpleSession;
-import io.jans.orm.couchbase.model.SimpleUser;
-import io.jans.orm.couchbase.operation.impl.CouchbaseConnectionProvider;
+import io.jans.orm.sql.impl.SqlEntryManager;
+import io.jans.orm.sql.model.SimpleAttribute;
+import io.jans.orm.sql.model.SimpleGrant;
+import io.jans.orm.sql.model.SimpleSession;
+import io.jans.orm.sql.model.SimpleUser;
+import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
 import io.jans.orm.model.PagedResult;
 import io.jans.orm.model.SearchScope;
 import io.jans.orm.model.SortOrder;
@@ -27,19 +27,19 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Yuriy Movchan Date: 11/03/2016
  */
-public final class CouchbaseSample {
+public final class SqlSample {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CouchbaseConnectionProvider.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SqlConnectionProvider.class);
 
-    private CouchbaseSample() {
+    private SqlSample() {
     }
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        CouchbaseSampleEntryManager couchbaseSampleEntryManager = new CouchbaseSampleEntryManager();
+        SqlSampleEntryManager couchbaseSampleEntryManager = new SqlSampleEntryManager();
 
         // Create Couchbase entry manager
-        CouchbaseEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createCouchbaseEntryManager();
+        SqlEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createSqlEntryManager();
 
         SimpleUser newUser = new SimpleUser();
         newUser.setDn(String.format("inum=%s,ou=people,o=jans", System.currentTimeMillis()));

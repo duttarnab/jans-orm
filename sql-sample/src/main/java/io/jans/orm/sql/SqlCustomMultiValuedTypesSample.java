@@ -4,14 +4,14 @@
  * Copyright (c) 2020, Janssen Project
  */
 
-package io.jans.orm.couchbase;
+package io.jans.orm.sql;
 
 import java.util.Arrays;
 import java.util.List;
 
-import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
-import io.jans.orm.couchbase.model.SimpleUser;
-import io.jans.orm.couchbase.operation.impl.CouchbaseConnectionProvider;
+import io.jans.orm.sql.impl.SqlEntryManager;
+import io.jans.orm.sql.model.SimpleUser;
+import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
 import io.jans.orm.model.base.CustomObjectAttribute;
 import io.jans.orm.search.filter.Filter;
 import io.jans.orm.util.StringHelper;
@@ -21,19 +21,19 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Yuriy Movchan Date: 09/16/2019
  */
-public final class CouchbaseCustomMultiValuedTypesSample {
+public final class SqlCustomMultiValuedTypesSample {
 
-	private static final Logger LOG = LoggerFactory.getLogger(CouchbaseConnectionProvider.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SqlConnectionProvider.class);
 
-	private CouchbaseCustomMultiValuedTypesSample() {
+	private SqlCustomMultiValuedTypesSample() {
 	}
 
 	public static void main(String[] args) {
 		// Prepare sample connection details
-		CouchbaseSampleEntryManager couchbaseSampleEntryManager = new CouchbaseSampleEntryManager();
+		SqlSampleEntryManager couchbaseSampleEntryManager = new SqlSampleEntryManager();
 
 		// Create Couchbase entry manager
-		CouchbaseEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createCouchbaseEntryManager();
+		SqlEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createSqlEntryManager();
 
 		// Add dummy user
 		SimpleUser newUser = new SimpleUser();

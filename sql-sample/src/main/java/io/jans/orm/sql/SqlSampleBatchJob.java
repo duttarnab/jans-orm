@@ -4,16 +4,16 @@
  * Copyright (c) 2020, Janssen Project
  */
 
-package io.jans.orm.couchbase;
+package io.jans.orm.sql;
 
 import org.apache.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
 
-import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
-import io.jans.orm.couchbase.model.SimpleClient;
-import io.jans.orm.couchbase.model.SimpleSession;
-import io.jans.orm.couchbase.model.SimpleTokenCouchbase;
+import io.jans.orm.sql.impl.SqlEntryManager;
+import io.jans.orm.sql.model.SimpleClient;
+import io.jans.orm.sql.model.SimpleSession;
+import io.jans.orm.sql.model.SimpleTokenCouchbase;
 import io.jans.orm.exception.EntryPersistenceException;
 import io.jans.orm.model.BatchOperation;
 import io.jans.orm.model.DefaultBatchOperation;
@@ -30,23 +30,23 @@ import java.util.List;
 /**
  * Created by eugeniuparvan on 1/12/17.
  */
-public final class CouchbaseSampleBatchJob {
+public final class SqlSampleBatchJob {
     private static final Logger LOG;
 
     static {
         StatusLogger.getLogger().setLevel(Level.OFF);
         LoggingHelper.configureConsoleAppender();
-        LOG = Logger.getLogger(CouchbaseSample.class);
+        LOG = Logger.getLogger(SqlSample.class);
     }
 
-    private CouchbaseSampleBatchJob() { }
+    private SqlSampleBatchJob() { }
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        CouchbaseSampleEntryManager couchbaseSampleEntryManager = new CouchbaseSampleEntryManager();
+        SqlSampleEntryManager couchbaseSampleEntryManager = new SqlSampleEntryManager();
 
         // Create Couchbase entry manager
-        final CouchbaseEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createCouchbaseEntryManager();
+        final SqlEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createSqlEntryManager();
 
         BatchOperation<SimpleTokenCouchbase> tokenCouchbaseBatchOperation = new ProcessBatchOperation<SimpleTokenCouchbase>() {
             private int processedCount = 0;
@@ -137,7 +137,7 @@ public final class CouchbaseSampleBatchJob {
         LOG.info("Result count (with collecting results): " + result4.size());
     }
 
-    private static CustomAttribute getUpdatedAttribute(CouchbaseEntryManager couchbaseEntryManager, String baseDn, String attributeName, String attributeValue) {
+    private static CustomAttribute getUpdatedAttribute(SqlEntryManager couchbaseEntryManager, String baseDn, String attributeName, String attributeValue) {
         try {
             Calendar calendar = Calendar.getInstance();
             Date jansLastAccessTimeDate = new Date(); //TODO: Fix it StaticUtils.decodeGeneralizedTime(attributeValue);

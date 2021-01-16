@@ -4,10 +4,10 @@
  * Copyright (c) 2020, Janssen Project
  */
 
-package io.jans.orm.couchbase;
+package io.jans.orm.sql;
 
-import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
-import io.jans.orm.couchbase.operation.impl.CouchbaseConnectionProvider;
+import io.jans.orm.sql.impl.SqlEntryManager;
+import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
 import io.jans.orm.model.base.DeletableEntity;
 import io.jans.orm.search.filter.Filter;
 
@@ -19,19 +19,19 @@ import java.util.Date;
 /**
  * @author Yuriy Movchan Date: 11/03/2016
  */
-public final class CouchbaseSampleDelete {
+public final class SqlSampleDelete {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CouchbaseConnectionProvider.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SqlConnectionProvider.class);
 
-    private CouchbaseSampleDelete() {
+    private SqlSampleDelete() {
     }
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        CouchbaseSampleEntryManager couchbaseSampleEntryManager = new CouchbaseSampleEntryManager();
+        SqlSampleEntryManager couchbaseSampleEntryManager = new SqlSampleEntryManager();
 
         // Create Couchbase entry manager
-        CouchbaseEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createCouchbaseEntryManager();
+        SqlEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createSqlEntryManager();
 
         String baseDn = "ou=cache,o=jans";
 		Filter filter = Filter.createANDFilter(

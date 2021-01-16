@@ -4,21 +4,21 @@
  * Copyright (c) 2020, Janssen Project
  */
 
-package io.jans.orm.couchbase;
+package io.jans.orm.sql;
 
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
-import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
-import io.jans.orm.couchbase.impl.CouchbaseEntryManagerFactory;
+import io.jans.orm.sql.impl.SqlEntryManager;
+import io.jans.orm.sql.impl.SqlEntryManagerFactory;
 
 /**
  * @author Yuriy Movchan
  * Date: 01/13/2017
  */
-public class CouchbaseSampleEntryManager {
+public class SqlSampleEntryManager {
 
-    private static final Logger LOG = Logger.getLogger(CouchbaseSampleEntryManager.class);
+    private static final Logger LOG = Logger.getLogger(SqlSampleEntryManager.class);
 
     private Properties getSampleConnectionProperties() {
         Properties connectionProperties = new Properties();
@@ -38,13 +38,13 @@ public class CouchbaseSampleEntryManager {
         return connectionProperties;
     }
 
-    public CouchbaseEntryManager createCouchbaseEntryManager() {
-        CouchbaseEntryManagerFactory couchbaseEntryManagerFactory = new CouchbaseEntryManagerFactory();
+    public SqlEntryManager createSqlEntryManager() {
+        SqlEntryManagerFactory couchbaseEntryManagerFactory = new SqlEntryManagerFactory();
         couchbaseEntryManagerFactory.create();
         Properties connectionProperties = getSampleConnectionProperties();
 
-        CouchbaseEntryManager couchbaseEntryManager = couchbaseEntryManagerFactory.createEntryManager(connectionProperties);
-        LOG.debug("Created CouchbaseEntryManager: " + couchbaseEntryManager);
+        SqlEntryManager couchbaseEntryManager = couchbaseEntryManagerFactory.createEntryManager(connectionProperties);
+        LOG.debug("Created SqlEntryManager: " + couchbaseEntryManager);
 
         return couchbaseEntryManager;
     }
