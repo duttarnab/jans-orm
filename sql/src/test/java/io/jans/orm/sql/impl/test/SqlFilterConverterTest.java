@@ -7,7 +7,8 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;import com.google.protobuf.TimestampOrBuilder;
+import org.testng.annotations.Test;
+
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
@@ -75,7 +76,7 @@ public class SqlFilterConverterTest {
 		ConvertedExpression expressionEq4 = simpleConverter.convertToSqlFilter(filterEq4, null, null);
 
 		String queryEq4 = toSelectSQL(expressionEq4);
-		assertEquals(queryEq4, "select doc.`*` from `table` as doc where doc.added = (timestamp '2020-12-16 17:58:18')");
+		assertEquals(queryEq4, "select doc.`*` from `table` as doc where doc.added = (timestamp '2020-12-16 14:58:18')");
 	}
 
 	@Test
@@ -106,7 +107,7 @@ public class SqlFilterConverterTest {
 		ConvertedExpression expressionEq4 = simpleConverter.convertToSqlFilter(filterEq4, null, null);
 
 		String queryEq4 = toSelectSQL(expressionEq4);
-		assertEquals(queryEq4, "select doc.`*` from `table` as doc where doc.`added_.v$` = (timestamp '2020-12-16 17:58:18')");
+		assertEquals(queryEq4, "select doc.`*` from `table` as doc where doc.`added_.v$` = (timestamp '2020-12-16 14:58:18')");
 	}
 
 	@Test
@@ -137,7 +138,7 @@ public class SqlFilterConverterTest {
 		ConvertedExpression expressionLe4 = simpleConverter.convertToSqlFilter(filterLe4, null, null);
 
 		String queryLe4 = toSelectSQL(expressionLe4);
-		assertEquals(queryLe4, "select doc.`*` from `table` as doc where doc.added <= (timestamp '2020-12-16 17:58:18')");
+		assertEquals(queryLe4, "select doc.`*` from `table` as doc where doc.added <= (timestamp '2020-12-16 14:58:18')");
 	}
 
 	@Test
@@ -168,7 +169,7 @@ public class SqlFilterConverterTest {
 		ConvertedExpression expressionLe4 = simpleConverter.convertToSqlFilter(filterLe4, null, null);
 
 		String queryLe4 = toSelectSQL(expressionLe4);
-		assertEquals(queryLe4, "select doc.`*` from `table` as doc where doc.`added_.v$` <= (timestamp '2020-12-16 17:58:18')");
+		assertEquals(queryLe4, "select doc.`*` from `table` as doc where doc.`added_.v$` <= (timestamp '2020-12-16 14:58:18')");
 	}
 
 	@Test
@@ -199,7 +200,7 @@ public class SqlFilterConverterTest {
 		ConvertedExpression expressionGe4 = simpleConverter.convertToSqlFilter(filterGe4, null, null);
 
 		String queryGe4 = toSelectSQL(expressionGe4);
-		assertEquals(queryGe4, "select doc.`*` from `table` as doc where doc.added >= (timestamp '2020-12-16 17:58:18')");
+		assertEquals(queryGe4, "select doc.`*` from `table` as doc where doc.added >= (timestamp '2020-12-16 14:58:18')");
 	}
 
 	@Test
@@ -230,7 +231,7 @@ public class SqlFilterConverterTest {
 		ConvertedExpression expressionGe4 = simpleConverter.convertToSqlFilter(filterGe4, null, null);
 
 		String queryGe4 = toSelectSQL(expressionGe4);
-		assertEquals(queryGe4, "select doc.`*` from `table` as doc where doc.`added_.v$` >= (timestamp '2020-12-16 17:58:18')");
+		assertEquals(queryGe4, "select doc.`*` from `table` as doc where doc.`added_.v$` >= (timestamp '2020-12-16 14:58:18')");
 	}
 
 	@Test
@@ -386,9 +387,11 @@ public class SqlFilterConverterTest {
 	}
 
 	private Date getUtcDateFromMillis(long millis) {
+		TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 		calendar.setTimeInMillis(millis);
 		calendar.set(Calendar.ZONE_OFFSET, TimeZone.getTimeZone("UTC").getRawOffset());
+
 		Date date = calendar.getTime();
 
 		return date;
