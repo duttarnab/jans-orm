@@ -2,11 +2,12 @@ package io.jans.orm.sql.impl.test;
 
 import static org.testng.Assert.assertEquals;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
+import org.testng.annotations.Test;import com.google.protobuf.TimestampOrBuilder;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
@@ -70,7 +71,7 @@ public class SqlFilterConverterTest {
 		assertEquals(queryEq3, "select doc.`*` from `table` as doc where doc.age = 23");
 
 		// EQ -- Date
-		Filter filterEq4 = Filter.createEqualityFilter("added", new Date(1608130698398L));
+		Filter filterEq4 = Filter.createEqualityFilter("added", getUtcDateFromMillis(1608130698398L));
 		ConvertedExpression expressionEq4 = simpleConverter.convertToSqlFilter(filterEq4, null, null);
 
 		String queryEq4 = toSelectSQL(expressionEq4);
@@ -101,7 +102,7 @@ public class SqlFilterConverterTest {
 		assertEquals(queryEq3, "select doc.`*` from `table` as doc where doc.`age_.v$` = 23");
 
 		// EQ -- Date
-		Filter filterEq4 = Filter.createEqualityFilter("added", new Date(1608130698398L)).multiValued();
+		Filter filterEq4 = Filter.createEqualityFilter("added", getUtcDateFromMillis(1608130698398L)).multiValued();
 		ConvertedExpression expressionEq4 = simpleConverter.convertToSqlFilter(filterEq4, null, null);
 
 		String queryEq4 = toSelectSQL(expressionEq4);
@@ -132,7 +133,7 @@ public class SqlFilterConverterTest {
 		assertEquals(queryLe3, "select doc.`*` from `table` as doc where doc.age <= 23");
 
 		// LE -- Date
-		Filter filterLe4 = Filter.createLessOrEqualFilter("added", new Date(1608130698398L));
+		Filter filterLe4 = Filter.createLessOrEqualFilter("added", getUtcDateFromMillis(1608130698398L));
 		ConvertedExpression expressionLe4 = simpleConverter.convertToSqlFilter(filterLe4, null, null);
 
 		String queryLe4 = toSelectSQL(expressionLe4);
@@ -163,7 +164,7 @@ public class SqlFilterConverterTest {
 		assertEquals(queryLe3, "select doc.`*` from `table` as doc where doc.`age_.v$` <= 23");
 
 		// LE -- Date
-		Filter filterLe4 = Filter.createLessOrEqualFilter("added", new Date(1608130698398L)).multiValued();
+		Filter filterLe4 = Filter.createLessOrEqualFilter("added", getUtcDateFromMillis(1608130698398L)).multiValued();
 		ConvertedExpression expressionLe4 = simpleConverter.convertToSqlFilter(filterLe4, null, null);
 
 		String queryLe4 = toSelectSQL(expressionLe4);
@@ -194,7 +195,7 @@ public class SqlFilterConverterTest {
 		assertEquals(queryGe3, "select doc.`*` from `table` as doc where doc.age >= 23");
 
 		// LE -- Date
-		Filter filterGe4 = Filter.createGreaterOrEqualFilter("added", new Date(1608130698398L));
+		Filter filterGe4 = Filter.createGreaterOrEqualFilter("added", getUtcDateFromMillis(1608130698398L));
 		ConvertedExpression expressionGe4 = simpleConverter.convertToSqlFilter(filterGe4, null, null);
 
 		String queryGe4 = toSelectSQL(expressionGe4);
@@ -225,7 +226,7 @@ public class SqlFilterConverterTest {
 		assertEquals(queryGe3, "select doc.`*` from `table` as doc where doc.`age_.v$` >= 23");
 
 		// LE -- Date
-		Filter filterGe4 = Filter.createGreaterOrEqualFilter("added", new Date(1608130698398L)).multiValued();
+		Filter filterGe4 = Filter.createGreaterOrEqualFilter("added", getUtcDateFromMillis(1608130698398L)).multiValued();
 		ConvertedExpression expressionGe4 = simpleConverter.convertToSqlFilter(filterGe4, null, null);
 
 		String queryGe4 = toSelectSQL(expressionGe4);
@@ -383,4 +384,13 @@ public class SqlFilterConverterTest {
 
 		return queryStr;
 	}
+
+	private Date getUtcDateFromMillis(long millis) {
+		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+		calendar.setTimeInMillis(millis);
+		Date date = calendar.getTime();
+
+		return date;
+	}
+
 }
