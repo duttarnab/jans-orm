@@ -26,9 +26,9 @@ import io.jans.orm.PersistenceEntryManager;
 import io.jans.orm.event.DeleteNotifier;
 import io.jans.orm.exception.AuthenticationException;
 import io.jans.orm.exception.EntryDeleteException;
-import io.jans.orm.exception.EntryPersistenceException;
 import io.jans.orm.exception.MappingException;
 import io.jans.orm.exception.operation.ConnectionException;
+import io.jans.orm.exception.EntryPersistenceException;
 import io.jans.orm.exception.operation.SearchException;
 import io.jans.orm.exception.operation.SearchScopeException;
 import io.jans.orm.impl.BaseEntryManager;
@@ -945,6 +945,11 @@ public class LdapEntryManager extends BaseEntryManager implements Serializable {
 		objecClassSet.addAll(Arrays.asList(ojectClasses));
 		return objecClassSet.toArray(new String[0]);
 	}
+
+    @Override
+	protected Object getNativeDateAttributeValue(Date dateValue) {
+		return encodeTime(dateValue);
+    }
 
 	private static class CountBatchOperation<T> extends DefaultBatchOperation<T> {
 

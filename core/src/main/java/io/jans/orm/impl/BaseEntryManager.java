@@ -39,10 +39,10 @@ import io.jans.orm.annotation.Expiration;
 import io.jans.orm.annotation.JsonObject;
 import io.jans.orm.annotation.ObjectClass;
 import io.jans.orm.annotation.SchemaEntry;
-import io.jans.orm.exception.EntryPersistenceException;
 import io.jans.orm.exception.InvalidArgumentException;
 import io.jans.orm.exception.MappingException;
 import io.jans.orm.exception.extension.PersistenceExtension;
+import io.jans.orm.exception.EntryPersistenceException;
 import io.jans.orm.model.AttributeData;
 import io.jans.orm.model.AttributeDataModification;
 import io.jans.orm.model.AttributeDataModification.AttributeModificationType;
@@ -64,6 +64,8 @@ import io.jans.orm.util.StringHelper;
 public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BaseEntryManager.class);
+
+	private static final boolean TRACE = true;
 
 	private static final Class<?>[] LDAP_ENTRY_TYPE_ANNOTATIONS = { DataEntry.class, SchemaEntry.class,
 			ObjectClass.class };
@@ -235,6 +237,12 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 			attributesFromLdap = find(dnValue.toString(), objectClasses, propertiesAnnotationsMap, currentLdapReturnAttributesList.toArray(EMPTY_STRING_ARRAY));
 		}
+
+		if (TRACE) {
+			dumpAttributes("attributesFromLdap", attributesFromLdap);
+			dumpAttributes("attributesToPersist", attributesToPersist);
+		}
+
 		Map<String, AttributeData> attributesFromLdapMap = getAttributesMap(attributesFromLdap);
 
 		// Prepare list of modifications
@@ -244,7 +252,15 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 				propertiesAnnotations, attributesToPersistMap, attributesFromLdapMap, isSchemaUpdate,
 				schemaModificationType);
 
+		if (TRACE) {
+			dumpAttributeDataModifications("attributeDataModifications before updateMergeChanges", attributeDataModifications);
+		}
+
 		updateMergeChanges(dnValue.toString(), entry, isSchemaUpdate | isConfigurationUpdate, entryClass, attributesFromLdapMap, attributeDataModifications);
+
+		if (TRACE) {
+			dumpAttributeDataModifications("attributeDataModifications after updateMergeChanges", attributeDataModifications);
+		}
 
 		LOG.debug(String.format("LDAP attributes for merge: %s", attributeDataModifications));
 
@@ -320,6 +336,10 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 					// Remove if attribute not marked as ignoreDuringRead = true
 					// or updateOnly = true
 					if (!ldapAttributeAnnotation.ignoreDuringRead() && !ldapAttributeAnnotation.updateOnly()) {
+						if (isEmptyAttributeValues(attributeFromLdap) && isStoreFullEntry()) {
+							// It's RDBS case. We don't need to set null to already empty table cell
+							continue;
+						}
 						attributeDataModifications.add(new AttributeDataModification(AttributeModificationType.REMOVE,
 								null, attributeFromLdap));
 					}
@@ -352,8 +372,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 					}
 
 					if (!attributesToPersistMap.containsKey(attributeName.toLowerCase())) {
-						// Remove if attribute not marked as ignoreDuringRead =
-						// true
+						// Remove if attribute not marked as ignoreDuringRead = true
 						if ((ldapAttributeConfiguration == null) || ((ldapAttributeConfiguration != null)
 								&& !ldapAttributeConfiguration.ignoreDuringRead())) {
 							attributeDataModifications.add(new AttributeDataModification(
@@ -385,8 +404,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 							attributeDataModifications.add(new AttributeDataModification(
 									AttributeModificationType.REMOVE, null, attributeToPersist));
 						}
-					} else if ((attributeFromLdap != null)
-							&& (Arrays.equals(attributeToPersist.getValues(), new String[] {}))) {
+					} else if ((attributeFromLdap != null) && (Arrays.equals(attributeToPersist.getValues(), new String[] {}))) {
 
 						attributeDataModifications.add(new AttributeDataModification(AttributeModificationType.REMOVE,
 								null, attributeFromLdap));
@@ -394,6 +412,11 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 						if (!attributeFromLdap.equals(attributeToPersist)) {
 							if (isEmptyAttributeValues(attributeToPersist)
 									&& (ldapAttributeConfiguration == null || !ldapAttributeConfiguration.updateOnly())) {
+								if (isEmptyAttributeValues(attributeFromLdap) && isStoreFullEntry()) {
+									// It's RDBS case. We don't need to set null to already empty table cell
+									continue;
+								}
+
 								attributeDataModifications.add(new AttributeDataModification(
 										AttributeModificationType.REMOVE, null, attributeFromLdap));
 							} else {
@@ -408,6 +431,10 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		}
 
 		return attributeDataModifications;
+	}
+
+	protected boolean isStoreFullEntry() {
+		return false;
 	}
 
 	protected boolean isEmptyAttributeValues(AttributeData attributeData) {
@@ -1352,13 +1379,15 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		} else if (propertyValue instanceof Long) {
 			resultValue[0] = propertyValue;
 		} else if (propertyValue instanceof Date) {
-			resultValue[0] = encodeTime((Date) propertyValue);
+			resultValue[0] = getNativeDateAttributeValue((Date) propertyValue);
 		} else {
 			return false;
 		}
 
 		return true;
 	}
+	
+	protected abstract Object getNativeDateAttributeValue(Date dateValue);
 
 	protected boolean isAttributeMultivalued(Object[] values) {
 		if (values.length > 1) {
@@ -2122,6 +2151,42 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 				return -result;
 			}
 		}
+	}
+
+	protected void dumpAttributes(String variableName, List<AttributeData> attributesToPersist) {
+		System.out.println("\n" + variableName + ": START");
+		
+		for (AttributeData attribute : attributesToPersist) {
+			System.out.println(String.format("%s\t\t%s\t%b", attribute.getName(), Arrays.toString(attribute.getValues()), attribute.getMultiValued()));
+		}
+
+		System.out.println(variableName + ": END");
+	}
+
+	protected void dumpAttributeDataModifications(String variableName, List<AttributeDataModification> attributeDataModifications) {
+		System.out.println("\n" + variableName + ": START");
+		
+		for (AttributeDataModification modification : attributeDataModifications) {
+			String newValues = "[]";
+			String oldValues = "[]";
+			
+			if ((modification.getAttribute() != null) && (modification.getAttribute().getValues() != null)) {
+				newValues = Arrays.toString(modification.getAttribute().getValues());
+			}
+
+			if ((modification.getOldAttribute() != null) && (modification.getOldAttribute().getValues() != null)) {
+				oldValues = Arrays.toString(modification.getOldAttribute().getValues());
+			}
+			
+			AttributeData attribute = modification.getAttribute();
+			if (attribute == null) {
+				attribute = modification.getOldAttribute();
+			}
+			
+			System.out.println(String.format("%s\t\t%s\t%b\t\t%s\t->\t%s", attribute.getName(), modification.getModificationType().name(), attribute.getMultiValued(), oldValues, newValues));
+		}
+
+		System.out.println(variableName + ": END");
 	}
 
 }

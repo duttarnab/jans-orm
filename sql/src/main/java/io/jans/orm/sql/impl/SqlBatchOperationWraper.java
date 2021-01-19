@@ -6,11 +6,11 @@
 
 package io.jans.orm.sql.impl;
 
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
 import io.jans.orm.model.BatchOperation;
+import io.jans.orm.model.EntryData;
 import io.jans.orm.reflect.property.PropertyAnnotation;
 
 /**
@@ -42,12 +42,12 @@ public class SqlBatchOperationWraper<T> {
         return batchOperation;
     }
 
-    public List<T> createEntities(ResultSet searchResult) {
+    public List<T> createEntities(List<EntryData> entryDataList) {
         if (SqlEntryManager == null) {
             return new ArrayList<T>(0);
         }
 
-        return SqlEntryManager.createEntities(entryClass, propertiesAnnotations, null, searchResult);
+        return SqlEntryManager.createEntities(entryClass, propertiesAnnotations, null, entryDataList.toArray(new EntryData[entryDataList.size()]));
     }
 
 }

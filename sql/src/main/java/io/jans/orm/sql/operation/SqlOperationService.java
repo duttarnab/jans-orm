@@ -6,20 +6,20 @@
 
 package io.jans.orm.sql.operation;
 
-import java.sql.ResultSet;
 import java.util.Collection;
 import java.util.List;
 
 import com.querydsl.core.types.OrderSpecifier;
 
-import io.jans.orm.exception.AuthenticationException;
 import io.jans.orm.exception.operation.DeleteException;
 import io.jans.orm.exception.operation.DuplicateEntryException;
+import io.jans.orm.exception.operation.EntryConvertationException;
 import io.jans.orm.exception.operation.EntryNotFoundException;
 import io.jans.orm.exception.operation.PersistenceException;
 import io.jans.orm.exception.operation.SearchException;
 import io.jans.orm.model.AttributeData;
 import io.jans.orm.model.AttributeDataModification;
+import io.jans.orm.model.EntryData;
 import io.jans.orm.model.PagedResult;
 import io.jans.orm.model.SearchScope;
 import io.jans.orm.operation.PersistenceOperationService;
@@ -43,6 +43,9 @@ public interface SqlOperationService extends PersistenceOperationService {
     static String DOC_ALIAS = "doc";
     static String DOC_ID = "doc_id";
 
+	public static final String JSON_DATA_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+	public static final Object[] NO_OBJECTS = new Object[0];
+
     SqlConnectionProvider getConnectionProvider();
 
     boolean addEntry(String key, String objectClass, Collection<AttributeData> attributes) throws DuplicateEntryException, PersistenceException;
@@ -54,16 +57,28 @@ public interface SqlOperationService extends PersistenceOperationService {
 
 	boolean deleteRecursively(String key, String objectClass) throws EntryNotFoundException, SearchException;
 
-    ResultSet lookup(String key, String objectClass, String... attributes) throws SearchException;
+	List<AttributeData> lookup(String key, String objectClass, String... attributes) throws SearchException, EntryConvertationException;
 
-    <O> PagedResult<ResultSet> search(String key, String objectClass, ConvertedExpression expression, SearchScope scope,
+    <O> PagedResult<EntryData> search(String key, String objectClass, ConvertedExpression expression, SearchScope scope,
             String[] attributes, OrderSpecifier<?>[] orderBy, SqlBatchOperationWraper<O> batchOperationWraper, SearchReturnDataType returnDataType,
             int start, int count, int pageSize) throws SearchException;
 
     String[] createStoragePassword(String[] passwords);
-
+    
     boolean isBinaryAttribute(String attribute);
     boolean isCertificateAttribute(String attribute);
+
+    String escapeValue(String value);
+	void escapeValues(Object[] realValues);
+
+	String unescapeValue(String value);
+	void unescapeValues(Object[] realValues);
+
+	String toInternalAttribute(String attributeName);
+	String[] toInternalAttributes(String[] attributeNames);
+
+	String fromInternalAttribute(String internalAttributeName);
+	String[] fromInternalAttributes(String[] internalAttributeNames);
 
     boolean destroy();
 

@@ -39,8 +39,8 @@ import io.jans.orm.couchbase.operation.impl.CouchbaseConnectionProvider;
 import io.jans.orm.event.DeleteNotifier;
 import io.jans.orm.exception.AuthenticationException;
 import io.jans.orm.exception.EntryDeleteException;
-import io.jans.orm.exception.EntryPersistenceException;
 import io.jans.orm.exception.MappingException;
+import io.jans.orm.exception.EntryPersistenceException;
 import io.jans.orm.exception.operation.SearchException;
 import io.jans.orm.impl.BaseEntryManager;
 import io.jans.orm.impl.GenericKeyConverter;
@@ -540,7 +540,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
             count++;
             JsonObject entry = searchResultEntries[i];
             // String key = entry.getString(CouchbasegetOperationService().META_DOC_ID);
-            String dn = entry.getString(fromInternalAttribute(CouchbaseOperationService.DN));
+            String dn = entry.getString(toInternalAttribute(CouchbaseOperationService.DN));
             entriesAttributes.put(dn, getAttributeDataList(entry));
 
             // Remove reference to allow java clean up object
@@ -912,6 +912,11 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
 
     	return super.convertJsonToValue(parameterType, jsonStringPropertyValue);
 	}
+
+    @Override
+	protected Object getNativeDateAttributeValue(Date dateValue) {
+		return dateValue;
+    }
 
 	private ScanConsistency getScanConsistency(ConvertedExpression convertedExpression) {
 		if (convertedExpression.consistency()) {

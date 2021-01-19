@@ -6,6 +6,8 @@
 
 package io.jans.orm.exception;
 
+import io.jans.orm.exception.BasePersistenceException;
+
 /**
  * An exception is a result if LDAP entry defined incorrectly.
  *

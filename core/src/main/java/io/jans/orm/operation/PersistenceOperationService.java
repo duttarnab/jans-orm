@@ -9,6 +9,7 @@ package io.jans.orm.operation;
 import io.jans.orm.exception.AuthenticationException;
 import io.jans.orm.exception.extension.PersistenceExtension;
 import io.jans.orm.exception.operation.ConnectionException;
+import io.jans.orm.exception.operation.EntryConvertationException;
 import io.jans.orm.exception.operation.SearchException;
 
 /**
@@ -20,7 +21,7 @@ public interface PersistenceOperationService {
 
     boolean isConnected();
 
-    boolean authenticate(String key, String password, String objectClass) throws ConnectionException, SearchException, AuthenticationException;
+    boolean authenticate(String key, String password, String objectClass) throws ConnectionException, SearchException, AuthenticationException, EntryConvertationException;
 
 	public void setPersistenceExtension(PersistenceExtension persistenceExtension);
 

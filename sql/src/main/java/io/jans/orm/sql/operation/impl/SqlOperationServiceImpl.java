@@ -9,12 +9,16 @@ package io.jans.orm.sql.operation.impl;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
@@ -39,6 +43,7 @@ import com.querydsl.sql.dml.SQLUpdateClause;
 import io.jans.orm.exception.extension.PersistenceExtension;
 import io.jans.orm.exception.operation.DeleteException;
 import io.jans.orm.exception.operation.DuplicateEntryException;
+import io.jans.orm.exception.operation.EntryConvertationException;
 import io.jans.orm.exception.operation.EntryNotFoundException;
 import io.jans.orm.exception.operation.PersistenceException;
 import io.jans.orm.exception.operation.SearchException;
@@ -46,6 +51,7 @@ import io.jans.orm.model.AttributeData;
 import io.jans.orm.model.AttributeDataModification;
 import io.jans.orm.model.AttributeDataModification.AttributeModificationType;
 import io.jans.orm.model.BatchOperation;
+import io.jans.orm.model.EntryData;
 import io.jans.orm.model.PagedResult;
 import io.jans.orm.model.SearchScope;
 import io.jans.orm.operation.auth.PasswordEncryptionHelper;
@@ -111,8 +117,15 @@ public class SqlOperationServiceImpl implements SqlOperationService {
         boolean result = false;
         if (password != null) {
 	        try {
-		        ResultSet entry = lookup(key, objectClass, USER_PASSWORD);
-		        Object userPasswordObj = entry.getObject(USER_PASSWORD);
+		        List<AttributeData> attributes = lookup(key, objectClass, USER_PASSWORD);
+		        
+		        Object userPasswordObj = null;
+		        for (AttributeData attribute : attributes) {
+		        	if (StringHelper.equalsIgnoreCase(attribute.getName(), USER_PASSWORD)) {
+		        		userPasswordObj = attribute.getValue();
+		        	}
+		        	
+		        }
 		
 		        String userPassword = null;
 		        if (userPasswordObj instanceof String) {
@@ -126,7 +139,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 		        		result = persistenceExtension.compareHashedPasswords(password, userPassword);
 		        	}
 		        }
-	        } catch (SQLException ex) {
+	        } catch (EntryConvertationException ex) {
 	        	throw new SearchException(String.format("Failed to get '%s' attribute", USER_PASSWORD), ex);
 	        }
         }
@@ -218,7 +231,10 @@ public class SqlOperationServiceImpl implements SqlOperationService {
                 }
 			}
 
-			long rowInserted = sqlUpdateQuery.execute();
+			Predicate whereExp = ExpressionUtils.eq(Expressions.stringPath(SqlOperationService.DOC_ID),
+					Expressions.constant(key));
+
+			long rowInserted = sqlUpdateQuery.where(whereExp).execute();
 
 			return rowInserted == 1;
         } catch (QueryException ex) {
@@ -304,12 +320,12 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	}
 
     @Override
-    public ResultSet lookup(String key, String objectClass, String... attributes) throws SearchException {
+    public List<AttributeData> lookup(String key, String objectClass, String... attributes) throws SearchException, EntryConvertationException {
         Instant startTime = OperationDurationUtil.instance().now();
         
     	TableMapping tableMapping = connectionProvider.getTableMappingByKey(key, objectClass);
 
-        ResultSet result = lookupImpl(tableMapping, key, attributes);
+    	List<AttributeData> result = lookupImpl(tableMapping, key, attributes);
 
         Duration duration = OperationDurationUtil.instance().duration(startTime);
         OperationDurationUtil.instance().logDebug("SQL operation: lookup, duration: {}, table: {}, key: {}, attributes: {}", duration, tableMapping.getTableName(), key, attributes);
@@ -317,7 +333,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
         return result;
     }
 
-	private ResultSet lookupImpl(TableMapping tableMapping, String key, String... attributes) throws SearchException {
+	private List<AttributeData> lookupImpl(TableMapping tableMapping, String key, String... attributes) throws SearchException, EntryConvertationException {
 		String queryStr;
 		try {
 			RelationalPathBase<Object> tableRelationalPath = buildTableRelationalPath(tableMapping);
@@ -329,6 +345,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 			SQLQuery<?> sqlSelectQuery = sqlQueryFactory.select(attributesExp).from(tableRelationalPath)
 					.where(whereExp).limit(1);
 
+			sqlSelectQuery.setUseLiterals(true);
 			queryStr = sqlSelectQuery.getSQL().getSQL();
 		} catch (QueryException ex) {
 			throw new SearchException(String.format("Failed to lookup entry by key: '%s'", key), ex);
@@ -336,22 +353,25 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
 		try (Connection connection = sqlQueryFactory.getConnection()) {
 			PreparedStatement pstmt = connection.prepareStatement(queryStr, Statement.RETURN_GENERATED_KEYS);
-			pstmt.setObject(1, key);
 
-			return pstmt.executeQuery();
+			ResultSet resultSet = pstmt.executeQuery();
+
+			List<AttributeData> result = getAttributeDataList(resultSet);
+			
+			return result;
 		} catch (SQLException ex) {
 			throw new SearchException(String.format("Failed to execute lookup query '%s'  with key: '%s'", queryStr, key), ex);
 		}
 	}
 
 	@Override
-    public <O> PagedResult<ResultSet> search(String key, String objectClass, ConvertedExpression expression, SearchScope scope, String[] attributes, OrderSpecifier<?>[] orderBy,
+    public <O> PagedResult<EntryData> search(String key, String objectClass, ConvertedExpression expression, SearchScope scope, String[] attributes, OrderSpecifier<?>[] orderBy,
                                               SqlBatchOperationWraper<O> batchOperationWraper, SearchReturnDataType returnDataType, int start, int count, int pageSize) throws SearchException {
         Instant startTime = OperationDurationUtil.instance().now();
 
         TableMapping tableMapping = connectionProvider.getTableMappingByKey(key, objectClass);
 
-        PagedResult<ResultSet> result = searchImpl(tableMapping, key, expression, scope, attributes, orderBy, batchOperationWraper,
+        PagedResult<EntryData> result = searchImpl(tableMapping, key, expression, scope, attributes, orderBy, batchOperationWraper,
 						returnDataType, start, count, pageSize);
 
         Duration duration = OperationDurationUtil.instance().duration(startTime);
@@ -360,9 +380,8 @@ public class SqlOperationServiceImpl implements SqlOperationService {
         return result;
 	}
 
-	private <O> PagedResult<ResultSet> searchImpl(TableMapping tableMapping, String key, ConvertedExpression expression, SearchScope scope, String[] attributes, OrderSpecifier<?>[] orderBy,
+	private <O> PagedResult<EntryData> searchImpl(TableMapping tableMapping, String key, ConvertedExpression expression, SearchScope scope, String[] attributes, OrderSpecifier<?>[] orderBy,
             SqlBatchOperationWraper<O> batchOperationWraper, SearchReturnDataType returnDataType, int start, int count, int pageSize) throws SearchException {
-
         BatchOperation<O> batchOperation = null;
         if (batchOperationWraper != null) {
             batchOperation = (BatchOperation<O>) batchOperationWraper.getBatchOperation();
@@ -381,11 +400,11 @@ public class SqlOperationServiceImpl implements SqlOperationService {
             baseQuery = sqlSelectQuery.orderBy(orderBy);
         }
 
-        List<ResultSet> searchResultList = new ArrayList<ResultSet>();
+        List<EntryData> searchResultList = new LinkedList<EntryData>();
 
         String queryStr = null;
         if ((SearchReturnDataType.SEARCH == returnDataType) || (SearchReturnDataType.SEARCH_COUNT == returnDataType)) {
-        	ResultSet lastResult = null;
+        	List<EntryData> lastResult = null;
 	        if (pageSize > 0) {
 	            boolean collectSearchResult;
 	
@@ -409,21 +428,19 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	                    LOG.debug("Execution query: '" + queryStr + "'");
 
 	                    PreparedStatement pstmt = connection.prepareStatement(queryStr, Statement.RETURN_GENERATED_KEYS);
-		    			lastResult = pstmt.executeQuery();
+		    			ResultSet resultSet = pstmt.executeQuery();
+		    			lastResult = getEntryDataList(resultSet);
 	
-                    	lastResult.last();
-		    			lastCountRows = lastResult.getRow();
-                    	lastResult.first();
+		    			lastCountRows = lastResult.size();
 		    			
 	                    if (batchOperation != null) {
 	                        collectSearchResult = batchOperation.collectSearchResult(lastCountRows);
 	                    }
 	                    if (collectSearchResult) {
-	                        searchResultList.add(lastResult);
+	                        searchResultList.addAll(lastResult);
 	                    }
 	
 	                    if (batchOperation != null) {
-	                    	lastResult.first();
 	                        List<O> entries = batchOperationWraper.createEntities(lastResult);
 	                        batchOperation.performAction(entries);
 	                    }
@@ -436,8 +453,8 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	                } while (lastCountRows > 0);
         		} catch (QueryException ex) {
         			throw new SearchException(String.format("Failed to build search entries query. Key: '%s', expression: '%s'", key, expression.expression()), ex);
-	    		} catch (SQLException ex) {
-	    			throw new SearchException(String.format("Failed to execute lookup query '%s'  with key: '%s'", queryStr, key), ex);
+	    		} catch (SQLException | EntryConvertationException ex) {
+	    			throw new SearchException(String.format("Failed to execute query '%s'  with key: '%s'", queryStr, key), ex);
 	    		}
 	        } else {
 	    		try (Connection connection = sqlQueryFactory.getConnection()) {
@@ -453,29 +470,21 @@ public class SqlOperationServiceImpl implements SqlOperationService {
                     LOG.debug("Execution query: '" + queryStr + "'");
 
                     PreparedStatement pstmt = connection.prepareStatement(queryStr, Statement.RETURN_GENERATED_KEYS);
-	    			lastResult = pstmt.executeQuery();
+                    ResultSet resultSet = pstmt.executeQuery();
+	    			lastResult = getEntryDataList(resultSet);
 	
-	                searchResultList.add(lastResult);
+	                searchResultList.addAll(lastResult);
         		} catch (QueryException ex) {
         			throw new SearchException(String.format("Failed to build search entries query. Key: '%s', expression: '%s'", key, expression.expression()), ex);
-	            } catch (SQLException ex) {
+	            } catch (SQLException | EntryConvertationException ex) {
 	                throw new SearchException("Failed to search entries. Query: '" + queryStr + "'", ex);
 	            }
 	        }
         }
 
-        int resultSize = 0;
-        for (ResultSet result : searchResultList) {
-        	try {
-				result.last();
-			} catch (SQLException ex) {
-                throw new SearchException("Failed to calculate count result entries. Query: '" + queryStr + "'", ex);
-			}
-        }
-
-        PagedResult<ResultSet> result = new PagedResult<ResultSet>();
+        PagedResult<EntryData> result = new PagedResult<EntryData>();
         result.setEntries(searchResultList);
-        result.setEntriesCount(resultSize);
+        result.setEntriesCount(searchResultList.size());
         result.setStart(start);
 
         if ((SearchReturnDataType.COUNT == returnDataType) || (SearchReturnDataType.SEARCH_COUNT == returnDataType)) {
@@ -500,7 +509,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
         return result;
     }
 
-    public String[] createStoragePassword(String[] passwords) {
+	public String[] createStoragePassword(String[] passwords) {
         if (ArrayHelper.isEmpty(passwords)) {
             return passwords;
         }
@@ -516,6 +525,86 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
         return results;
     }
+
+    private List<AttributeData> getAttributeDataList(ResultSet resultSet) throws EntryConvertationException {
+        try {
+            if ((resultSet == null)) {
+                return null;
+            }
+            
+            if (!resultSet.next()) {
+            	return null;
+            }
+
+            List<AttributeData> result = new ArrayList<AttributeData>();
+	        int columnsCount = resultSet.getMetaData().getColumnCount();
+	        for (int i = 1; i <= columnsCount; i++) {
+	        	ResultSetMetaData metaData = resultSet.getMetaData(); 
+	        	String shortAttributeName = metaData.getColumnName(i);
+
+	        	Object attributeObject = resultSet.getObject(shortAttributeName);
+	        	
+	        	// TODO: Detect JSON
+	
+	        	String attributeName = fromInternalAttribute(shortAttributeName);
+	
+	        	Boolean multiValued = Boolean.FALSE;
+	            Object[] attributeValueObjects;
+	            if (attributeObject == null) {
+	                attributeValueObjects = NO_OBJECTS;
+	            } else if (attributeObject instanceof Integer) {
+		        	int columnType = resultSet.getMetaData().getColumnType(i);
+		        	if (columnType == java.sql.Types.SMALLINT) {
+		        		if (attributeObject.equals(0)) {
+		        			attributeObject = Boolean.FALSE;
+		        		} else if (attributeObject.equals(1)) {
+		        			attributeObject = Boolean.TRUE;
+		        		}
+		        	}
+
+		        	attributeValueObjects = new Object[] { attributeObject };
+	            } else if ((attributeObject instanceof Boolean) || (attributeObject instanceof Long)) {
+	                attributeValueObjects = new Object[] { attributeObject };
+	        	} else if (attributeObject instanceof String) {
+	           		Object value = attributeObject.toString();
+	                try {
+	                    SimpleDateFormat jsonDateFormat = new SimpleDateFormat(JSON_DATA_FORMAT);
+	                	value = jsonDateFormat.parse(attributeObject.toString());
+	                } catch (Exception ex) {}
+	        		attributeValueObjects = new Object[] { value };
+	            } else if (attributeObject instanceof Timestamp) {
+	                attributeValueObjects = new Object[] { new java.util.Date(((Timestamp) attributeObject).getTime()) };
+	        	} else {
+	           		Object value = attributeObject.toString();
+	        		attributeValueObjects = new Object[] { value };
+	        	}
+	            
+	            unescapeValues(attributeValueObjects);
+	
+	            AttributeData tmpAttribute = new AttributeData(attributeName, attributeValueObjects);
+	            if (multiValued != null) {
+	            	tmpAttribute.setMultiValued(multiValued);
+	            }
+	            result.add(tmpAttribute);
+	        }
+
+	        return result;
+        } catch (SQLException ex) {
+        	throw new EntryConvertationException("Failed to convert entry!", ex);
+        }
+    }
+
+    private List<EntryData> getEntryDataList(ResultSet resultSet) throws EntryConvertationException, SQLException {
+    	List<EntryData> entryDataList = new LinkedList<>();
+    	while (!resultSet.isLast()) {
+    		List<AttributeData> attributeDataList = getAttributeDataList(resultSet);
+    		
+    		EntryData entryData = new EntryData(attributeDataList);
+    		entryDataList.add(entryData);
+    	}
+
+    	return entryDataList;
+	}
 
     @Override
     public boolean isBinaryAttribute(String attribute) {
@@ -587,6 +676,88 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 		RelationalPathBase<Object> tableRelationalPath = new RelationalPathBase<>(Object.class, DOC_ALIAS, this.schemaName, tableMapping.getTableName());
 
 		return tableRelationalPath;
+	}
+
+	@Override
+	public String escapeValue(String value) {
+//		return StringHelper.escapeJson(value);
+		return value;
+	}
+
+	@Override
+	public void escapeValues(Object[] realValues) {
+//		for (int i = 0; i < realValues.length; i++) {
+//        	if (realValues[i] instanceof String) {
+//        		realValues[i] = StringHelper.escapeJson(realValues[i]);
+//        	}
+//        }
+	}
+
+	@Override
+	public String unescapeValue(String value) {
+//		return StringHelper.unescapeJson(value);
+		return value;
+	}
+
+	@Override
+	public void unescapeValues(Object[] realValues) {
+//		for (int i = 0; i < realValues.length; i++) {
+//        	if (realValues[i] instanceof String) {
+//        		realValues[i] = StringHelper.unescapeJson(realValues[i]);
+//        	}
+//        }
+	}
+
+	@Override
+	public String toInternalAttribute(String attributeName) {
+		return attributeName;
+//		if (isDisableAttributeMapping()) {
+//			return attributeName;
+//		}
+//
+//		return KeyShortcuter.shortcut(attributeName);
+	}
+
+	@Override
+	public String[] toInternalAttributes(String[] attributeNames) {
+		return attributeNames;
+//		if (isDisableAttributeMapping() || ArrayHelper.isEmpty(attributeNames)) {
+//			return attributeNames;
+//		}
+//		
+//		String[] resultAttributeNames = new String[attributeNames.length];
+//		
+//		for (int i = 0; i < attributeNames.length; i++) {
+//			resultAttributeNames[i] = KeyShortcuter.shortcut(attributeNames[i]);
+//		}
+//		
+//		return resultAttributeNames;
+	}
+
+	@Override
+	public String fromInternalAttribute(String internalAttributeName) {
+		return internalAttributeName;
+//		if (isDisableAttributeMapping()) {
+//			return internalAttributeName;
+//		}
+//
+//		return KeyShortcuter.fromShortcut(internalAttributeName);
+	}
+
+	@Override
+	public String[] fromInternalAttributes(String[] internalAttributeNames) {
+		return internalAttributeNames;
+//		if (isDisableAttributeMapping() || ArrayHelper.isEmpty(internalAttributeNames)) {
+//			return internalAttributeNames;
+//		}
+//		
+//		String[] resultAttributeNames = new String[internalAttributeNames.length];
+//		
+//		for (int i = 0; i < internalAttributeNames.length; i++) {
+//			resultAttributeNames[i] = KeyShortcuter.fromShortcut(internalAttributeNames[i]);
+//		}
+//		
+//		return resultAttributeNames;
 	}
 
 }

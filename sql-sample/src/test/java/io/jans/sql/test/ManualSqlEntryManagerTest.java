@@ -6,19 +6,23 @@
 
 package io.jans.sql.test;
 
-import io.jans.orm.exception.operation.SearchException;
-import io.jans.orm.sql.impl.SqlEntryManager;
-import io.jans.orm.sql.impl.SqlEntryManagerFactory;
-import io.jans.orm.util.Pair;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
 
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
+import io.jans.orm.sql.impl.SqlEntryManager;
+import io.jans.orm.sql.impl.SqlEntryManagerFactory;
+import io.jans.orm.util.Pair;
 
 /**
  *
@@ -29,19 +33,19 @@ public class ManualSqlEntryManagerTest {
 	private SqlEntryManager manager;
 	private SessionId persistedSessionId;
 	
-	@BeforeClass(enabled = false)
+	@BeforeClass(enabled = true)
 	public void init() throws IOException {
         manager = createSqlEntryManager();
 	}
 
-	@AfterClass(enabled = false)
+	@AfterClass(enabled = true)
 	public void destroy() throws IOException {
 		if (manager != null) {
 			manager.destroy();
 		}
 	}
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void createSessionId() throws IOException {
     	SessionId sessionId = buildSessionId();
         manager.persist(sessionId);
@@ -51,7 +55,7 @@ public class ManualSqlEntryManagerTest {
         System.out.println(sessionId);
     }
 
-    @Test(enabled = false)
+    @Test(dependsOnMethods =  "createSessionId", enabled = true)
     public void updateSessionId() throws IOException {
     	SessionId sessionId = persistedSessionId;
     	
@@ -59,17 +63,19 @@ public class ManualSqlEntryManagerTest {
     	Pair<Date, Integer> expirarion = expirationDate(new Date());
     	sessionId.setAuthenticationTime(new Date());
         sessionId.setLastUsedAt(new Date());
+
+        sessionId.setJwt(null);
+        sessionId.setIsJwt(null);
+
         sessionId.setExpirationDate(expirarion.getFirst());
         sessionId.setTtl(expirarion.getSecond());
 
         manager.merge(sessionId);
-        
-        persistedSessionId = sessionId;
 
         System.out.println(sessionId);
     }
 
-    @Test(enabled = false)
+    @Test(dependsOnMethods =  "updateSessionId", enabled = true)
     public void searchSessionId() throws IOException {
         List<SessionId> sessionIdList = manager.findEntries("o=jans", SessionId.class, null);
         System.out.println(sessionIdList);
@@ -80,6 +86,8 @@ public class ManualSqlEntryManagerTest {
         sessionId.setId(UUID.randomUUID().toString());
         sessionId.setDn(String.format("jansId=%s,%s", sessionId.getId(), "ou=sessions,o=jans"));
         sessionId.setCreationDate(new Date());
+        sessionId.setJwt("{}");
+        sessionId.setIsJwt(true);
 
         return sessionId;
     }

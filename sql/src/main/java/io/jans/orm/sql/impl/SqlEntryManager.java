@@ -8,7 +8,6 @@ package io.jans.orm.sql.impl;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,6 +41,7 @@ import io.jans.orm.model.AttributeDataModification;
 import io.jans.orm.model.AttributeDataModification.AttributeModificationType;
 import io.jans.orm.model.BatchOperation;
 import io.jans.orm.model.DefaultBatchOperation;
+import io.jans.orm.model.EntryData;
 import io.jans.orm.model.PagedResult;
 import io.jans.orm.model.SearchScope;
 import io.jans.orm.model.SortOrder;
@@ -59,8 +59,6 @@ import io.jans.orm.util.StringHelper;
  * @author Yuriy Movchan Date: 01/12/2020
  */
 public class SqlEntryManager extends BaseEntryManager implements Serializable {
-
-	private static final String JSON_DATA_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
 	private static final long serialVersionUID = 2127241817126412574L;
 
@@ -90,7 +88,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
     }
 
     public SqlOperationService getOperationService() {
-        return (SqlOperationService) operationService;
+        return ((SqlOperationService) operationService);
     }
 
     @Override
@@ -164,7 +162,6 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
             String attributeName = attribute.getName();
             Object[] attributeValues = attribute.getValues();
             Boolean multiValued = attribute.getMultiValued();
-            
 
             if (ArrayHelper.isNotEmpty(attributeValues) && (attributeValues[0] != null)) {
             	Object[] realValues = attributeValues;
@@ -360,8 +357,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
         try {
             // Load entry
             ParsedKey keyWithInum = toSQLKey(dn);
-            ResultSet entry = getOperationService().lookup(keyWithInum.getKey(), objectClasses[0], toInternalAttributes(ldapReturnAttributes));
-            List<AttributeData> result = getAttributeDataList(entry);
+            List<AttributeData> result = getOperationService().lookup(keyWithInum.getKey(), objectClasses[0], toInternalAttributes(ldapReturnAttributes));
             if (result != null) {
                 return result;
             }
@@ -379,7 +375,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
             throw new MappingException("Base DN to find entries is null");
         }
 
-        PagedResult<ResultSet> searchResult = findEntriesImpl(baseDN, entryClass, filter, scope, ldapReturnAttributes, null, null, batchOperation,
+        PagedResult<EntryData> searchResult = findEntriesImpl(baseDN, entryClass, filter, scope, ldapReturnAttributes, null, null, batchOperation,
         		SearchReturnDataType.SEARCH, start, count, chunkSize);
         if (searchResult.getEntriesCount() == 0) {
             return new ArrayList<T>(0);
@@ -397,7 +393,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
             throw new MappingException("Base DN to find entries is null");
         }
 
-        PagedResult<ResultSet> searchResult = findEntriesImpl(baseDN, entryClass, filter, SearchScope.SUB, ldapReturnAttributes, sortBy, sortOrder,
+        PagedResult<EntryData> searchResult = findEntriesImpl(baseDN, entryClass, filter, SearchScope.SUB, ldapReturnAttributes, sortBy, sortOrder,
                 null, SearchReturnDataType.SEARCH_COUNT, start, count, chunkSize);
 
         PagedResult<T> result = new PagedResult<T>();
@@ -416,7 +412,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
         return result;
     }
 
-    protected <T> PagedResult<ResultSet> findEntriesImpl(String baseDN, Class<T> entryClass, Filter filter, SearchScope scope,
+    protected <T> PagedResult<EntryData> findEntriesImpl(String baseDN, Class<T> entryClass, Filter filter, SearchScope scope,
             String[] ldapReturnAttributes, String sortBy, SortOrder sortOrder, BatchOperation<T> batchOperation, SearchReturnDataType returnDataType, int start,
             int count, int chunkSize) {
         // Check entry class
@@ -467,7 +463,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
             throw new EntryPersistenceException(String.format("Failed to convert filter '%s' to expression", searchFilter));
 		}
 
-        PagedResult<ResultSet> searchResult = null;
+        PagedResult<EntryData> searchResult = null;
         try {
             SqlBatchOperationWraper<T> batchOperationWraper = null;
             if (batchOperation != null) {
@@ -510,7 +506,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
             throw new EntryPersistenceException(String.format("Failed to convert filter '%s' to expression", searchFilter));
 		}
 
-        PagedResult<ResultSet> searchResult = null;
+        PagedResult<EntryData> searchResult = null;
         try {
             ParsedKey keyWithInum = toSQLKey(baseDN);
             searchResult = searchImpl(keyWithInum.getKey(), objectClasses[0], convertedExpression, SearchScope.SUB, ldapReturnAttributes, null,
@@ -525,108 +521,52 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
         return (searchResult != null) && (searchResult.getEntriesCount() > 0);
     }
 
-	private <O> PagedResult<ResultSet> searchImpl(String key, String objectClass, ConvertedExpression expression, SearchScope scope, String[] attributes, OrderSpecifier<?>[] orderBy,
+	private <O> PagedResult<EntryData> searchImpl(String key, String objectClass, ConvertedExpression expression, SearchScope scope, String[] attributes, OrderSpecifier<?>[] orderBy,
             SqlBatchOperationWraper<O> batchOperationWraper, SearchReturnDataType returnDataType, int start, int count, int pageSize) throws SearchException {
 		return getOperationService().search(key, objectClass, expression, scope, toInternalAttributes(attributes), orderBy, batchOperationWraper, returnDataType, start, count, pageSize);
 	}
 
-    protected <T> List<T> createEntities(String baseDN, Class<T> entryClass, PagedResult<ResultSet> searchResult) {
+    protected <T> List<T> createEntities(String baseDN, Class<T> entryClass, PagedResult<EntryData> searchResult) {
         ParsedKey keyWithInum = toSQLKey(baseDN);
         List<PropertyAnnotation> propertiesAnnotations = getEntryPropertyAnnotations(entryClass);
         List<T> entries = createEntities(entryClass, propertiesAnnotations, keyWithInum,
-                searchResult.getEntries().toArray(new ResultSet[searchResult.getEntriesCount()]));
+                searchResult.getEntries().toArray(new EntryData[searchResult.getEntriesCount()]));
 
         return entries;
     }
 
     protected <T> List<T> createEntities(Class<T> entryClass, List<PropertyAnnotation> propertiesAnnotations, ParsedKey baseDn,
-    		ResultSet ... searchResultEntries) {
+    		EntryData ... searchResultEntries) {
         List<T> result = new ArrayList<T>(searchResultEntries.length);
         Map<String, List<AttributeData>> entriesAttributes = new LinkedHashMap<String, List<AttributeData>>(100);
 
         int count = 0;
-		try {
-	        for (int i = 0; i < searchResultEntries.length; i++) {
-	            count++;
-	            ResultSet entry = searchResultEntries[i];
-	            // String key = entry.getString(SQLgetOperationService().META_DOC_ID);
-	            String dn = entry.getString(fromInternalAttribute(SqlOperationService.DN));
-	            entriesAttributes.put(dn, getAttributeDataList(entry));
-	
-	            // Remove reference to allow java clean up object
-	            searchResultEntries[i] = null;
-	
-	            // Allow java to clean up temporary objects
-	            if (count >= 100) {
-	                List<T> currentResult = createEntities(entryClass, propertiesAnnotations, entriesAttributes);
-	                result.addAll(currentResult);
-	
-	                entriesAttributes = new LinkedHashMap<String, List<AttributeData>>(100);
-	                count = 0;
-	            }
-	        }
-		} catch (SQLException ex) {
-            throw new MappingException("Failed to convert ResultEntry to Entry", ex);
-		}
+        for (int i = 0; i < searchResultEntries.length; i++) {
+            count++;
+            EntryData entryData = searchResultEntries[i];
+            
+            AttributeData attributeDataDn = entryData.getAttributeDate(toInternalAttribute(SqlOperationService.DN));
+            if ((attributeDataDn == null) || (attributeDataDn.getValue() == null)) {
+                throw new MappingException("Failed to convert EntryData to Entry because DN is missing");
+            }
+
+            entriesAttributes.put(attributeDataDn.getValue().toString(), entryData.getAttributeData());
+
+            // Remove reference to allow java clean up object
+            searchResultEntries[i] = null;
+
+            // Allow java to clean up temporary objects
+            if (count >= 100) {
+                List<T> currentResult = createEntities(entryClass, propertiesAnnotations, entriesAttributes);
+                result.addAll(currentResult);
+
+                entriesAttributes = new LinkedHashMap<String, List<AttributeData>>(100);
+                count = 0;
+            }
+        }
 
         List<T> currentResult = createEntities(entryClass, propertiesAnnotations, entriesAttributes);
         result.addAll(currentResult);
-
-        return result;
-    }
-
-    private List<AttributeData> getAttributeDataList(ResultSet entry) throws SQLException {
-        if (entry == null) {
-            return null;
-        }
-
-        List<AttributeData> result = new ArrayList<AttributeData>();
-        int columnsCount = entry.getMetaData().getColumnCount();
-        for (int i = 0; i < columnsCount; i++) {
-        	String shortAttributeName = entry.getMetaData().getColumnName(i);
-        	Object attributeObject = entry.getObject(shortAttributeName);
-
-        	String attributeName = fromInternalAttribute(shortAttributeName);
-
-        	Boolean multiValued = Boolean.FALSE;
-            Object[] attributeValueObjects;
-            if (attributeObject == null) {
-                attributeValueObjects = NO_OBJECTS;
-            }
-            /*
-            if (attributeObject instanceof JsonArray) {
-            	JsonArray jsonArray = (JsonArray) attributeObject;
-            	ArrayList<Object> resultList = new ArrayList<Object>(jsonArray.size());
-            	for (Iterator<Object> it = jsonArray.iterator(); it.hasNext();) {
-            		resultList.add(it.next());
-				}
-                attributeValueObjects = resultList.toArray(NO_OBJECTS);
-                multiValued = Boolean.TRUE;
-            } else */{
-            	if ((attributeObject instanceof Boolean) || (attributeObject instanceof Integer) || (attributeObject instanceof Long) ||
-            		(attributeObject instanceof ResultSet)) {
-                    attributeValueObjects = new Object[] { attributeObject };
-            	} else if (attributeObject instanceof String) {
-               		Object value = attributeObject.toString();
-                    try {
-                        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(JSON_DATA_FORMAT);
-                    	value = jsonDateFormat.parse(attributeObject.toString());
-                    } catch (Exception ex) {}
-            		attributeValueObjects = new Object[] { value };
-            	} else {
-               		Object value = attributeObject.toString();
-            		attributeValueObjects = new Object[] { value };
-            	}
-            }
-            
-            unescapeValues(attributeValueObjects);
-
-            AttributeData tmpAttribute = new AttributeData(attributeName, attributeValueObjects);
-            if (multiValued != null) {
-            	tmpAttribute.setMultiValued(multiValued);
-            }
-            result.add(tmpAttribute);
-        }
 
         return result;
     }
@@ -659,13 +599,18 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 		}
 
 		try {
-            PagedResult<ResultSet> searchResult = searchImpl(toSQLKey(baseDN).getKey(), objectClasses[0], convertedExpression,
+            PagedResult<EntryData> searchResult = searchImpl(toSQLKey(baseDN).getKey(), objectClasses[0], convertedExpression,
                     SearchScope.SUB, null, null, null, SearchReturnDataType.SEARCH, 0, 1, 1);
             if ((searchResult == null) || (searchResult.getEntriesCount() != 1)) {
                 return false;
             }
 
-            String bindDn = searchResult.getEntries().get(0).getString(SqlOperationService.DN);
+            AttributeData attributeData = searchResult.getEntries().get(0).getAttributeDate(SqlOperationService.DN);
+            if ((attributeData == null) || (attributeData.getValue() == null)) {
+                throw new AuthenticationException("Failed to find user DN in entry: '%s'");
+            }
+
+            String bindDn = attributeData.getValue().toString();
 
             return authenticate(bindDn, password);
         } catch (SearchException ex) {
@@ -732,7 +677,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
             throw new EntryPersistenceException(String.format("Failed to convert filter '%s' to expression", searchFilter));
 		}
 
-        PagedResult<ResultSet> searchResult;
+        PagedResult<EntryData> searchResult;
         try {
             searchResult = searchImpl(toSQLKey(baseDN).getKey(), objectClasses[0], convertedExpression, scope, null, null,
                     null, SearchReturnDataType.COUNT, 0, 0, 0);
@@ -755,6 +700,9 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
         escapeValues(realValues);
         
         if ((multiValued == null) || !multiValued) {
+        	if (realValues.length == 0) {
+                return new AttributeDataModification(type, new AttributeData(realAttributeName, null));
+        	}
             return new AttributeDataModification(type, new AttributeData(realAttributeName, realValues[0]));
         } else {
             return new AttributeDataModification(type, new AttributeData(realAttributeName, realValues));
@@ -793,11 +741,10 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
         try {
             // Load entry
             ParsedKey keyWithInum = toSQLKey(dn);
-            ResultSet entry = getOperationService().lookup(keyWithInum.getKey(), null);
+            List<AttributeData> entry = getOperationService().lookup(keyWithInum.getKey(), null);
 
-            List<AttributeData> result = getAttributeDataList(entry);
-            if (result != null) {
-                return result;
+            if (entry != null) {
+                return entry;
             }
             
             return null;
@@ -858,7 +805,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
             return null;
         }
 
-        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(JSON_DATA_FORMAT);
+        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SqlOperationService.JSON_DATA_FORMAT);
         return jsonDateFormat.format(date);
     }
 
@@ -873,7 +820,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
             return null;
         }
 
-        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(JSON_DATA_FORMAT);
+        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SqlOperationService.JSON_DATA_FORMAT);
         Date decodedDate;
         try {
             decodedDate = jsonDateFormat.parse(date);
@@ -931,82 +878,46 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
     	return super.convertJsonToValue(parameterType, jsonStringPropertyValue);
 	}
 
-	private String escapeValue(String value) {
-		// Couchbade SDK do this automatically 
-//		return StringHelper.escapeJson(value);
-		return value;
+    @Override
+	protected Object getNativeDateAttributeValue(Date dateValue) {
+		return dateValue;
+    }
+
+    @Override
+	protected boolean isStoreFullEntry() {
+		return true;
 	}
 
-	private String unescapeValue(String value) {
-		// Couchbade SDK do this automatically 
-//		return StringHelper.unescapeJson(value);
-		return value;
+	private String escapeValue(String value) {
+		return ((SqlOperationService) operationService).escapeValue(value);
 	}
 
 	private void escapeValues(Object[] realValues) {
-		// Couchbade SDK do this automatically 
-//		for (int i = 0; i < realValues.length; i++) {
-//        	if (realValues[i] instanceof String) {
-//        		realValues[i] = StringHelper.escapeJson(realValues[i]);
-//        	}
-//        }
+		((SqlOperationService) operationService).escapeValues(realValues);
+	}
+
+	private String unescapeValue(String value) {
+		return ((SqlOperationService) operationService).unescapeValue(value);
 	}
 
 	private void unescapeValues(Object[] realValues) {
-		// Couchbade SDK do this automatically 
-//		for (int i = 0; i < realValues.length; i++) {
-//        	if (realValues[i] instanceof String) {
-//        		realValues[i] = StringHelper.unescapeJson(realValues[i]);
-//        	}
-//        }
+		((SqlOperationService) operationService).unescapeValues(realValues);
 	}
 
 	public String toInternalAttribute(String attributeName) {
-		return attributeName;
-//		if (getOperationService().isDisableAttributeMapping()) {
-//			return attributeName;
-//		}
-//
-//		return KeyShortcuter.shortcut(attributeName);
+		return ((SqlOperationService) operationService).toInternalAttribute(attributeName);
 	}
 
 	public String[] toInternalAttributes(String[] attributeNames) {
-		return attributeNames;
-//		if (getOperationService().isDisableAttributeMapping() || ArrayHelper.isEmpty(attributeNames)) {
-//			return attributeNames;
-//		}
-//		
-//		String[] resultAttributeNames = new String[attributeNames.length];
-//		
-//		for (int i = 0; i < attributeNames.length; i++) {
-//			resultAttributeNames[i] = KeyShortcuter.shortcut(attributeNames[i]);
-//		}
-//		
-//		return resultAttributeNames;
+		return ((SqlOperationService) operationService).toInternalAttributes(attributeNames);
 	}
 
 	public String fromInternalAttribute(String internalAttributeName) {
-		return internalAttributeName;
-//		if (getOperationService().isDisableAttributeMapping()) {
-//			return internalAttributeName;
-//		}
-//
-//		return KeyShortcuter.fromShortcut(internalAttributeName);
+		return ((SqlOperationService) operationService).fromInternalAttribute(internalAttributeName);
 	}
 
 	public String[] fromInternalAttributes(String[] internalAttributeNames) {
-		return internalAttributeNames;
-//		if (getOperationService().isDisableAttributeMapping() || ArrayHelper.isEmpty(internalAttributeNames)) {
-//			return internalAttributeNames;
-//		}
-//		
-//		String[] resultAttributeNames = new String[internalAttributeNames.length];
-//		
-//		for (int i = 0; i < internalAttributeNames.length; i++) {
-//			resultAttributeNames[i] = KeyShortcuter.fromShortcut(internalAttributeNames[i]);
-//		}
-//		
-//		return resultAttributeNames;
+		return ((SqlOperationService) operationService).fromInternalAttributes(internalAttributeNames);
 	}
 
 }

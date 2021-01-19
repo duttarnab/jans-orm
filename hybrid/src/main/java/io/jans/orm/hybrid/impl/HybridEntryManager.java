@@ -443,4 +443,9 @@ public class HybridEntryManager extends BaseEntryManager implements Serializable
         throw new UnsupportedOperationException("Method not implemented.");
 	}
 
+	@Override
+	protected Object getNativeDateAttributeValue(Date dateValue) {
+        throw new UnsupportedOperationException("Method not implemented.");
+	}
+
 }
