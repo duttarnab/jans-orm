@@ -33,19 +33,19 @@ public class ManualSqlEntryManagerTest {
 	private SqlEntryManager manager;
 	private SessionId persistedSessionId;
 	
-	@BeforeClass(enabled = true)
+	@BeforeClass(enabled = false)
 	public void init() throws IOException {
         manager = createSqlEntryManager();
 	}
 
-	@AfterClass(enabled = true)
+	@AfterClass(enabled = false)
 	public void destroy() throws IOException {
 		if (manager != null) {
 			manager.destroy();
 		}
 	}
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void createSessionId() throws IOException {
     	SessionId sessionId = buildSessionId();
         manager.persist(sessionId);
@@ -55,7 +55,7 @@ public class ManualSqlEntryManagerTest {
         System.out.println(sessionId);
     }
 
-    @Test(dependsOnMethods =  "createSessionId", enabled = true)
+    @Test(dependsOnMethods =  "createSessionId", enabled = false)
     public void updateSessionId() throws IOException {
     	SessionId sessionId = persistedSessionId;
     	
@@ -75,7 +75,7 @@ public class ManualSqlEntryManagerTest {
         System.out.println(sessionId);
     }
 
-    @Test(dependsOnMethods =  "updateSessionId", enabled = true)
+    @Test(dependsOnMethods =  "updateSessionId", enabled = false)
     public void searchSessionId() throws IOException {
         List<SessionId> sessionIdList = manager.findEntries("o=jans", SessionId.class, null);
         System.out.println(sessionIdList);
