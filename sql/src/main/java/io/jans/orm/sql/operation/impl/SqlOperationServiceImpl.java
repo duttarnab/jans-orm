@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -179,7 +180,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 					sqlInsertQuery.values(attribute.getValue());
 				}
 			}
-
+			
 			long rowInserted = sqlInsertQuery.execute();
 
 			return rowInserted == 1;
@@ -259,13 +260,13 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 		try {
 			RelationalPathBase<Object> tableRelationalPath = buildTableRelationalPath(tableMapping);
 			SQLDeleteClause sqlDeleteQuery = this.sqlQueryFactory.delete(tableRelationalPath);
-			
+
 			Predicate exp = ExpressionUtils.eq(Expressions.stringPath(SqlOperationService.DOC_ID), Expressions.constant(key));
 			sqlDeleteQuery.where(exp);
 
-			long rowInserted = sqlDeleteQuery.execute();
+			long rowDeleted = sqlDeleteQuery.execute();
 
-			return rowInserted == 1;
+			return rowDeleted == 1;
         } catch (QueryException ex) {
             throw new EntryNotFoundException("Failed to delete entry", ex);
         }
@@ -292,6 +293,10 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
 			Predicate exp = (Predicate) expression.expression();
 			sqlDeleteQuery.where(exp);
+
+			if (count > 0) {
+				sqlDeleteQuery = sqlDeleteQuery.limit(count);
+            }
 
 			long rowDeleted = sqlDeleteQuery.execute();
 
@@ -334,7 +339,6 @@ public class SqlOperationServiceImpl implements SqlOperationService {
     }
 
 	private List<AttributeData> lookupImpl(TableMapping tableMapping, String key, String... attributes) throws SearchException, EntryConvertationException {
-		String queryStr;
 		try {
 			RelationalPathBase<Object> tableRelationalPath = buildTableRelationalPath(tableMapping);
 
@@ -344,23 +348,14 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
 			SQLQuery<?> sqlSelectQuery = sqlQueryFactory.select(attributesExp).from(tableRelationalPath)
 					.where(whereExp).limit(1);
-
-			sqlSelectQuery.setUseLiterals(true);
-			queryStr = sqlSelectQuery.getSQL().getSQL();
-		} catch (QueryException ex) {
-			throw new SearchException(String.format("Failed to lookup entry by key: '%s'", key), ex);
-		}
-
-		try (Connection connection = sqlQueryFactory.getConnection()) {
-			PreparedStatement pstmt = connection.prepareStatement(queryStr, Statement.RETURN_GENERATED_KEYS);
-
-			ResultSet resultSet = pstmt.executeQuery();
+			
+			ResultSet resultSet = sqlSelectQuery.getResults();
 
 			List<AttributeData> result = getAttributeDataList(resultSet);
 			
 			return result;
-		} catch (SQLException ex) {
-			throw new SearchException(String.format("Failed to execute lookup query '%s'  with key: '%s'", queryStr, key), ex);
+		} catch (QueryException ex) {
+			throw new SearchException(String.format("Failed to lookup entry by key: '%s'", key), ex);
 		}
 	}
 
@@ -393,7 +388,6 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 		Expression<?> attributesExp = buildSelectAttributes(attributes);
 
 		SQLQuery<?> sqlSelectQuery = sqlQueryFactory.select(attributesExp).from(tableRelationalPath).where(whereExp);
-		sqlSelectQuery.setUseLiterals(true);
 
         SQLQuery<?> baseQuery = sqlSelectQuery;
         if (orderBy != null) {
@@ -408,10 +402,9 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	        if (pageSize > 0) {
 	            boolean collectSearchResult;
 	
-	            SQLQuery<?> query = null;
+	            SQLQuery<?> query;
 	            int currentLimit;
-	    		try (Connection connection = sqlQueryFactory.getConnection()) {
-	    			List<ResultSet> lastSearchResultList;
+	    		try {
 	                int resultCount = 0;
 	                int lastCountRows = 0;
 	                do {
@@ -424,12 +417,12 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	
 	                    query = baseQuery.limit(currentLimit).offset(start + resultCount);
 
-	                    queryStr = sqlSelectQuery.getSQL().getSQL();
+	                    queryStr = query.getSQL().getSQL();
 	                    LOG.debug("Execution query: '" + queryStr + "'");
+	                    
+	                    ResultSet resultSet = query.getResults();
 
-	                    PreparedStatement pstmt = connection.prepareStatement(queryStr, Statement.RETURN_GENERATED_KEYS);
-		    			ResultSet resultSet = pstmt.executeQuery();
-		    			lastResult = getEntryDataList(resultSet);
+	                    lastResult = getEntryDataList(resultSet);
 	
 		    			lastCountRows = lastResult.size();
 		    			
@@ -457,7 +450,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	    			throw new SearchException(String.format("Failed to execute query '%s'  with key: '%s'", queryStr, key), ex);
 	    		}
 	        } else {
-	    		try (Connection connection = sqlQueryFactory.getConnection()) {
+	    		try {
 	                SQLQuery<?> query = baseQuery;
 	                if (count > 0) {
 	                    query = query.limit(count);
@@ -466,11 +459,12 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	                    query = query.offset(start);
 	                }
 	
-                    queryStr = sqlSelectQuery.getSQL().getSQL();
+                    queryStr = query.getSQL().getSQL();
+
                     LOG.debug("Execution query: '" + queryStr + "'");
 
-                    PreparedStatement pstmt = connection.prepareStatement(queryStr, Statement.RETURN_GENERATED_KEYS);
-                    ResultSet resultSet = pstmt.executeQuery();
+                    ResultSet resultSet = query.getResults();
+
 	    			lastResult = getEntryDataList(resultSet);
 	
 	                searchResultList.addAll(lastResult);
@@ -489,7 +483,6 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
         if ((SearchReturnDataType.COUNT == returnDataType) || (SearchReturnDataType.SEARCH_COUNT == returnDataType)) {
     		SQLQuery<?> sqlCountSelectQuery = sqlQueryFactory.select(Expressions.as(ExpressionUtils.count(Wildcard.all), "TOTAL")).from(tableRelationalPath).where(whereExp);
-    		sqlCountSelectQuery.setUseLiterals(true);
 
     		try (Connection connection = sqlQueryFactory.getConnection()) {
                 queryStr = sqlCountSelectQuery.getSQL().getSQL();
@@ -531,7 +524,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
             if ((resultSet == null)) {
                 return null;
             }
-            
+
             if (!resultSet.next()) {
             	return null;
             }
@@ -596,9 +589,14 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
     private List<EntryData> getEntryDataList(ResultSet resultSet) throws EntryConvertationException, SQLException {
     	List<EntryData> entryDataList = new LinkedList<>();
+
+    	List<AttributeData> attributeDataList = null;
     	while (!resultSet.isLast()) {
-    		List<AttributeData> attributeDataList = getAttributeDataList(resultSet);
-    		
+    		attributeDataList = getAttributeDataList(resultSet);
+    		if (attributeDataList == null) {
+    			break;
+    		}
+
     		EntryData entryData = new EntryData(attributeDataList);
     		entryDataList.add(entryData);
     	}

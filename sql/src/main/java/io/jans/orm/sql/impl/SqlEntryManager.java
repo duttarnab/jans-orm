@@ -152,7 +152,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 
         LOG.debug("LDAP entry to remove: '{}'", dnValue.toString());
 
-        remove(dnValue.toString());
+        remove(dnValue.toString(), entryClass);
     }
 
     @Override
@@ -313,13 +313,12 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
     protected <T> int removeImpl(String dn, Class<T> entryClass, Filter filter, int count) {
         // Check entry class
         checkEntryClass(entryClass, false);
-
         String[] objectClasses = getTypeObjectClasses(entryClass);
 
         Filter searchFilter;
         if (objectClasses.length > 0) {
-        	 LOG.trace("Filter: {}", filter);
-            searchFilter = addObjectClassFilter(filter, objectClasses);
+			LOG.trace("Filter: {}", filter);
+			searchFilter = addObjectClassFilter(filter, objectClasses);
         } else {
             searchFilter = filter;
         }
@@ -338,7 +337,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
         ParsedKey keyWithInum = toSQLKey(dn);
         ConvertedExpression convertedExpression;
 		try {
-			convertedExpression = toSqlFilter(searchFilter, propertiesAnnotationsMap);
+			convertedExpression = toSqlFilterWithEmptyAlias(searchFilter, propertiesAnnotationsMap);
 		} catch (SearchException ex) {
             throw new EntryDeleteException(String.format("Failed to convert filter '%s' to expression", searchFilter));
 		}
@@ -510,7 +509,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
         try {
             ParsedKey keyWithInum = toSQLKey(baseDN);
             searchResult = searchImpl(keyWithInum.getKey(), objectClasses[0], convertedExpression, SearchScope.SUB, ldapReturnAttributes, null,
-                    null, SearchReturnDataType.SEARCH, 1, 1, 0);
+                    null, SearchReturnDataType.SEARCH, 0, 1, 0);
             if (searchResult == null) {
                 throw new EntryPersistenceException(String.format("Failed to find entry with baseDN: '%s', filter: '%s'", baseDN, searchFilter));
             }
@@ -757,8 +756,15 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
         return FILTER_CONVERTER.convertToSqlFilter(genericFilter, propertiesAnnotationsMap);
     }
 
+    private ConvertedExpression toSqlFilterWithEmptyAlias(Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap) throws SearchException {
+        return FILTER_CONVERTER.convertToSqlFilter(genericFilter, propertiesAnnotationsMap, true);
+    }
+
     private ConvertedExpression toSqlFilter(Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap, Function<? super Filter, Boolean> processor) throws SearchException {
         return FILTER_CONVERTER.convertToSqlFilter(genericFilter, propertiesAnnotationsMap, processor);
+    }
+    private ConvertedExpression toSqlFilterWithEmptyAlias(Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap, Function<? super Filter, Boolean> processor) throws SearchException {
+        return FILTER_CONVERTER.convertToSqlFilter(genericFilter, propertiesAnnotationsMap, processor, true);
     }
 
     private ParsedKey toSQLKey(String dn) {
@@ -870,6 +876,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 	@Override
 	protected Object convertJsonToValue(Class<?> parameterType, Object propertyValue) {
     	Object jsonStringPropertyValue = propertyValue;
+    	// TODO: Review
     	if (propertyValue instanceof ResultSet) {
     		ResultSet ResultSet = (ResultSet) propertyValue;
     		jsonStringPropertyValue = ResultSet.toString();

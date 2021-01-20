@@ -6,6 +6,11 @@
 
 package io.jans.sql.test;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +25,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import io.jans.orm.search.filter.Filter;
 import io.jans.orm.sql.impl.SqlEntryManager;
 import io.jans.orm.sql.impl.SqlEntryManagerFactory;
 import io.jans.orm.util.Pair;
@@ -55,7 +61,18 @@ public class ManualSqlEntryManagerTest {
         System.out.println(sessionId);
     }
 
-    @Test(dependsOnMethods =  "createSessionId", enabled = false)
+    @Test(dependsOnMethods = "createSessionId", enabled = false)
+    public void containsSessionIdAfterAdd() throws IOException {
+    	SessionId sessionId = persistedSessionId;
+    	
+        boolean result = manager.contains(sessionId);
+        
+        assertTrue(result);
+
+        System.out.println(sessionId);
+    }
+
+    @Test(dependsOnMethods = "containsSessionIdAfterAdd", enabled = false)
     public void updateSessionId() throws IOException {
     	SessionId sessionId = persistedSessionId;
     	
@@ -75,10 +92,95 @@ public class ManualSqlEntryManagerTest {
         System.out.println(sessionId);
     }
 
-    @Test(dependsOnMethods =  "updateSessionId", enabled = false)
+    @Test(dependsOnMethods = "updateSessionId", enabled = false)
+    public void containsSessionIdAfterUpdate() throws IOException {
+    	SessionId sessionId = persistedSessionId;
+    	
+        boolean result = manager.contains(sessionId);
+        
+        assertTrue(result);
+
+        System.out.println(sessionId);
+    }
+
+    @Test(dependsOnMethods = "containsSessionIdAfterUpdate", enabled = false)
+    public void deleteSessionId() throws IOException {
+    	SessionId sessionId = persistedSessionId;
+    	
+        manager.remove(sessionId);
+        
+        boolean result = manager.contains(sessionId);
+
+        assertFalse(result);
+
+        System.out.println(sessionId);
+    }
+
+    @Test(dependsOnMethods = "deleteSessionId", enabled = false)
+    public void deleteSessionIdByFilter() throws IOException {
+		String outsideSid = UUID.randomUUID().toString();
+		for (int i = 0; i < 20; i++) {
+			SessionId sessionId = buildSessionId();
+			sessionId.setOutsideSid(outsideSid);
+
+			manager.persist(sessionId);
+		}
+
+		Filter filter = Filter.createEqualityFilter("sid", outsideSid);
+		
+		int removedCount = manager.remove("ou=sessions,o=jans", SessionId.class, filter, 14);
+		assertEquals(removedCount, 14);
+
+		int removedCount2 = manager.remove("ou=sessions,o=jans", SessionId.class, filter, 5);
+		assertEquals(removedCount2, 5);
+
+		int removedCount3 = manager.remove("ou=sessions,o=jans", SessionId.class, filter, 1);
+		assertEquals(removedCount3, 1);
+    }
+
+    @Test(enabled = false)
     public void searchSessionId() throws IOException {
         List<SessionId> sessionIdList = manager.findEntries("o=jans", SessionId.class, null);
         System.out.println(sessionIdList);
+    }
+
+    @Test(dependsOnMethods = "searchSessionId", enabled = false)
+    public void searchSessionIdWithRanges() throws IOException {
+		String outsideSid = UUID.randomUUID().toString();
+		for (int i = 0; i < 20; i++) {
+			SessionId sessionId = buildSessionId();
+			sessionId.setOutsideSid(outsideSid);
+
+			manager.persist(sessionId);
+		}
+
+		Filter filter = Filter.createEqualityFilter("sid", outsideSid);
+
+		List<SessionId> sessionIdList = manager.findEntries("o=jans", SessionId.class, filter);
+		assertNotNull(sessionIdList);
+		assertEquals(sessionIdList.size(), 20);
+
+		List<SessionId> sessionIdList2 = manager.findEntries("o=jans", SessionId.class, filter, 5);
+		assertNotNull(sessionIdList2);
+		assertEquals(sessionIdList2.size(), 5);
+
+		List<SessionId> sessionIdList3 = manager.findEntries("o=jans", SessionId.class, filter, 25);
+		assertNotNull(sessionIdList3);
+		assertEquals(sessionIdList3.size(), 20);
+
+		List<SessionId> sessionIdList4 = manager.findEntries("o=jans", SessionId.class, filter, null, null, 14, 7, 3);
+		assertNotNull(sessionIdList4);
+		assertEquals(sessionIdList4.size(), 6);
+
+		List<SessionId> sessionIdList5 = manager.findEntries("o=jans", SessionId.class, filter, null, null, 20, 10, 5);
+		assertNotNull(sessionIdList5);
+		assertEquals(sessionIdList5.size(), 0);
+
+		List<SessionId> sessionIdList6 = manager.findEntries("o=jans", SessionId.class, filter, null, null, 19, -1, 5);
+		assertNotNull(sessionIdList6);
+		assertEquals(sessionIdList6.size(), 1);
+
+		System.out.println(sessionIdList);
     }
 
     private SessionId buildSessionId() {

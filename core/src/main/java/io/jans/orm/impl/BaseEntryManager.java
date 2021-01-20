@@ -65,8 +65,6 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BaseEntryManager.class);
 
-	private static final boolean TRACE = true;
-
 	private static final Class<?>[] LDAP_ENTRY_TYPE_ANNOTATIONS = { DataEntry.class, SchemaEntry.class,
 			ObjectClass.class };
 	private static final Class<?>[] LDAP_ENTRY_PROPERTY_ANNOTATIONS = { AttributeName.class, AttributesList.class,
@@ -238,7 +236,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 			attributesFromLdap = find(dnValue.toString(), objectClasses, propertiesAnnotationsMap, currentLdapReturnAttributesList.toArray(EMPTY_STRING_ARRAY));
 		}
 
-		if (TRACE) {
+		if (LOG.isTraceEnabled()) {
 			dumpAttributes("attributesFromLdap", attributesFromLdap);
 			dumpAttributes("attributesToPersist", attributesToPersist);
 		}
@@ -252,13 +250,13 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 				propertiesAnnotations, attributesToPersistMap, attributesFromLdapMap, isSchemaUpdate,
 				schemaModificationType);
 
-		if (TRACE) {
+		if (LOG.isTraceEnabled()) {
 			dumpAttributeDataModifications("attributeDataModifications before updateMergeChanges", attributeDataModifications);
 		}
 
 		updateMergeChanges(dnValue.toString(), entry, isSchemaUpdate | isConfigurationUpdate, entryClass, attributesFromLdapMap, attributeDataModifications);
 
-		if (TRACE) {
+		if (LOG.isTraceEnabled()) {
 			dumpAttributeDataModifications("attributeDataModifications after updateMergeChanges", attributeDataModifications);
 		}
 
@@ -457,7 +455,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 	public <T> void remove(String primaryKey, Class<T> entryClass) {
 		String[] objectClasses = null;
 		
-		if (entryClass == null) {
+		if (entryClass != null) {
 			// Check entry class
 			checkEntryClass(entryClass, false);
 			objectClasses = getTypeObjectClasses(entryClass);
@@ -477,7 +475,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 	public <T> void removeRecursively(String primaryKey, Class<T> entryClass) {
 		String[] objectClasses = null;
 		
-		if (entryClass == null) {
+		if (entryClass != null) {
 			// Check entry class
 			checkEntryClass(entryClass, false);
 			objectClasses = getTypeObjectClasses(entryClass);
@@ -1656,7 +1654,11 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		} else if (parameterType.equals(Long.class) || parameterType.equals(Long.TYPE)) {
 			propertyValueSetter.set(entry, toLongValue(attribute));
 		} else if (parameterType.equals(Date.class)) {
-			propertyValueSetter.set(entry, attribute.getValue() instanceof Date ? (Date) attribute.getValue() : decodeTime(String.valueOf(attribute.getValue())));
+			if (attribute.getValue() == null) {
+				propertyValueSetter.set(entry, null);
+			} else {
+				propertyValueSetter.set(entry, attribute.getValue() instanceof Date ? (Date) attribute.getValue() : decodeTime(String.valueOf(attribute.getValue())));
+			}
 		} else if (parameterType.equals(String[].class)) {
 			propertyValueSetter.set(entry, attribute.getStringValues());
 		} else if (ReflectHelper.assignableFrom(parameterType, List.class)) {

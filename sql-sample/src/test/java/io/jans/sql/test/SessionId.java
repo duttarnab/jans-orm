@@ -27,7 +27,7 @@ import java.util.UUID;
 * @author Yuriy Movchan Date: 01/15/2020
 */
 @Named("sessionUser")
-@DataEntry
+@DataEntry(sortBy = { "creationDate", "jansId" })
 @ObjectClass(value = "jansSessId")
 public class SessionId implements Deletable, Serializable {
 
