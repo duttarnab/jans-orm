@@ -9,18 +9,19 @@ package io.jans.orm.sql;
 import java.util.Arrays;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.jans.orm.model.base.CustomAttribute;
+import io.jans.orm.search.filter.Filter;
 import io.jans.orm.sql.impl.SqlEntryManager;
 import io.jans.orm.sql.model.SimpleCustomStringUser;
 import io.jans.orm.sql.model.UserRole;
 import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
-import io.jans.orm.model.base.CustomAttribute;
-import io.jans.orm.search.filter.Filter;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.jans.orm.sql.persistence.SqlSampleEntryManager;
 
 /**
- * @author Yuriy Movchan Date: 09/27/2019
+ * @author Yuriy Movchan Date: 01/15/2020
  */
 public final class SqlCustomStringAttributesSample {
 
@@ -31,10 +32,10 @@ public final class SqlCustomStringAttributesSample {
 
 	public static void main(String[] args) {
 		// Prepare sample connection details
-		SqlSampleEntryManager couchbaseSampleEntryManager = new SqlSampleEntryManager();
+		SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
 
-		// Create Couchbase entry manager
-		SqlEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createSqlEntryManager();
+		// Create SQL entry manager
+		SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
 
 		String randomExternalUid = "otp:" + System.currentTimeMillis();
 
@@ -47,14 +48,14 @@ public final class SqlCustomStringAttributesSample {
 		newUser.getCustomAttributes().add((new CustomAttribute("jansExternalUid", randomExternalUid)).setMultiValued(true));
 
 		newUser.setUserRole(UserRole.ADMIN);
-		newUser.setNotes(Arrays.asList("note 1", "note 2", "note 3"));
+		newUser.setMemberOf(Arrays.asList("group_1", "group_2", "group_3"));
 
-		couchbaseEntryManager.persist(newUser);
+		sqlEntryManager.persist(newUser);
 
 		LOG.info("Added User '{}' with uid '{}' and key '{}'", newUser, newUser.getUserId(), newUser.getDn());
 
 		// Find added dummy user but use custom class with String values
-		SimpleCustomStringUser foundUser = couchbaseEntryManager.find(SimpleCustomStringUser.class, newUser.getDn());
+		SimpleCustomStringUser foundUser = sqlEntryManager.find(SimpleCustomStringUser.class, newUser.getDn());
 		LOG.info("Found User '{}' with uid '{}' and key '{}'", foundUser, foundUser.getUserId(), foundUser.getDn());
 
 		LOG.info("Custom attributes '{}'", foundUser.getCustomAttributes());
@@ -64,7 +65,7 @@ public final class SqlCustomStringAttributesSample {
 
 		// Find by jsExternalUid
 		Filter jsExternalUidFilter = Filter.createEqualityFilter("jansExternalUid", randomExternalUid).multiValued();
-		List<SimpleCustomStringUser> foundUsers = couchbaseEntryManager.findEntries("ou=people,o=jans", SimpleCustomStringUser.class, jsExternalUidFilter);
+		List<SimpleCustomStringUser> foundUsers = sqlEntryManager.findEntries("ou=people,o=jans", SimpleCustomStringUser.class, jsExternalUidFilter);
 		for (SimpleCustomStringUser foundUser2 : foundUsers) {
 			LOG.info("Found User '{}' by jsExternalUid with uid '{}' and key '{}'", foundUser2, foundUser2.getUserId(), foundUser2.getDn());
 		}

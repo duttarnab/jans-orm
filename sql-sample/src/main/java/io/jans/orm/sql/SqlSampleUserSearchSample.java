@@ -16,13 +16,14 @@ import org.apache.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
 
+import io.jans.orm.search.filter.Filter;
 import io.jans.orm.sql.impl.SqlEntryManager;
 import io.jans.orm.sql.model.SimpleUser;
-import io.jans.orm.search.filter.Filter;
+import io.jans.orm.sql.persistence.SqlSampleEntryManager;
 import io.jans.orm.util.StringHelper;
 
 /**
- * @author Yuriy Movchan Date: 09/18/2019
+ * @author Yuriy Movchan Date: 01/15/2020
  */
 public final class SqlSampleUserSearchSample {
 
@@ -45,8 +46,8 @@ public final class SqlSampleUserSearchSample {
 
     public static void main(String[] args) throws InterruptedException {
         // Prepare sample connection details
-        SqlSampleEntryManager couchbaseSampleEntryManager = new SqlSampleEntryManager();
-        final SqlEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createSqlEntryManager();
+        SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
+        final SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
         
         int countUsers = 1000000;
         int threadCount = 200;
@@ -68,7 +69,7 @@ public final class SqlSampleUserSearchSample {
 	                        try {
 		                        Filter filter = Filter.createEqualityFilter(Filter.createLowercaseFilter("uid"), StringHelper.toLowerCase(uid));
 //		                        Filter filter = Filter.createEqualityFilter("uid", uid);
-		                        List<SimpleUser> foundUsers = couchbaseEntryManager.findEntries("ou=people,o=jans", SimpleUser.class, filter);
+		                        List<SimpleUser> foundUsers = sqlEntryManager.findEntries("ou=people,o=jans", SimpleUser.class, filter);
 		                        if (foundUsers.size() > 0) {
 		                        	successResult.incrementAndGet();
 		                        } else {
@@ -95,7 +96,7 @@ public final class SqlSampleUserSearchSample {
             	Thread.sleep(1000L);
             }
         } finally {
-            couchbaseEntryManager.destroy();
+            sqlEntryManager.destroy();
         }
         long totalEnd = System.currentTimeMillis();
         long duration = totalEnd - totalStart; 

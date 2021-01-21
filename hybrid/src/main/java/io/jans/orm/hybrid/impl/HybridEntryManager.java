@@ -97,13 +97,13 @@ public class HybridEntryManager extends BaseEntryManager implements Serializable
     @Override
     @Deprecated
     public boolean authenticate(String bindDn, String password) {
-    	return authenticate(bindDn, password, null);
+    	return authenticate(bindDn, null, password);
     }
 
     @Override
-    public <T> boolean authenticate(String bindDn, String password, Class<T> entryClass) {
+    public <T> boolean authenticate(String bindDn, Class<T> entryClass, String password) {
     	PersistenceEntryManager persistenceEntryManager = getEntryManagerForDn(bindDn);
-    	return persistenceEntryManager.authenticate(bindDn, password, entryClass);
+    	return persistenceEntryManager.authenticate(bindDn, entryClass, password);
     }
 
     @Override

@@ -9,17 +9,19 @@ package io.jans.orm.sql;
 import java.util.Arrays;
 import java.util.List;
 
-import io.jans.orm.sql.impl.SqlEntryManager;
-import io.jans.orm.sql.model.SimpleUser;
-import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
-import io.jans.orm.model.base.CustomObjectAttribute;
-import io.jans.orm.search.filter.Filter;
-import io.jans.orm.util.StringHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.jans.orm.model.base.CustomObjectAttribute;
+import io.jans.orm.search.filter.Filter;
+import io.jans.orm.sql.impl.SqlEntryManager;
+import io.jans.orm.sql.model.SimpleUser;
+import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
+import io.jans.orm.sql.persistence.SqlSampleEntryManager;
+import io.jans.orm.util.StringHelper;
+
 /**
- * @author Yuriy Movchan Date: 09/16/2019
+ * @author Yuriy Movchan Date: 01/15/2020
  */
 public final class SqlCustomMultiValuedTypesSample {
 
@@ -30,10 +32,10 @@ public final class SqlCustomMultiValuedTypesSample {
 
 	public static void main(String[] args) {
 		// Prepare sample connection details
-		SqlSampleEntryManager couchbaseSampleEntryManager = new SqlSampleEntryManager();
+		SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
 
-		// Create Couchbase entry manager
-		SqlEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createSqlEntryManager();
+		// Create SQL entry manager
+		SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
 
 		// Add dummy user
 		SimpleUser newUser = new SimpleUser();
@@ -43,15 +45,15 @@ public final class SqlCustomMultiValuedTypesSample {
 		newUser.getCustomAttributes().add(new CustomObjectAttribute("streetAddress", Arrays.asList("London", "Texas", "Kiev")));
 		newUser.getCustomAttributes().add(new CustomObjectAttribute("test", "test_value"));
 		newUser.getCustomAttributes().add(new CustomObjectAttribute("fuzzy", "test_value"));
-		newUser.setNotes(Arrays.asList("note 1", "note 2", "note 3"));
+		newUser.setMemberOf(Arrays.asList("group_1", "group_2", "group_3"));
 
-		couchbaseEntryManager.persist(newUser);
+		sqlEntryManager.persist(newUser);
 
 		LOG.info("Added User '{}' with uid '{}' and key '{}'", newUser, newUser.getUserId(), newUser.getDn());
 		LOG.info("Persisted custom attributes '{}'", newUser.getCustomAttributes());
 
 		// Find added dummy user
-		SimpleUser foundUser = couchbaseEntryManager.find(SimpleUser.class, newUser.getDn());
+		SimpleUser foundUser = sqlEntryManager.find(SimpleUser.class, newUser.getDn());
 		LOG.info("Found User '{}' with uid '{}' and key '{}'", foundUser, foundUser.getUserId(), foundUser.getDn());
 
 		LOG.info("Custom attributes '{}'", foundUser.getCustomAttributes());
@@ -65,17 +67,17 @@ public final class SqlCustomMultiValuedTypesSample {
 		CustomObjectAttribute multiValuedSingleValue = new CustomObjectAttribute("multivalued", "multivalued_single_valued");
 		multiValuedSingleValue.setMultiValued(true);
 		foundUser.getCustomAttributes().add(multiValuedSingleValue);
-		couchbaseEntryManager.merge(foundUser);
+		sqlEntryManager.merge(foundUser);
 		LOG.info("Updated custom attributes '{}'", foundUser.getCustomAttributes());
 
 		// Find updated dummy user
-		SimpleUser foundUpdatedUser = couchbaseEntryManager.find(SimpleUser.class, newUser.getDn());
+		SimpleUser foundUpdatedUser = sqlEntryManager.find(SimpleUser.class, newUser.getDn());
 		LOG.info("Found User '{}' with uid '{}' and key '{}'", foundUpdatedUser, foundUpdatedUser.getUserId(), foundUpdatedUser.getDn());
 
 		LOG.info("Cusom attributes '{}'", foundUpdatedUser.getCustomAttributes());
 
 		Filter filter = Filter.createEqualityFilter(Filter.createLowercaseFilter("givenName"), StringHelper.toLowerCase("jon"));
-		List<SimpleUser> foundUpdatedUsers = couchbaseEntryManager.findEntries("o=jans", SimpleUser.class, filter);
+		List<SimpleUser> foundUpdatedUsers = sqlEntryManager.findEntries("o=jans", SimpleUser.class, filter);
 		System.out.println(foundUpdatedUsers);
 		
 	}

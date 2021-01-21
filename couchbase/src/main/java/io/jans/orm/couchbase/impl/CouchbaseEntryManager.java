@@ -176,7 +176,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
             	Object[] realValues = attributeValues;
 
             	// We need to store only one objectClass value in Couchbase
-                if (StringHelper.equals(CouchbaseOperationService.OBJECT_CLASS, attributeName)) {
+                if (StringHelper.equalsIgnoreCase(CouchbaseOperationService.OBJECT_CLASS, attributeName)) {
                 	if (!ArrayHelper.isEmpty(realValues)) {
                 		realValues = new Object[] { realValues[0] };
                 		multiValued = false;
@@ -184,7 +184,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
                 }
 
             	// Process userPassword 
-                if (StringHelper.equals(CouchbaseOperationService.USER_PASSWORD, attributeName)) {
+                if (StringHelper.equalsIgnoreCase(CouchbaseOperationService.USER_PASSWORD, attributeName)) {
                     realValues = getOperationService().createStoragePassword(StringHelper.toStringArray(attributeValues));
                 }
 
@@ -540,7 +540,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
             count++;
             JsonObject entry = searchResultEntries[i];
             // String key = entry.getString(CouchbasegetOperationService().META_DOC_ID);
-            String dn = entry.getString(toInternalAttribute(CouchbaseOperationService.DN));
+            String dn = entry.getString(CouchbaseOperationService.DN);
             entriesAttributes.put(dn, getAttributeDataList(entry));
 
             // Remove reference to allow java clean up object
@@ -662,11 +662,11 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
     @Override
     @Deprecated
     public boolean authenticate(String bindDn, String password) {
-    	return authenticate(bindDn, password, null);
+    	return authenticate(bindDn, null, password);
     }
 
     @Override
-    public <T> boolean authenticate(String bindDn, String password, Class<T> entryClass) {
+    public <T> boolean authenticate(String bindDn, Class<T> entryClass, String password) {
         try {
             return getOperationService().authenticate(toCouchbaseKey(bindDn).getKey(), escapeValue(password), null);
         } catch (Exception ex) {
@@ -724,7 +724,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
         String realAttributeName = attributeName;
 
         Object[] realValues = attributeValues;
-        if (StringHelper.equals(CouchbaseOperationService.USER_PASSWORD, realAttributeName)) {
+        if (StringHelper.equalsIgnoreCase(CouchbaseOperationService.USER_PASSWORD, realAttributeName)) {
             realValues = getOperationService().createStoragePassword(StringHelper.toStringArray(attributeValues));
         }
 

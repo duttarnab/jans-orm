@@ -20,9 +20,7 @@ import io.jans.orm.annotation.JsonObject;
 import io.jans.orm.annotation.ObjectClass;
 
 /**
- * @author Yuriy Zabrovarnyy
- * @author Javier Rojas Blum
- * @version December 15, 2015
+* @author Yuriy Movchan Date: 01/15/2020
  */
 @DataEntry
 @ObjectClass(value = "jansSessId")
@@ -33,7 +31,7 @@ public class SimpleSessionState implements Serializable {
     @DN
     private String dn;
 
-    @AttributeName(name = "uniqueIdentifier")
+    @AttributeName(name = "jansId")
     private String id;
 
     @AttributeName(name = "jansLastAccessTime")
@@ -45,7 +43,7 @@ public class SimpleSessionState implements Serializable {
     @AttributeName(name = "authnTime")
     private Date authenticationTime;
 
-    @AttributeName(name = "oxAuthSessionState")
+    @AttributeName(name = "jansPermissionGranted")
     private Boolean permissionGranted;
 
     @AttributeName(name = "jansAsJwt")

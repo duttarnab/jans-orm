@@ -20,8 +20,7 @@ import io.jans.orm.model.base.CustomObjectAttribute;
 import io.jans.orm.util.StringHelper;
 
 /**
- * @author Yuriy Movchan
- * Date: 11/03/2016
+* @author Yuriy Movchan Date: 01/15/2020
  */
 @DataEntry
 @ObjectClass(value = "jansPerson")
@@ -41,8 +40,8 @@ public class SimpleUser implements Serializable {
     @AttributeName(name = "role")
     private UserRole userRole; 
 
-    @AttributeName(name = "notes")
-    private List<String> notes; 
+    @AttributeName(name = "memberOf")
+    private List<String> memberOf; 
 
     @AttributesList(name = "name", value = "values", multiValued = "multiValued", sortByName = true)
     private List<CustomObjectAttribute> customAttributes = new ArrayList<CustomObjectAttribute>();
@@ -82,12 +81,12 @@ public class SimpleUser implements Serializable {
 		this.userRole = userRole;
 	}
 
-	public List<String> getNotes() {
-		return notes;
+	public List<String> getMemberOf() {
+		return memberOf;
 	}
 
-	public void setNotes(List<String> notes) {
-		this.notes = notes;
+	public void setMemberOf(List<String> memberOf) {
+		this.memberOf = memberOf;
 	}
 
 	public List<CustomObjectAttribute> getCustomAttributes() {

@@ -6,10 +6,10 @@
 
 package io.jans.sql.test;
 
-import com.google.common.collect.Maps;
-
-import io.jans.orm.annotation.*;
-import io.jans.orm.model.base.Deletable;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.annotation.Nonnull;
 import javax.inject.Named;
@@ -17,10 +17,15 @@ import javax.persistence.Transient;
 
 import org.apache.commons.lang.StringUtils;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Map;
-import java.util.UUID;
+import com.google.common.collect.Maps;
+
+import io.jans.orm.annotation.AttributeName;
+import io.jans.orm.annotation.DN;
+import io.jans.orm.annotation.DataEntry;
+import io.jans.orm.annotation.Expiration;
+import io.jans.orm.annotation.JsonObject;
+import io.jans.orm.annotation.ObjectClass;
+import io.jans.orm.model.base.Deletable;
 
 /**
 *

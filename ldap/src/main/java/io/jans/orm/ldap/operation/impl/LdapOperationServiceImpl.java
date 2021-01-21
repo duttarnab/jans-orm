@@ -847,7 +847,7 @@ public class LdapOperationServiceImpl implements LdapOperationService {
     private void updateUserPasswordAttribute(Collection<Attribute> attributes) {
 		for (Iterator<Attribute> it = attributes.iterator(); it.hasNext();) {
 			Attribute attribute = (Attribute) it.next();
-		    if (StringHelper.equals(LdapOperationService.USER_PASSWORD, attribute.getName())) {
+		    if (StringHelper.equalsIgnoreCase(LdapOperationService.USER_PASSWORD, attribute.getName())) {
 		    	it.remove();
 		    	Attribute newAttribute = new Attribute(attribute.getName(),
 		    			createStoragePassword(attribute.getValues()));
@@ -860,7 +860,7 @@ public class LdapOperationServiceImpl implements LdapOperationService {
 	private void updateUserPasswordModification(List<Modification> modifications) {
 		for (Iterator<Modification> it = modifications.iterator(); it.hasNext();) {
 			Modification modification = (Modification) it.next();
-		    if (StringHelper.equals(LdapOperationService.USER_PASSWORD, modification.getAttributeName())) {
+		    if (StringHelper.equalsIgnoreCase(LdapOperationService.USER_PASSWORD, modification.getAttributeName())) {
 		    	it.remove();
 		    	Modification newModification = new Modification(modification.getModificationType(),
 		    			modification.getAttributeName(),

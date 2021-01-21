@@ -9,23 +9,24 @@ package io.jans.orm.sql;
 import java.util.Arrays;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.jans.orm.model.PagedResult;
+import io.jans.orm.model.SearchScope;
+import io.jans.orm.model.SortOrder;
+import io.jans.orm.model.base.CustomObjectAttribute;
+import io.jans.orm.search.filter.Filter;
 import io.jans.orm.sql.impl.SqlEntryManager;
 import io.jans.orm.sql.model.SimpleAttribute;
 import io.jans.orm.sql.model.SimpleGrant;
 import io.jans.orm.sql.model.SimpleSession;
 import io.jans.orm.sql.model.SimpleUser;
 import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
-import io.jans.orm.model.PagedResult;
-import io.jans.orm.model.SearchScope;
-import io.jans.orm.model.SortOrder;
-import io.jans.orm.model.base.CustomObjectAttribute;
-import io.jans.orm.search.filter.Filter;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.jans.orm.sql.persistence.SqlSampleEntryManager;
 
 /**
- * @author Yuriy Movchan Date: 11/03/2016
+ * @author Yuriy Movchan Date: 01/15/2020
  */
 public final class SqlSample {
 
@@ -36,67 +37,66 @@ public final class SqlSample {
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        SqlSampleEntryManager couchbaseSampleEntryManager = new SqlSampleEntryManager();
+        SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
 
-        // Create Couchbase entry manager
-        SqlEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createSqlEntryManager();
+        // Create SQL entry manager
+        SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
 
         SimpleUser newUser = new SimpleUser();
         newUser.setDn(String.format("inum=%s,ou=people,o=jans", System.currentTimeMillis()));
         newUser.setUserId("sample_user_" + System.currentTimeMillis());
-        newUser.setUserPassword("test");
-        newUser.getCustomAttributes().add(new CustomObjectAttribute("streetAddress", Arrays.asList("London", "Texas", "Kiev")));
-        newUser.getCustomAttributes().add(new CustomObjectAttribute("test", "test_value"));
-        couchbaseEntryManager.persist(newUser);
+        newUser.setUserPassword("pwd");
+        newUser.getCustomAttributes().add(new CustomObjectAttribute("address", Arrays.asList("London", "Texas", "Kiev")));
+        newUser.getCustomAttributes().add(new CustomObjectAttribute("transientId", "transientId"));
+        sqlEntryManager.persist(newUser);
 
-//        SimpleUser dummyUser = couchbaseEntryManager.find(SimpleUser.class, "inum=test,o=test,o=jans");
-//        LOG.info("Dummy User '{}'", dummyUser);
+        SimpleUser dummyUser = sqlEntryManager.find(SimpleUser.class, newUser.getDn());
+        LOG.info("Dummy User '{}'", dummyUser);
 
         // Find all users which have specified object classes defined in SimpleUser
-        List<SimpleUser> users = couchbaseEntryManager.findEntries("o=@!5304.5F36.0E64.E1AC!0001!179C.62D7,o=jans", SimpleUser.class, null);
+        List<SimpleUser> users = sqlEntryManager.findEntries("ou=people,o=jans", SimpleUser.class, null);
         for (SimpleUser user : users) {
             LOG.info("User with uid: '{}' with DN: '{}'", user.getUserId(), user.getDn());
         }
 
         if (users.size() > 0) {
-            // Add attribute "streetAddress" to first user
-            SimpleUser user = users.get(3);
+            // Add attribute "address" to first user
+            SimpleUser user = users.get(0);
             LOG.info("Updating: " + user.getUserId());
-
+ 
             String[] values = new String[] { "Somewhere: " + System.currentTimeMillis(), "Somewhere2: " + System.currentTimeMillis() };
-            user.getCustomAttributes().add(new CustomObjectAttribute("streetAddress", Arrays.asList(values)));
-            user.getCustomAttributes().add(new CustomObjectAttribute("test", "test_value"));
-            user.getCustomAttributes().add(new CustomObjectAttribute("test2", "test_value2"));
-            user.getCustomAttributes().add(new CustomObjectAttribute("test3", "test_value3"));
+            user.getCustomAttributes().add(new CustomObjectAttribute("address", Arrays.asList(values)));
+            user.getCustomAttributes().add(new CustomObjectAttribute("transientId", "new_transientId"));
+            user.getCustomAttributes().add(new CustomObjectAttribute("jansGuid", "test_guid"));
             user.setUserId("user1");
-            user.setUserPassword("test");
+            user.setUserPassword("test_pwd");
 
-            couchbaseEntryManager.merge(user);
+            sqlEntryManager.merge(user);
         }
 
         for (SimpleUser user : users) {
-            boolean result1 = couchbaseEntryManager.authenticate(user.getDn(), "test");
-            boolean result2 = couchbaseEntryManager.authenticate("ou=people,o=jans", SimpleUser.class, user.getUserId(), "test");
+            boolean result1 = sqlEntryManager.authenticate(user.getDn(), SimpleUser.class, "test_pwd");
+            boolean result2 = sqlEntryManager.authenticate("ou=people,o=jans", SimpleUser.class, user.getUserId(), "test");
             System.out.println("authetication result: " + result1 + ", " + result2);
         }
 
         Filter filter = Filter.createEqualityFilter("status", "active");
-        List<SimpleAttribute> attributes = couchbaseEntryManager.findEntries("o=jans", SimpleAttribute.class, filter, SearchScope.SUB, null, null, 10,
+        List<SimpleAttribute> attributes = sqlEntryManager.findEntries("o=jans", SimpleAttribute.class, filter, SearchScope.SUB, null, null, 10,
                 0, 0);
         for (SimpleAttribute attribute : attributes) {
             LOG.info("Attribute with displayName: " + attribute.getCustomAttributes().get(1));
         }
 
-        List<SimpleSession> sessions = couchbaseEntryManager.findEntries("o=jans", SimpleSession.class, filter, SearchScope.SUB, null, null, 10, 0,
+        List<SimpleSession> sessions = sqlEntryManager.findEntries("o=jans", SimpleSession.class, filter, SearchScope.SUB, null, null, 10, 0,
                 0);
         LOG.info("Found sessions: " + sessions.size());
 
-        List<SimpleGrant> grants = couchbaseEntryManager.findEntries("o=jans", SimpleGrant.class, null, SearchScope.SUB,
+        List<SimpleGrant> grants = sqlEntryManager.findEntries("o=jans", SimpleGrant.class, null, SearchScope.SUB,
                 new String[] { "grtId" }, null, 1, 0, 0);
         LOG.info("Found grants: " + grants.size());
 
         try {
-            PagedResult<SimpleUser> listViewResponse = couchbaseEntryManager.findPagedEntries("o=jans", SimpleUser.class, null,
+            PagedResult<SimpleUser> listViewResponse = sqlEntryManager.findPagedEntries("o=jans", SimpleUser.class, null,
                     new String[] { "uid", "displayName", "status" }, "uid", SortOrder.ASCENDING, 0, 6, 4);
 
             LOG.info("Found persons: " + listViewResponse.getEntriesCount() + ", total persons: " + listViewResponse.getTotalEntriesCount());
@@ -108,7 +108,7 @@ public final class SqlSample {
         }
 
         try {
-            PagedResult<SimpleUser> listViewResponse = couchbaseEntryManager.findPagedEntries("o=jans", SimpleUser.class, null,
+            PagedResult<SimpleUser> listViewResponse = sqlEntryManager.findPagedEntries("o=jans", SimpleUser.class, null,
                     new String[] { "uid", "displayName", "status" }, "uid", SortOrder.DESCENDING, 0, 6, 4);
 
             LOG.info("Found persons: " + listViewResponse.getEntriesCount() + ", total persons: " + listViewResponse.getTotalEntriesCount());

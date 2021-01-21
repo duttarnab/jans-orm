@@ -35,7 +35,7 @@ public interface PersistenceEntryManager extends EntityManager {
 
 	@Deprecated
     boolean authenticate(String primaryKey, String password);
-    <T> boolean authenticate(String primaryKey, String password, Class<T> entryClass);
+    <T> boolean authenticate(String primaryKey, Class<T> entryClass, String password);
 
     <T> boolean authenticate(String baseDN, Class<T> entryClass, String userName, String password);
 

@@ -167,7 +167,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
             	Object[] realValues = attributeValues;
 
             	// We need to store only one objectClass value in SQL
-                if (StringHelper.equals(SqlOperationService.OBJECT_CLASS, attributeName)) {
+                if (StringHelper.equalsIgnoreCase(SqlOperationService.OBJECT_CLASS, attributeName)) {
                 	if (!ArrayHelper.isEmpty(realValues)) {
                 		realValues = new Object[] { realValues[0] };
                 		multiValued = false;
@@ -175,7 +175,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
                 }
 
             	// Process userPassword 
-                if (StringHelper.equals(SqlOperationService.USER_PASSWORD, attributeName)) {
+                if (StringHelper.equalsIgnoreCase(SqlOperationService.USER_PASSWORD, attributeName)) {
                     realValues = getOperationService().createStoragePassword(StringHelper.toStringArray(attributeValues));
                 }
 
@@ -231,12 +231,16 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
                     oldAttributeName = oldAttribute.getName();
                     oldAttributeValues = oldAttribute.getValues();
                 }
-
+                
                 AttributeDataModification modification = null;
                 if (AttributeModificationType.ADD.equals(attributeDataModification.getModificationType())) {
                     modification = createModification(AttributeModificationType.ADD, toInternalAttribute(attributeName), multiValued, attributeValues);
                 } else {
                     if (AttributeModificationType.REMOVE.equals(attributeDataModification.getModificationType())) {
+                		if ((attribute == null) && !isEmptyAttributeValues(oldAttribute)) {
+							// It's RDBS case. We don't need to set null to already empty table cell
+                			continue;
+                		}
                         modification = createModification(AttributeModificationType.REMOVE, toInternalAttribute(oldAttributeName), multiValued, oldAttributeValues);
                     } else if (AttributeModificationType.REPLACE.equals(attributeDataModification.getModificationType())) {
                         modification = createModification(AttributeModificationType.REPLACE, toInternalAttribute(attributeName), multiValued, attributeValues);
@@ -440,10 +444,10 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
         LOG.trace("Search filter: {}", searchFilter);
 
         // Prepare default sort
-        OrderSpecifier[] defaultSort = getDefaultSort(entryClass);
+        OrderSpecifier<?>[] defaultSort = getDefaultSort(entryClass);
 
         if (StringHelper.isNotEmpty(sortBy)) {
-            OrderSpecifier requestedSort = buildSort(sortBy, sortOrder);
+            OrderSpecifier<?> requestedSort = buildSort(sortBy, sortOrder);
 
             if (ArrayHelper.isEmpty(defaultSort)) {
                 defaultSort = new OrderSpecifier[] { requestedSort };
@@ -544,7 +548,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
             count++;
             EntryData entryData = searchResultEntries[i];
             
-            AttributeData attributeDataDn = entryData.getAttributeDate(toInternalAttribute(SqlOperationService.DN));
+            AttributeData attributeDataDn = entryData.getAttributeDate(SqlOperationService.DN);
             if ((attributeDataDn == null) || (attributeDataDn.getValue() == null)) {
                 throw new MappingException("Failed to convert EntryData to Entry because DN is missing");
             }
@@ -622,11 +626,11 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
     @Override
     @Deprecated
     public boolean authenticate(String bindDn, String password) {
-    	return authenticate(bindDn, password, null);
+    	return authenticate(bindDn, null, password);
     }
 
     @Override
-    public <T> boolean authenticate(String bindDn, String password, Class<T> entryClass) {
+    public <T> boolean authenticate(String bindDn, Class<T> entryClass, String password) {
     	if (entryClass == null) {
     		throw new UnsupportedOperationException("Entry class is manadatory for authenticate operation!");
     	}
@@ -692,7 +696,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
         String realAttributeName = attributeName;
 
         Object[] realValues = attributeValues;
-        if (StringHelper.equals(SqlOperationService.USER_PASSWORD, realAttributeName)) {
+        if (StringHelper.equalsIgnoreCase(SqlOperationService.USER_PASSWORD, realAttributeName)) {
             realValues = getOperationService().createStoragePassword(StringHelper.toStringArray(attributeValues));
         }
 
@@ -708,8 +712,8 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
         }
     }
 
-    protected OrderSpecifier buildSort(String sortBy, SortOrder sortOrder) {
-    	OrderSpecifier requestedSort = null;
+    protected OrderSpecifier<?> buildSort(String sortBy, SortOrder sortOrder) {
+    	OrderSpecifier<?> requestedSort = null;
         if (SortOrder.DESCENDING == sortOrder) {
             requestedSort = new OrderSpecifier(Order.DESC, Expressions.stringPath(sortBy));
         } else if (SortOrder.ASCENDING == sortOrder) {
@@ -811,7 +815,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
             return null;
         }
 
-        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SqlOperationService.JSON_DATA_FORMAT);
+        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SqlOperationService.SQL_DATA_FORMAT);
         return jsonDateFormat.format(date);
     }
 
@@ -826,7 +830,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
             return null;
         }
 
-        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SqlOperationService.JSON_DATA_FORMAT);
+        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SqlOperationService.SQL_DATA_FORMAT);
         Date decodedDate;
         try {
             decodedDate = jsonDateFormat.parse(date);

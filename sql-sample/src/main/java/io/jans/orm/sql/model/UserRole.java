@@ -13,9 +13,7 @@ import java.util.Map;
 import io.jans.orm.annotation.AttributeEnum;
 
 /**
- * User role
- * 
- * @author Yuriy Movchan Date: 11.03.2010
+* @author Yuriy Movchan Date: 01/15/2020
  */
 public enum UserRole implements AttributeEnum {
 

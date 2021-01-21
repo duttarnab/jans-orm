@@ -19,8 +19,7 @@ import io.jans.orm.annotation.ObjectClass;
 import io.jans.orm.util.StringHelper;
 
 /**
- * @author Yuriy Movchan
- * Date: 12/30/2016
+* @author Yuriy Movchan Date: 01/15/2020
  */
 @DataEntry
 @ObjectClass(value = "jansAuthGrant")

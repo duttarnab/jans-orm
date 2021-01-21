@@ -6,10 +6,10 @@
 
 package io.jans.sql.test;
 
-import io.jans.orm.annotation.AttributeEnum;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import io.jans.orm.annotation.AttributeEnum;
 
 /**
 *

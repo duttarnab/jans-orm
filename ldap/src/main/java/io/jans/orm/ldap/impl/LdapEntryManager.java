@@ -736,11 +736,11 @@ public class LdapEntryManager extends BaseEntryManager implements Serializable {
     @Override
     @Deprecated
     public boolean authenticate(String bindDn, String password) {
-    	return authenticate(bindDn, password, null);
+    	return authenticate(bindDn, null, password);
     }
 
     @Override
-    public <T> boolean authenticate(String bindDn, String password, Class<T> entryClass) {
+    public <T> boolean authenticate(String bindDn, Class<T> entryClass, String password) {
         try {
             return getOperationService().authenticate(bindDn, password, null);
         } catch (Exception ex) {

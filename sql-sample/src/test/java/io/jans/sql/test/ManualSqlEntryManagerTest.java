@@ -25,13 +25,14 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import io.jans.orm.model.PagedResult;
+import io.jans.orm.model.SortOrder;
 import io.jans.orm.search.filter.Filter;
 import io.jans.orm.sql.impl.SqlEntryManager;
 import io.jans.orm.sql.impl.SqlEntryManagerFactory;
 import io.jans.orm.util.Pair;
 
 /**
- *
  * @author Yuriy Movchan Date: 01/15/2020
  */
 public class ManualSqlEntryManagerTest {
@@ -62,7 +63,13 @@ public class ManualSqlEntryManagerTest {
     }
 
     @Test(dependsOnMethods = "createSessionId", enabled = false)
-    public void containsSessionIdAfterAdd() throws IOException {
+    public void searchSessionId() throws IOException {
+        List<SessionId> sessionIdList = manager.findEntries("o=jans", SessionId.class, null);
+        System.out.println(sessionIdList);
+    }
+
+    @Test(dependsOnMethods = "searchSessionId", enabled = false)
+    public void containsSessionId() throws IOException {
     	SessionId sessionId = persistedSessionId;
     	
         boolean result = manager.contains(sessionId);
@@ -72,11 +79,10 @@ public class ManualSqlEntryManagerTest {
         System.out.println(sessionId);
     }
 
-    @Test(dependsOnMethods = "containsSessionIdAfterAdd", enabled = false)
+    @Test(dependsOnMethods = "containsSessionId", enabled = false)
     public void updateSessionId() throws IOException {
     	SessionId sessionId = persistedSessionId;
-    	
-    	
+
     	Pair<Date, Integer> expirarion = expirationDate(new Date());
     	sessionId.setAuthenticationTime(new Date());
         sessionId.setLastUsedAt(new Date());
@@ -93,6 +99,15 @@ public class ManualSqlEntryManagerTest {
     }
 
     @Test(dependsOnMethods = "updateSessionId", enabled = false)
+    public void countSessionId() throws IOException {
+    	SessionId sessionId = persistedSessionId;
+
+    	int countEntries = manager.countEntries(sessionId);
+    	
+    	assertEquals(countEntries, 1);
+    }
+
+    @Test(dependsOnMethods = "countSessionId", enabled = false)
     public void containsSessionIdAfterUpdate() throws IOException {
     	SessionId sessionId = persistedSessionId;
     	
@@ -117,34 +132,6 @@ public class ManualSqlEntryManagerTest {
     }
 
     @Test(dependsOnMethods = "deleteSessionId", enabled = false)
-    public void deleteSessionIdByFilter() throws IOException {
-		String outsideSid = UUID.randomUUID().toString();
-		for (int i = 0; i < 20; i++) {
-			SessionId sessionId = buildSessionId();
-			sessionId.setOutsideSid(outsideSid);
-
-			manager.persist(sessionId);
-		}
-
-		Filter filter = Filter.createEqualityFilter("sid", outsideSid);
-		
-		int removedCount = manager.remove("ou=sessions,o=jans", SessionId.class, filter, 14);
-		assertEquals(removedCount, 14);
-
-		int removedCount2 = manager.remove("ou=sessions,o=jans", SessionId.class, filter, 5);
-		assertEquals(removedCount2, 5);
-
-		int removedCount3 = manager.remove("ou=sessions,o=jans", SessionId.class, filter, 1);
-		assertEquals(removedCount3, 1);
-    }
-
-    @Test(enabled = false)
-    public void searchSessionId() throws IOException {
-        List<SessionId> sessionIdList = manager.findEntries("o=jans", SessionId.class, null);
-        System.out.println(sessionIdList);
-    }
-
-    @Test(dependsOnMethods = "searchSessionId", enabled = false)
     public void searchSessionIdWithRanges() throws IOException {
 		String outsideSid = UUID.randomUUID().toString();
 		for (int i = 0; i < 20; i++) {
@@ -179,8 +166,85 @@ public class ManualSqlEntryManagerTest {
 		List<SessionId> sessionIdList6 = manager.findEntries("o=jans", SessionId.class, filter, null, null, 19, -1, 5);
 		assertNotNull(sessionIdList6);
 		assertEquals(sessionIdList6.size(), 1);
+    }
 
-		System.out.println(sessionIdList);
+    @Test(dependsOnMethods = "deleteSessionId", enabled = false)
+    public void searchPagedSessionIdWithRanges() throws IOException {
+		String outsideSid = UUID.randomUUID().toString();
+		for (int i = 0; i < 20; i++) {
+			SessionId sessionId = buildSessionId();
+			sessionId.setOutsideSid(outsideSid);
+
+			manager.persist(sessionId);
+		}
+
+		Filter filter = Filter.createEqualityFilter("sid", outsideSid);
+
+		PagedResult<SessionId> sessionIdList = manager.findPagedEntries("o=jans", SessionId.class, filter, null, "sid", SortOrder.DESCENDING, 0, -1, -1);
+		assertNotNull(sessionIdList);
+		assertEquals(sessionIdList.getTotalEntriesCount(), 20);
+
+		PagedResult<SessionId> sessionIdList2 = manager.findPagedEntries("o=jans", SessionId.class, filter, null, "sid", SortOrder.DESCENDING, 0, 5, -1);
+		assertNotNull(sessionIdList2);
+		assertEquals(sessionIdList2.getStart(), 0);
+		assertEquals(sessionIdList2.getEntriesCount(), 5);
+		assertEquals(sessionIdList2.getTotalEntriesCount(), 20);
+
+		PagedResult<SessionId> sessionIdList4 = manager.findPagedEntries("o=jans", SessionId.class, filter, null, "sid", SortOrder.DESCENDING, 14, 7, 3);
+		assertNotNull(sessionIdList4);
+		assertEquals(sessionIdList4.getStart(), 14);
+		assertEquals(sessionIdList4.getEntriesCount(), 6);
+		assertEquals(sessionIdList4.getTotalEntriesCount(), 20);
+
+		PagedResult<SessionId> sessionIdList5 = manager.findPagedEntries("o=jans", SessionId.class, filter, null, "sid", SortOrder.DESCENDING, 20, 10, 5);
+		assertNotNull(sessionIdList5);
+		assertEquals(sessionIdList5.getStart(), 20);
+		assertEquals(sessionIdList5.getEntriesCount(), 0);
+		assertEquals(sessionIdList5.getTotalEntriesCount(), 20);
+
+		PagedResult<SessionId> sessionIdList6 = manager.findPagedEntries("o=jans", SessionId.class, filter, null, "sid", SortOrder.DESCENDING, 19, -1, 5);
+		assertNotNull(sessionIdList6);
+		assertEquals(sessionIdList6.getStart(), 19);
+		assertEquals(sessionIdList6.getEntriesCount(), 1);
+		assertEquals(sessionIdList6.getTotalEntriesCount(), 20);
+    }
+
+    @Test(dependsOnMethods = "deleteSessionId", enabled = false)
+    public void deleteSessionIdByFilter() throws IOException {
+		String outsideSid = UUID.randomUUID().toString();
+		for (int i = 0; i < 20; i++) {
+			SessionId sessionId = buildSessionId();
+			sessionId.setOutsideSid(outsideSid);
+
+			manager.persist(sessionId);
+		}
+
+		Filter filter = Filter.createEqualityFilter("sid", outsideSid);
+		
+		int removedCount = manager.remove("ou=sessions,o=jans", SessionId.class, filter, 14);
+		assertEquals(removedCount, 14);
+
+		int removedCount2 = manager.remove("ou=sessions,o=jans", SessionId.class, filter, 5);
+		assertEquals(removedCount2, 5);
+
+		int removedCount3 = manager.remove("ou=sessions,o=jans", SessionId.class, filter, 1);
+		assertEquals(removedCount3, 1);
+    }
+
+    @Test(dependsOnMethods = "deleteSessionId", enabled = false)
+    public void countSessionIdByFilter() throws IOException {
+		String outsideSid = UUID.randomUUID().toString();
+		for (int i = 0; i < 33; i++) {
+			SessionId sessionId = buildSessionId();
+			sessionId.setOutsideSid(outsideSid);
+
+			manager.persist(sessionId);
+		}
+
+		Filter filter = Filter.createEqualityFilter("sid", outsideSid);
+		
+		int countEntries = manager.countEntries("ou=sessions,o=jans", SessionId.class, filter, null);
+		assertEquals(countEntries, 33);
     }
 
     private SessionId buildSessionId() {

@@ -6,19 +6,15 @@
 
 package io.jans.orm.sql.operation.impl;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -349,13 +345,15 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 			SQLQuery<?> sqlSelectQuery = sqlQueryFactory.select(attributesExp).from(tableRelationalPath)
 					.where(whereExp).limit(1);
 			
-			ResultSet resultSet = sqlSelectQuery.getResults();
+			try (ResultSet resultSet = sqlSelectQuery.getResults();) {
+				List<AttributeData> result = getAttributeDataList(resultSet);
 
-			List<AttributeData> result = getAttributeDataList(resultSet);
-			
-			return result;
+				return result;
+			}
 		} catch (QueryException ex) {
 			throw new SearchException(String.format("Failed to lookup entry by key: '%s'", key), ex);
+		} catch (SQLException ex) {
+			throw new SearchException(String.format("Failed to lookup query by key: '%s'", key), ex);
 		}
 	}
 
@@ -404,6 +402,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	
 	            SQLQuery<?> query;
 	            int currentLimit;
+                ResultSet lastResultSet = null;
 	    		try {
 	                int resultCount = 0;
 	                int lastCountRows = 0;
@@ -419,11 +418,10 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
 	                    queryStr = query.getSQL().getSQL();
 	                    LOG.debug("Execution query: '" + queryStr + "'");
-	                    
-	                    ResultSet resultSet = query.getResults();
 
-	                    lastResult = getEntryDataList(resultSet);
-	
+	                    lastResultSet = query.getResults();
+	                    lastResult = getEntryDataList(lastResultSet);
+
 		    			lastCountRows = lastResult.size();
 		    			
 	                    if (batchOperation != null) {
@@ -448,6 +446,14 @@ public class SqlOperationServiceImpl implements SqlOperationService {
         			throw new SearchException(String.format("Failed to build search entries query. Key: '%s', expression: '%s'", key, expression.expression()), ex);
 	    		} catch (SQLException | EntryConvertationException ex) {
 	    			throw new SearchException(String.format("Failed to execute query '%s'  with key: '%s'", queryStr, key), ex);
+                } finally {
+                	if (lastResultSet != null) {
+                		try {
+							lastResultSet.close();
+						} catch (SQLException ex) {
+							LOG.error("Failed to close connection properly", ex);
+						}
+                	}
 	    		}
 	        } else {
 	    		try {
@@ -463,11 +469,10 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
                     LOG.debug("Execution query: '" + queryStr + "'");
 
-                    ResultSet resultSet = query.getResults();
-
-	    			lastResult = getEntryDataList(resultSet);
-	
-	                searchResultList.addAll(lastResult);
+                    try (ResultSet resultSet = query.getResults()) {
+		    			lastResult = getEntryDataList(resultSet);
+		    			searchResultList.addAll(lastResult);
+                    }
         		} catch (QueryException ex) {
         			throw new SearchException(String.format("Failed to build search entries query. Key: '%s', expression: '%s'", key, expression.expression()), ex);
 	            } catch (SQLException | EntryConvertationException ex) {
@@ -484,14 +489,17 @@ public class SqlOperationServiceImpl implements SqlOperationService {
         if ((SearchReturnDataType.COUNT == returnDataType) || (SearchReturnDataType.SEARCH_COUNT == returnDataType)) {
     		SQLQuery<?> sqlCountSelectQuery = sqlQueryFactory.select(Expressions.as(ExpressionUtils.count(Wildcard.all), "TOTAL")).from(tableRelationalPath).where(whereExp);
 
-    		try (Connection connection = sqlQueryFactory.getConnection()) {
+    		try {
                 queryStr = sqlCountSelectQuery.getSQL().getSQL();
                 LOG.debug("Calculating count. Execution query: '" + queryStr + "'");
 
-                PreparedStatement pstmt = connection.prepareStatement(queryStr, Statement.RETURN_GENERATED_KEYS);
-                ResultSet countResult = pstmt.executeQuery();
+                try (ResultSet countResult = sqlCountSelectQuery.getResults()) {
+                	if (!countResult.next()) {
+                        throw new SearchException("Failed to calculate count entries. Query: '" + queryStr + "'");
+                	}
 
-                result.setTotalEntriesCount(countResult.getInt("TOTAL"));
+                	result.setTotalEntriesCount(countResult.getInt("TOTAL"));
+                }
     		} catch (QueryException ex) {
     			throw new SearchException(String.format("Failed to build count search entries query. Key: '%s', expression: '%s'", key, expression.expression()), ex);
             } catch (SQLException ex) {
@@ -561,7 +569,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	        	} else if (attributeObject instanceof String) {
 	           		Object value = attributeObject.toString();
 	                try {
-	                    SimpleDateFormat jsonDateFormat = new SimpleDateFormat(JSON_DATA_FORMAT);
+	                    SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SQL_DATA_FORMAT);
 	                	value = jsonDateFormat.parse(attributeObject.toString());
 	                } catch (Exception ex) {}
 	        		attributeValueObjects = new Object[] { value };
@@ -658,7 +666,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 		for (String attribute : attributes) {
 			expresisons.add(Expressions.path(Object.class, docAlias, attribute));
 
-			hasDn &= StringHelper.equals(attribute, SqlOperationService.DN);
+			hasDn &= StringHelper.equals(attribute, DN);
 		}
 
 		if (!hasDn) {

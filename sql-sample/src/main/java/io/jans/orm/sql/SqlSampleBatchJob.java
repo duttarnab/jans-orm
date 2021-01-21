@@ -6,14 +6,15 @@
 
 package io.jans.orm.sql;
 
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
 
-import io.jans.orm.sql.impl.SqlEntryManager;
-import io.jans.orm.sql.model.SimpleClient;
-import io.jans.orm.sql.model.SimpleSession;
-import io.jans.orm.sql.model.SimpleTokenCouchbase;
 import io.jans.orm.exception.EntryPersistenceException;
 import io.jans.orm.model.BatchOperation;
 import io.jans.orm.model.DefaultBatchOperation;
@@ -21,14 +22,14 @@ import io.jans.orm.model.ProcessBatchOperation;
 import io.jans.orm.model.SearchScope;
 import io.jans.orm.model.base.CustomAttribute;
 import io.jans.orm.search.filter.Filter;
-
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import io.jans.orm.sql.impl.SqlEntryManager;
+import io.jans.orm.sql.model.SimpleClient;
+import io.jans.orm.sql.model.SimpleSession;
+import io.jans.orm.sql.model.SimpleToken;
+import io.jans.orm.sql.persistence.SqlSampleEntryManager;
 
 /**
- * Created by eugeniuparvan on 1/12/17.
+ * @author Yuriy Movchan Date: 01/15/2020
  */
 public final class SqlSampleBatchJob {
     private static final Logger LOG;
@@ -43,22 +44,22 @@ public final class SqlSampleBatchJob {
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        SqlSampleEntryManager couchbaseSampleEntryManager = new SqlSampleEntryManager();
+        SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
 
-        // Create Couchbase entry manager
-        final SqlEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createSqlEntryManager();
+        // Create SQL entry manager
+        final SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
 
-        BatchOperation<SimpleTokenCouchbase> tokenCouchbaseBatchOperation = new ProcessBatchOperation<SimpleTokenCouchbase>() {
+        BatchOperation<SimpleToken> tokenSQLBatchOperation = new ProcessBatchOperation<SimpleToken>() {
             private int processedCount = 0;
 
             @Override
-            public void performAction(List<SimpleTokenCouchbase> objects) {
-                for (SimpleTokenCouchbase simpleTokenCouchbase : objects) {
+            public void performAction(List<SimpleToken> objects) {
+                for (SimpleToken simpleTokenSQL : objects) {
                     try {
-                        CustomAttribute customAttribute = getUpdatedAttribute(couchbaseEntryManager, simpleTokenCouchbase.getDn(), "exp",
-                                simpleTokenCouchbase.getAttribute("exp"));
-                        simpleTokenCouchbase.setCustomAttributes(Arrays.asList(new CustomAttribute[] {customAttribute}));
-                        couchbaseEntryManager.merge(simpleTokenCouchbase);
+                        CustomAttribute customAttribute = getUpdatedAttribute(sqlEntryManager, simpleTokenSQL.getDn(), "exp",
+                                simpleTokenSQL.getAttribute("exp"));
+                        simpleTokenSQL.setCustomAttributes(Arrays.asList(new CustomAttribute[] {customAttribute}));
+                        sqlEntryManager.merge(simpleTokenSQL);
                         processedCount++;
                     } catch (EntryPersistenceException ex) {
                         LOG.error("Failed to update entry", ex);
@@ -70,8 +71,8 @@ public final class SqlSampleBatchJob {
         };
 
         final Filter filter1 = Filter.createPresenceFilter("exp");
-        couchbaseEntryManager.findEntries("o=jans", SimpleTokenCouchbase.class, filter1, SearchScope.SUB, new String[] {"exp"},
-                tokenCouchbaseBatchOperation, 0, 0, 100);
+        sqlEntryManager.findEntries("o=jans", SimpleToken.class, filter1, SearchScope.SUB, new String[] {"exp"},
+                tokenSQLBatchOperation, 0, 0, 100);
 
         BatchOperation<SimpleSession> sessionBatchOperation = new ProcessBatchOperation<SimpleSession>() {
             private int processedCount = 0;
@@ -80,10 +81,10 @@ public final class SqlSampleBatchJob {
             public void performAction(List<SimpleSession> objects) {
                 for (SimpleSession simpleSession : objects) {
                     try {
-                        CustomAttribute customAttribute = getUpdatedAttribute(couchbaseEntryManager, simpleSession.getDn(), "jansLastAccessTime",
+                        CustomAttribute customAttribute = getUpdatedAttribute(sqlEntryManager, simpleSession.getDn(), "jansLastAccessTime",
                                 simpleSession.getAttribute("jansLastAccessTime"));
                         simpleSession.setCustomAttributes(Arrays.asList(new CustomAttribute[] {customAttribute}));
-                        couchbaseEntryManager.merge(simpleSession);
+                        sqlEntryManager.merge(simpleSession);
                         processedCount++;
                     } catch (EntryPersistenceException ex) {
                         LOG.error("Failed to update entry", ex);
@@ -95,7 +96,7 @@ public final class SqlSampleBatchJob {
         };
 
         final Filter filter2 = Filter.createPresenceFilter("jansLastAccessTime");
-        couchbaseEntryManager.findEntries("o=jans", SimpleSession.class, filter2, SearchScope.SUB, new String[] {"jansLastAccessTime"},
+        sqlEntryManager.findEntries("o=jans", SimpleSession.class, filter2, SearchScope.SUB, new String[] {"jansLastAccessTime"},
                 sessionBatchOperation, 0, 0, 100);
 
         BatchOperation<SimpleClient> clientBatchOperation = new ProcessBatchOperation<SimpleClient>() {
@@ -112,7 +113,7 @@ public final class SqlSampleBatchJob {
         };
 
         final Filter filter3 = Filter.createPresenceFilter("exp");
-        List<SimpleClient> result3 = couchbaseEntryManager.findEntries("o=jans", SimpleClient.class, filter3, SearchScope.SUB,
+        List<SimpleClient> result3 = sqlEntryManager.findEntries("o=jans", SimpleClient.class, filter3, SearchScope.SUB,
                 new String[] {"exp"}, clientBatchOperation, 0, 0, 1000);
 
         LOG.info("Result count (without collecting results): " + result3.size());
@@ -131,13 +132,13 @@ public final class SqlSampleBatchJob {
         };
 
         final Filter filter4 = Filter.createPresenceFilter("exp");
-        List<SimpleClient> result4 = couchbaseEntryManager.findEntries("o=jans", SimpleClient.class, filter4, SearchScope.SUB,
+        List<SimpleClient> result4 = sqlEntryManager.findEntries("o=jans", SimpleClient.class, filter4, SearchScope.SUB,
                 new String[] {"exp"}, clientBatchOperation2, 0, 0, 1000);
 
         LOG.info("Result count (with collecting results): " + result4.size());
     }
 
-    private static CustomAttribute getUpdatedAttribute(SqlEntryManager couchbaseEntryManager, String baseDn, String attributeName, String attributeValue) {
+    private static CustomAttribute getUpdatedAttribute(SqlEntryManager sqlEntryManager, String baseDn, String attributeName, String attributeValue) {
         try {
             Calendar calendar = Calendar.getInstance();
             Date jansLastAccessTimeDate = new Date(); //TODO: Fix it StaticUtils.decodeGeneralizedTime(attributeValue);
@@ -146,7 +147,7 @@ public final class SqlSampleBatchJob {
 
             CustomAttribute customAttribute = new CustomAttribute();
             customAttribute.setName(attributeName);
-            customAttribute.setValue(couchbaseEntryManager.encodeTime(baseDn, calendar.getTime()));
+            customAttribute.setValue(sqlEntryManager.encodeTime(baseDn, calendar.getTime()));
             return customAttribute;
         } catch (Exception ex) {
             LOG.error("Can't parse attribute", ex);

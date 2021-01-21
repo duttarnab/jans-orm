@@ -10,18 +10,19 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.jans.orm.model.base.CustomObjectAttribute;
+import io.jans.orm.search.filter.Filter;
 import io.jans.orm.sql.impl.SqlEntryManager;
 import io.jans.orm.sql.model.SimpleUser;
 import io.jans.orm.sql.model.UserRole;
 import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
-import io.jans.orm.model.base.CustomObjectAttribute;
-import io.jans.orm.search.filter.Filter;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.jans.orm.sql.persistence.SqlSampleEntryManager;
 
 /**
- * @author Yuriy Movchan Date: 09/24/2019
+ * @author Yuriy Movchan Date: 01/15/2020
  */
 public final class SqlCustomObjectAttributesSample {
 
@@ -32,10 +33,10 @@ public final class SqlCustomObjectAttributesSample {
 
 	public static void main(String[] args) {
 		// Prepare sample connection details
-		SqlSampleEntryManager couchbaseSampleEntryManager = new SqlSampleEntryManager();
+		SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
 
-		// Create Couchbase entry manager
-		SqlEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createSqlEntryManager();
+		// Create SQL entry manager
+		SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
 
 		// Add dummy user
 		SimpleUser newUser = new SimpleUser();
@@ -49,14 +50,14 @@ public final class SqlCustomObjectAttributesSample {
 		newUser.getCustomAttributes().add(new CustomObjectAttribute("age", 18));
 
 		newUser.setUserRole(UserRole.ADMIN);
-		newUser.setNotes(Arrays.asList("note 1", "note 2", "note 3"));
+		newUser.setMemberOf(Arrays.asList("group_1", "group_2", "group_3"));
 
-		couchbaseEntryManager.persist(newUser);
+		sqlEntryManager.persist(newUser);
 
 		LOG.info("Added User '{}' with uid '{}' and key '{}'", newUser, newUser.getUserId(), newUser.getDn());
 
 		// Find added dummy user
-		SimpleUser foundUser = couchbaseEntryManager.find(SimpleUser.class, newUser.getDn());
+		SimpleUser foundUser = sqlEntryManager.find(SimpleUser.class, newUser.getDn());
 		LOG.info("Found User '{}' with uid '{}' and key '{}'", foundUser, foundUser.getUserId(), foundUser.getDn());
 
 		LOG.info("Custom attributes '{}'", foundUser.getCustomAttributes());
@@ -73,7 +74,7 @@ public final class SqlCustomObjectAttributesSample {
 
 		// Find added dummy user by numeric attribute
 		Filter filter = Filter.createGreaterOrEqualFilter("age", 16);
-		List<SimpleUser> foundUsers = couchbaseEntryManager.findEntries("ou=people,o=jans", SimpleUser.class, filter);
+		List<SimpleUser> foundUsers = sqlEntryManager.findEntries("ou=people,o=jans", SimpleUser.class, filter);
 		if (foundUsers.size() > 0) {
 			foundUser = foundUsers.get(0);
 			LOG.info("Found User '{}' by filter '{}' with uid '{}' and key '{}'", foundUser, filter, foundUser, foundUser);

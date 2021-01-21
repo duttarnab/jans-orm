@@ -17,9 +17,10 @@ import org.apache.logging.log4j.status.StatusLogger;
 
 import io.jans.orm.sql.impl.SqlEntryManager;
 import io.jans.orm.sql.model.SimpleSessionState;
+import io.jans.orm.sql.persistence.SqlSampleEntryManager;
 
 /**
- * @author Yuriy Movchan Date: 01/25/2016
+ * @author Yuriy Movchan Date: 01/15/2020
  */
 public final class SqlSampleSimpleSessionSample {
 
@@ -36,11 +37,11 @@ public final class SqlSampleSimpleSessionSample {
 
     public static void main(String[] args) throws InterruptedException {
         // Prepare sample connection details
-        SqlSampleEntryManager couchbaseSampleEntryManager = new SqlSampleEntryManager();
-        final SqlEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createSqlEntryManager();
+        SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
+        final SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
 
         try {
-            // Create Couchbase entry manager
+            // Create SQL entry manager
             String sessionId = "xyzcyzxy-a41a-45ad-8a83-61485dbad561";
             final String sessionDn = "uniqueIdentifier=" + sessionId + ",ou=session,o=jans";
             final String userDn =
@@ -51,7 +52,7 @@ public final class SqlSampleSimpleSessionSample {
             simpleSessionState.setId(sessionId);
             simpleSessionState.setLastUsedAt(new Date());
 
-            couchbaseEntryManager.persist(simpleSessionState);
+            sqlEntryManager.persist(simpleSessionState);
             System.out.println("Persisted");
 
             int threadCount = 500;
@@ -61,14 +62,14 @@ public final class SqlSampleSimpleSessionSample {
                 executorService.execute(new Runnable() {
                     @Override
                     public void run() {
-                        final SimpleSessionState simpleSessionStateFromCouchbase = couchbaseEntryManager.find(SimpleSessionState.class, sessionDn);
-                        String beforeUserDn = simpleSessionStateFromCouchbase.getUserDn();
+                        final SimpleSessionState simpleSessionStateFromSQL = sqlEntryManager.find(SimpleSessionState.class, sessionDn);
+                        String beforeUserDn = simpleSessionStateFromSQL.getUserDn();
                         String randomUserDn = count % 2 == 0 ? userDn : "";
 
                         try {
-                            simpleSessionStateFromCouchbase.setUserDn(randomUserDn);
-                            simpleSessionStateFromCouchbase.setLastUsedAt(new Date());
-                            couchbaseEntryManager.merge(simpleSessionStateFromCouchbase);
+                            simpleSessionStateFromSQL.setUserDn(randomUserDn);
+                            simpleSessionStateFromSQL.setLastUsedAt(new Date());
+                            sqlEntryManager.merge(simpleSessionStateFromSQL);
                             System.out.println("Merged thread: " + count + ", userDn: " + randomUserDn + ", before userDn: " + beforeUserDn);
                         } catch (Throwable e) {
                             System.out.println("ERROR !!!, thread: " + count + ", userDn: " + randomUserDn + ", before userDn: " + beforeUserDn
@@ -81,7 +82,7 @@ public final class SqlSampleSimpleSessionSample {
 
             Thread.sleep(5000L);
         } finally {
-            couchbaseEntryManager.destroy();
+            sqlEntryManager.destroy();
         }
     }
 

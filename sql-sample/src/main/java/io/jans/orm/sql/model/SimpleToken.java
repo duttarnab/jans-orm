@@ -15,11 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by eugeniuparvan on 1/12/17.
+* @author Yuriy Movchan Date: 01/15/2020
  */
 @DataEntry
 @ObjectClass(value = "token")
-public class SimpleTokenCouchbase implements Serializable {
+public class SimpleToken implements Serializable {
 
     private static final long serialVersionUID = 6726419630327625172L;
 
