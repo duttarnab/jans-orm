@@ -209,7 +209,7 @@ public class SqlFilterConverter {
             if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
             	return ConvertedExpression.build(ExpressionUtils.isNotNull(buildTypedPath(currentGenericFilter, internalAttribute + "_.v$", skipAlias)), jsonAttributes);
             } else {
-            	return ConvertedExpression.build(ExpressionUtils.predicate(Ops.EXISTS, buildTypedPath(currentGenericFilter, internalAttribute, skipAlias)), jsonAttributes);
+            	return ConvertedExpression.build(ExpressionUtils.isNotNull(buildTypedPath(currentGenericFilter, internalAttribute, skipAlias)), jsonAttributes);
             }
         }
 

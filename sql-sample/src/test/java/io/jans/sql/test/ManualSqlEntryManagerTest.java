@@ -25,7 +25,10 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import io.jans.orm.exception.EntryPersistenceException;
 import io.jans.orm.model.PagedResult;
+import io.jans.orm.model.ProcessBatchOperation;
+import io.jans.orm.model.SearchScope;
 import io.jans.orm.model.SortOrder;
 import io.jans.orm.search.filter.Filter;
 import io.jans.orm.sql.impl.SqlEntryManager;
@@ -39,6 +42,8 @@ public class ManualSqlEntryManagerTest {
 	
 	private SqlEntryManager manager;
 	private SessionId persistedSessionId;
+	
+	private int totalProcessedCount;
 	
 	@BeforeClass(enabled = false)
 	public void init() throws IOException {
@@ -83,13 +88,13 @@ public class ManualSqlEntryManagerTest {
     public void updateSessionId() throws IOException {
     	SessionId sessionId = persistedSessionId;
 
-    	Pair<Date, Integer> expirarion = expirationDate(new Date());
     	sessionId.setAuthenticationTime(new Date());
         sessionId.setLastUsedAt(new Date());
 
         sessionId.setJwt(null);
         sessionId.setIsJwt(null);
 
+    	Pair<Date, Integer> expirarion = expirationDate(new Date());
         sessionId.setExpirationDate(expirarion.getFirst());
         sessionId.setTtl(expirarion.getSecond());
 
@@ -242,9 +247,60 @@ public class ManualSqlEntryManagerTest {
 		}
 
 		Filter filter = Filter.createEqualityFilter("sid", outsideSid);
-		
+
 		int countEntries = manager.countEntries("ou=sessions,o=jans", SessionId.class, filter, null);
 		assertEquals(countEntries, 33);
+    }
+    
+    @Test(dependsOnMethods = "deleteSessionId", enabled = false)
+    public void testBatchJob() {
+		String outsideSid = UUID.randomUUID().toString();
+		for (int i = 0; i < 200; i++) {
+			SessionId sessionId = buildSessionId();
+			sessionId.setOutsideSid(outsideSid);
+
+			Pair<Date, Integer> expirarion = expirationDate(new Date());
+	        sessionId.setExpirationDate(expirarion.getFirst());
+	        sessionId.setTtl(expirarion.getSecond());
+
+			manager.persist(sessionId);
+		}
+
+		totalProcessedCount = 0;
+
+		ProcessBatchOperation<SessionId> sessionBatchOperation = new ProcessBatchOperation<SessionId>() {
+    		int processedCount = 0;
+
+    		@Override
+            public void performAction(List<SessionId> objects) {
+                for (SessionId simpleSession : objects) {
+                    try {
+                        Calendar calendar = Calendar.getInstance();
+                        Date jansLastAccessTimeDate = simpleSession.getExpirationDate();
+                        calendar.setTime(jansLastAccessTimeDate);
+                        calendar.add(Calendar.SECOND, -1);
+                        
+                        simpleSession.setExpirationDate(calendar.getTime());
+
+                        manager.merge(simpleSession);
+                        processedCount++;
+                    } catch (EntryPersistenceException ex) {
+                    	System.err.println("Failed to update entry: " + ex.getMessage());
+                    }
+                }
+
+                System.out.println("Total processed: " + processedCount);
+
+                assertEquals(processedCount, 100);
+                totalProcessedCount += processedCount;
+            }
+        };
+
+        Filter filter1 = Filter.createANDFilter(Filter.createPresenceFilter("exp"), Filter.createEqualityFilter("sid", outsideSid));
+        manager.findEntries("o=jans", SessionId.class, filter1, SearchScope.SUB, new String[] {"exp"},
+        		sessionBatchOperation, 0, 500, 100);
+
+        assertEquals(totalProcessedCount, 200);
     }
 
     private SessionId buildSessionId() {

@@ -7,7 +7,9 @@
 package io.jans.sql.test;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -20,12 +22,15 @@ import org.apache.commons.lang.StringUtils;
 import com.google.common.collect.Maps;
 
 import io.jans.orm.annotation.AttributeName;
+import io.jans.orm.annotation.AttributesList;
 import io.jans.orm.annotation.DN;
 import io.jans.orm.annotation.DataEntry;
 import io.jans.orm.annotation.Expiration;
 import io.jans.orm.annotation.JsonObject;
 import io.jans.orm.annotation.ObjectClass;
+import io.jans.orm.model.base.CustomAttribute;
 import io.jans.orm.model.base.Deletable;
+import io.jans.orm.util.StringHelper;
 
 /**
 *
@@ -91,6 +96,9 @@ public class SessionId implements Deletable, Serializable {
 
     @Expiration
     private int ttl;
+
+    @AttributesList(name = "name", value = "values", sortByName = true)
+    private List<CustomAttribute> customAttributes = new ArrayList<CustomAttribute>();
 
     public SessionId() {
     }
@@ -236,6 +244,42 @@ public class SessionId implements Deletable, Serializable {
             outsideSid = UUID.randomUUID().toString();
         }
         return outsideSid;
+    }
+
+    public List<CustomAttribute> getCustomAttributes() {
+        return customAttributes;
+    }
+
+    public void setCustomAttributes(List<CustomAttribute> customAttributes) {
+        this.customAttributes = customAttributes;
+    }
+
+    public String getAttribute(String ldapAttribute) {
+        String attribute = null;
+        if (ldapAttribute != null && !ldapAttribute.isEmpty()) {
+            for (CustomAttribute customAttribute : customAttributes) {
+                if (customAttribute.getName().equals(ldapAttribute)) {
+                    attribute = customAttribute.getValue();
+                    break;
+                }
+            }
+        }
+
+        return attribute;
+    }
+
+    public List<String> getAttributeValues(String ldapAttribute) {
+        List<String> values = null;
+        if (ldapAttribute != null && !ldapAttribute.isEmpty()) {
+            for (CustomAttribute customAttribute : customAttributes) {
+                if (StringHelper.equalsIgnoreCase(customAttribute.getName(), ldapAttribute)) {
+                    values = customAttribute.getValues();
+                    break;
+                }
+            }
+        }
+
+        return values;
     }
 
     @Override
