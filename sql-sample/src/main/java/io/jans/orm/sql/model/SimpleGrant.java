@@ -10,19 +10,19 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.jans.orm.model.base.CustomAttribute;
 import io.jans.orm.annotation.AttributesList;
 import io.jans.orm.annotation.CustomObjectClass;
 import io.jans.orm.annotation.DN;
 import io.jans.orm.annotation.DataEntry;
 import io.jans.orm.annotation.ObjectClass;
+import io.jans.orm.model.base.CustomAttribute;
 import io.jans.orm.util.StringHelper;
 
 /**
 * @author Yuriy Movchan Date: 01/15/2020
  */
 @DataEntry
-@ObjectClass(value = "jansAuthGrant")
+@ObjectClass(value = "jansGrant")
 public class SimpleGrant implements Serializable {
 
     private static final long serialVersionUID = -1234191420188575733L;

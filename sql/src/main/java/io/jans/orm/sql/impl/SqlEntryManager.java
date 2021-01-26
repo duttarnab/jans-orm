@@ -181,11 +181,11 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 
                 escapeValues(realValues);
 
-                AttributeData resultAttributeData = new AttributeData(toInternalAttribute(attributeName), realValues[0]);
-                if ((multiValued == null) || !multiValued) {
-                	resultAttributeData = new AttributeData(toInternalAttribute(attributeName), realValues[0]);
+                AttributeData resultAttributeData;
+                if (Boolean.TRUE.equals(multiValued)) {
+                	resultAttributeData = new AttributeData(toInternalAttribute(attributeName), realValues, multiValued);
                 } else {
-                	resultAttributeData = new AttributeData(toInternalAttribute(attributeName), realValues);
+                	resultAttributeData = new AttributeData(toInternalAttribute(attributeName), realValues[0]);
                 }
 
                 resultAttributes.add(resultAttributeData);
@@ -615,7 +615,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 
             String bindDn = attributeData.getValue().toString();
 
-            return authenticate(bindDn, password);
+            return authenticate(bindDn, entryClass, password);
         } catch (SearchException ex) {
             throw new AuthenticationException(String.format("Failed to find user DN: '%s'", userName), ex);
         } catch (Exception ex) {
@@ -702,13 +702,13 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 
         escapeValues(realValues);
         
-        if ((multiValued == null) || !multiValued) {
+        if (Boolean.TRUE.equals(multiValued)) {
+            return new AttributeDataModification(type, new AttributeData(realAttributeName, realValues, multiValued));
+        } else {
         	if (realValues.length == 0) {
                 return new AttributeDataModification(type, new AttributeData(realAttributeName, null));
         	}
             return new AttributeDataModification(type, new AttributeData(realAttributeName, realValues[0]));
-        } else {
-            return new AttributeDataModification(type, new AttributeData(realAttributeName, realValues));
         }
     }
 

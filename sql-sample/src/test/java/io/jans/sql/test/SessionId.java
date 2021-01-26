@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
-import javax.inject.Named;
 import javax.persistence.Transient;
 
 import org.apache.commons.lang.StringUtils;
@@ -36,7 +35,6 @@ import io.jans.orm.util.StringHelper;
 *
 * @author Yuriy Movchan Date: 01/15/2020
 */
-@Named("sessionUser")
 @DataEntry(sortBy = { "creationDate", "jansId" })
 @ObjectClass(value = "jansSessId")
 public class SessionId implements Deletable, Serializable {

@@ -102,6 +102,12 @@ public class CustomAttribute implements Serializable, Comparable<CustomAttribute
         return sb.toString();
     }
 
+	public CustomAttribute multiValued() {
+		this.multiValued = true;
+		
+		return this;
+	}
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

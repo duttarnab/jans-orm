@@ -7,6 +7,7 @@
 package io.jans.orm.sql;
 
 import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -22,17 +23,17 @@ import io.jans.orm.sql.persistence.SqlSampleEntryManager;
 /**
  * @author Yuriy Movchan Date: 01/15/2020
  */
-public final class SqlSampleSimpleSessionSample {
+public final class SqlConcurentSessionUpdateSample {
 
     private static final Logger LOG;
 
     static {
         StatusLogger.getLogger().setLevel(Level.OFF);
         LoggingHelper.configureConsoleAppender();
-        LOG = Logger.getLogger(SqlSampleSimpleSessionSample.class);
+        LOG = Logger.getLogger(SqlConcurentSessionUpdateSample.class);
     }
 
-    private SqlSampleSimpleSessionSample() {
+    private SqlConcurentSessionUpdateSample() {
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -42,7 +43,7 @@ public final class SqlSampleSimpleSessionSample {
 
         try {
             // Create SQL entry manager
-            String sessionId = "xyzcyzxy-a41a-45ad-8a83-61485dbad561";
+            String sessionId = UUID.randomUUID().toString();
             final String sessionDn = "uniqueIdentifier=" + sessionId + ",ou=session,o=jans";
             final String userDn =
                     "inum=@!E8F2.853B.1E7B.ACE2!0001!39A4.C163!0000!A8F2.DE1E.D7FB,ou=people,o=jans";

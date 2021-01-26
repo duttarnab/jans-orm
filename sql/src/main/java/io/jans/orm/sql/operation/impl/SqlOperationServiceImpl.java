@@ -22,6 +22,7 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.querydsl.core.QueryException;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
@@ -37,6 +38,7 @@ import com.querydsl.sql.dml.SQLDeleteClause;
 import com.querydsl.sql.dml.SQLInsertClause;
 import com.querydsl.sql.dml.SQLUpdateClause;
 
+import io.jans.orm.exception.MappingException;
 import io.jans.orm.exception.extension.PersistenceExtension;
 import io.jans.orm.exception.operation.DeleteException;
 import io.jans.orm.exception.operation.DuplicateEntryException;
@@ -69,6 +71,8 @@ import io.jans.orm.util.StringHelper;
 public class SqlOperationServiceImpl implements SqlOperationService {
 
     private static final Logger LOG = LoggerFactory.getLogger(SqlOperationServiceImpl.class);
+
+	private static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
 
     private Properties props;
     private SqlConnectionProvider connectionProvider;
@@ -170,8 +174,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 			for (AttributeData attribute : attributes) {
 				sqlInsertQuery.columns(Expressions.stringPath(attribute.getName()));
 				if (Boolean.TRUE.equals(attribute.getMultiValued())) {
-					// TODO: convert to JSON Array
-					sqlInsertQuery.values(attribute.getValue());
+					sqlInsertQuery.values(convertValueToJson(attribute.getValues()));
 				} else {
 					sqlInsertQuery.values(attribute.getValue());
 				}
@@ -209,15 +212,13 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 				AttributeModificationType type = attributeMod.getModificationType();
                 if (AttributeModificationType.ADD == type) {
 					if (Boolean.TRUE.equals(attribute.getMultiValued())) {
-    					// TODO: convert to JSON Array
-    					sqlUpdateQuery.set(path, attribute.getValue());
+    					sqlUpdateQuery.set(path, convertValueToJson(attribute.getValues()));
     				} else {
     					sqlUpdateQuery.set(path, attribute.getValue());
     				}
                 } else if (AttributeModificationType.REPLACE == type) {
 					if (Boolean.TRUE.equals(attribute.getMultiValued())) {
-    					// TODO: convert to JSON Array
-    					sqlUpdateQuery.set(path, attribute.getValue());
+    					sqlUpdateQuery.set(path, convertValueToJson(attribute.getValues()));
     				} else {
     					sqlUpdateQuery.set(path, attribute.getValue());
     				}
@@ -540,49 +541,66 @@ public class SqlOperationServiceImpl implements SqlOperationService {
             List<AttributeData> result = new ArrayList<AttributeData>();
 	        int columnsCount = resultSet.getMetaData().getColumnCount();
 	        for (int i = 1; i <= columnsCount; i++) {
-	        	ResultSetMetaData metaData = resultSet.getMetaData(); 
+	        	ResultSetMetaData metaData = resultSet.getMetaData();
 	        	String shortAttributeName = metaData.getColumnName(i);
+	        	String columnTypeName = metaData.getColumnTypeName(i).toLowerCase();
+	        	boolean isNullable = metaData.isNullable(i) == ResultSetMetaData.columnNullable;
 
 	        	Object attributeObject = resultSet.getObject(shortAttributeName);
-	        	
-	        	// TODO: Detect JSON
-	
+
+	        	if (SqlOperationService.DOC_ID.equalsIgnoreCase(shortAttributeName) ||
+	        		SqlOperationService.ID.equalsIgnoreCase(shortAttributeName)) {
+	        		// Skip internal attributes 
+	        		continue;
+	        	}
+
 	        	String attributeName = fromInternalAttribute(shortAttributeName);
 	
 	        	Boolean multiValued = Boolean.FALSE;
 	            Object[] attributeValueObjects;
 	            if (attributeObject == null) {
 	                attributeValueObjects = NO_OBJECTS;
-	            } else if (attributeObject instanceof Integer) {
-		        	int columnType = resultSet.getMetaData().getColumnType(i);
-		        	if (columnType == java.sql.Types.SMALLINT) {
-		        		if (attributeObject.equals(0)) {
-		        			attributeObject = Boolean.FALSE;
-		        		} else if (attributeObject.equals(1)) {
-		        			attributeObject = Boolean.TRUE;
-		        		}
-		        	}
+	                if (isNullable) {
+	                	// Ignore columns with default NULL values
+	                	continue;
+	                }
+	            } else {
+	            	if ("json".equals(columnTypeName)) {
+	            		attributeValueObjects = convertJsonToValue(attributeObject.toString());
+	            		multiValued = Boolean.TRUE;
+	            	} else if (attributeObject instanceof Integer) {
+						int columnType = resultSet.getMetaData().getColumnType(i);
+						if (columnType == java.sql.Types.SMALLINT) {
+							if (attributeObject.equals(0)) {
+								attributeObject = Boolean.FALSE;
+							} else if (attributeObject.equals(1)) {
+								attributeObject = Boolean.TRUE;
+							}
+						}
 
-		        	attributeValueObjects = new Object[] { attributeObject };
-	            } else if ((attributeObject instanceof Boolean) || (attributeObject instanceof Long)) {
-	                attributeValueObjects = new Object[] { attributeObject };
-	        	} else if (attributeObject instanceof String) {
-	           		Object value = attributeObject.toString();
-	                try {
-	                    SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SQL_DATA_FORMAT);
-	                	value = jsonDateFormat.parse(attributeObject.toString());
-	                } catch (Exception ex) {}
-	        		attributeValueObjects = new Object[] { value };
-	            } else if (attributeObject instanceof Timestamp) {
-	                attributeValueObjects = new Object[] { new java.util.Date(((Timestamp) attributeObject).getTime()) };
-	        	} else {
-	           		Object value = attributeObject.toString();
-	        		attributeValueObjects = new Object[] { value };
-	        	}
+						attributeValueObjects = new Object[] { attributeObject };
+					} else if ((attributeObject instanceof Boolean) || (attributeObject instanceof Long)) {
+						attributeValueObjects = new Object[] { attributeObject };
+					} else if (attributeObject instanceof String) {
+						Object value = attributeObject.toString();
+						try {
+							SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SQL_DATA_FORMAT);
+							value = jsonDateFormat.parse(attributeObject.toString());
+						} catch (Exception ex) {
+						}
+						attributeValueObjects = new Object[] { value };
+					} else if (attributeObject instanceof Timestamp) {
+						attributeValueObjects = new Object[] {
+								new java.util.Date(((Timestamp) attributeObject).getTime()) };
+					} else {
+						Object value = attributeObject.toString();
+						attributeValueObjects = new Object[] { value };
+					}
+	            }
 	            
 	            unescapeValues(attributeValueObjects);
 	
-	            AttributeData tmpAttribute = new AttributeData(attributeName, attributeValueObjects);
+	            AttributeData tmpAttribute = new AttributeData(attributeName, attributeValueObjects, multiValued);
 	            if (multiValued != null) {
 	            	tmpAttribute.setMultiValued(multiValued);
 	            }
@@ -764,6 +782,28 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 //		}
 //		
 //		return resultAttributeNames;
+	}
+
+	protected String convertValueToJson(Object propertyValue) {
+		try {
+			String value = JSON_OBJECT_MAPPER.writeValueAsString(propertyValue);
+
+			return value;
+		} catch (Exception ex) {
+			LOG.error("Failed to convert '{}' to json value:", propertyValue, ex);
+			throw new MappingException(String.format("Failed to convert '%s' to json value", propertyValue));
+		}
+	}
+
+	protected Object[] convertJsonToValue(String jsonValue) {
+		try {
+			Object[] values = JSON_OBJECT_MAPPER.readValue(jsonValue, Object[].class);
+
+			return values;
+		} catch (Exception ex) {
+			LOG.error("Failed to convert json value '{}' to array:", jsonValue, ex);
+			throw new MappingException(String.format("Failed to convert json value '%s' to array", jsonValue));
+		}
 	}
 
 }

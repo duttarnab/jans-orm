@@ -21,22 +21,22 @@ import io.jans.orm.couchbase.model.SimpleSessionState;
 /**
  * @author Yuriy Movchan Date: 01/25/2016
  */
-public final class CouchbaseSampleSimpleSessionSample {
+public final class CouchbaseConcurentSessionUpdateSample {
 
     private static final Logger LOG;
 
     static {
         StatusLogger.getLogger().setLevel(Level.OFF);
         LoggingHelper.configureConsoleAppender();
-        LOG = Logger.getLogger(CouchbaseSampleSimpleSessionSample.class);
+        LOG = Logger.getLogger(CouchbaseConcurentSessionUpdateSample.class);
     }
 
-    private CouchbaseSampleSimpleSessionSample() {
+    private CouchbaseConcurentSessionUpdateSample() {
     }
 
     public static void main(String[] args) throws InterruptedException {
         // Prepare sample connection details
-        CouchbaseSampleEntryManager couchbaseSampleEntryManager = new CouchbaseSampleEntryManager();
+        CouchbaseEntryManagerSample couchbaseSampleEntryManager = new CouchbaseEntryManagerSample();
         final CouchbaseEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createCouchbaseEntryManager();
 
         try {

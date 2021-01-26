@@ -42,10 +42,11 @@ public final class SqlCustomMultiValuedTypesSample {
 		newUser.setDn(String.format("inum=%s,ou=people,o=jans", System.currentTimeMillis()));
 		newUser.setUserId("sample_user_" + System.currentTimeMillis());
 		newUser.setUserPassword("test");
-		newUser.getCustomAttributes().add(new CustomObjectAttribute("streetAddress", Arrays.asList("London", "Texas", "Kiev")));
-		newUser.getCustomAttributes().add(new CustomObjectAttribute("test", "test_value"));
-		newUser.getCustomAttributes().add(new CustomObjectAttribute("fuzzy", "test_value"));
+		newUser.getCustomAttributes().add(new CustomObjectAttribute("jansOptOuts", Arrays.asList("London", "Texas", "Kiev")));
+		newUser.getCustomAttributes().add(new CustomObjectAttribute("jansExtUid", "test_value").multiValued());
+		newUser.getCustomAttributes().add(new CustomObjectAttribute("jansPPID", "test_value").multiValued());
 		newUser.setMemberOf(Arrays.asList("group_1", "group_2", "group_3"));
+		newUser.setAttributeValue("givenName", "john");
 
 		sqlEntryManager.persist(newUser);
 
@@ -55,16 +56,20 @@ public final class SqlCustomMultiValuedTypesSample {
 		// Find added dummy user
 		SimpleUser foundUser = sqlEntryManager.find(SimpleUser.class, newUser.getDn());
 		LOG.info("Found User '{}' with uid '{}' and key '{}'", foundUser, foundUser.getUserId(), foundUser.getDn());
-
 		LOG.info("Custom attributes '{}'", foundUser.getCustomAttributes());
 
+		// Dump custom attributes
+		for (CustomObjectAttribute attr : foundUser.getCustomAttributes()) {
+			System.out.println(attr.getName() + " - " + attr.getValues());
+		}
+
 		// Update custom attributes
-		foundUser.setAttributeValues("streetAddress", Arrays.asList("London", "Texas", "Kiev", "Dublin"));
-		foundUser.setAttributeValues("test", Arrays.asList("test_value_1", "test_value_2", "test_value_3", "test_value_4"));
-		foundUser.setAttributeValues("fuzzy", Arrays.asList("fuzzy_value_1", "fuzzy_value_2"));
-		foundUser.setAttributeValue("simple", "simple");
+		foundUser.setAttributeValues("jansOptOuts", Arrays.asList("London", "Texas", "Kiev", "Dublin"));
+		foundUser.setAttributeValues("jansExtUid", Arrays.asList("test_value_1", "test_value_2", "test_value_3", "test_value_4"));
+		foundUser.setAttributeValues("jansPPID", Arrays.asList("fuzzy_value_1", "fuzzy_value_2"));
+		foundUser.setAttributeValue("jansGuid", "simple");
 		
-		CustomObjectAttribute multiValuedSingleValue = new CustomObjectAttribute("multivalued", "multivalued_single_valued");
+		CustomObjectAttribute multiValuedSingleValue = new CustomObjectAttribute("jansAssociatedClnt", "multivalued_single_valued");
 		multiValuedSingleValue.setMultiValued(true);
 		foundUser.getCustomAttributes().add(multiValuedSingleValue);
 		sqlEntryManager.merge(foundUser);
@@ -73,13 +78,16 @@ public final class SqlCustomMultiValuedTypesSample {
 		// Find updated dummy user
 		SimpleUser foundUpdatedUser = sqlEntryManager.find(SimpleUser.class, newUser.getDn());
 		LOG.info("Found User '{}' with uid '{}' and key '{}'", foundUpdatedUser, foundUpdatedUser.getUserId(), foundUpdatedUser.getDn());
-
 		LOG.info("Cusom attributes '{}'", foundUpdatedUser.getCustomAttributes());
 
-		Filter filter = Filter.createEqualityFilter(Filter.createLowercaseFilter("givenName"), StringHelper.toLowerCase("jon"));
+		// Dump custom attributes
+		for (CustomObjectAttribute attr : foundUser.getCustomAttributes()) {
+			System.out.println(attr.getName() + " - " + attr.getValues());
+		}
+
+		Filter filter = Filter.createEqualityFilter(Filter.createLowercaseFilter("givenName"), StringHelper.toLowerCase("john"));
 		List<SimpleUser> foundUpdatedUsers = sqlEntryManager.findEntries("o=jans", SimpleUser.class, filter);
 		System.out.println(foundUpdatedUsers);
-		
 	}
 
 }

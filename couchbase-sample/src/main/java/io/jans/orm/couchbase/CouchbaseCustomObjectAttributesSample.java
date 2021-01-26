@@ -32,7 +32,7 @@ public final class CouchbaseCustomObjectAttributesSample {
 
 	public static void main(String[] args) {
 		// Prepare sample connection details
-		CouchbaseSampleEntryManager couchbaseSampleEntryManager = new CouchbaseSampleEntryManager();
+		CouchbaseEntryManagerSample couchbaseSampleEntryManager = new CouchbaseEntryManagerSample();
 
 		// Create Couchbase entry manager
 		CouchbaseEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createCouchbaseEntryManager();

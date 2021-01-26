@@ -1666,7 +1666,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		} else if (parameterType.equals(String[].class)) {
 			propertyValueSetter.set(entry, attribute.getStringValues());
 		} else if (ReflectHelper.assignableFrom(parameterType, List.class)) {
-			if (jsonObject) {
+			if (jsonObject) {// TODO: Review
 				Object[] values = attribute.getValues();
 				List<Object> jsonValues = new ArrayList<Object>(values.length);
 

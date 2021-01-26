@@ -41,7 +41,7 @@ public final class LdapSample {
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        LdapSampleEntryManager ldapSampleEntryManager = new LdapSampleEntryManager();
+        LdapEntryManagerSample ldapSampleEntryManager = new LdapEntryManagerSample();
 
         // Create LDAP entry manager
         LdapEntryManager ldapEntryManager = ldapSampleEntryManager.createLdapEntryManager();

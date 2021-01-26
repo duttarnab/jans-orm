@@ -44,8 +44,8 @@ public final class SqlCustomStringAttributesSample {
 		newUser.setDn(String.format("inum=%s,ou=people,o=jans", System.currentTimeMillis()));
 		newUser.setUserId("sample_user_" + System.currentTimeMillis());
 		newUser.setUserPassword("test");
-		newUser.getCustomAttributes().add(new CustomAttribute("streetAddress", Arrays.asList("London", "Texas", "Kiev")));
-		newUser.getCustomAttributes().add((new CustomAttribute("jansExternalUid", randomExternalUid)).setMultiValued(true));
+		newUser.getCustomAttributes().add(new CustomAttribute("address", Arrays.asList("London", "Texas", "Kiev")));
+		newUser.getCustomAttributes().add((new CustomAttribute("jansExtUid", randomExternalUid)).multiValued());
 
 		newUser.setUserRole(UserRole.ADMIN);
 		newUser.setMemberOf(Arrays.asList("group_1", "group_2", "group_3"));
@@ -64,10 +64,10 @@ public final class SqlCustomStringAttributesSample {
 		}
 
 		// Find by jsExternalUid
-		Filter jsExternalUidFilter = Filter.createEqualityFilter("jansExternalUid", randomExternalUid).multiValued();
+		Filter jsExternalUidFilter = Filter.createEqualityFilter("jansExtUid", randomExternalUid).multiValued();
 		List<SimpleCustomStringUser> foundUsers = sqlEntryManager.findEntries("ou=people,o=jans", SimpleCustomStringUser.class, jsExternalUidFilter);
 		for (SimpleCustomStringUser foundUser2 : foundUsers) {
-			LOG.info("Found User '{}' by jsExternalUid with uid '{}' and key '{}'", foundUser2, foundUser2.getUserId(), foundUser2.getDn());
+			LOG.info("Found User '{}' by jansExtUid with uid '{}' and key '{}'", foundUser2, foundUser2.getUserId(), foundUser2.getDn());
 		}
 	}
 

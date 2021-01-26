@@ -1,10 +1,10 @@
 /*
- * Janssen Project software is available under the Apache License (2004). See http://www.apache.org/licenses/ for full text.
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
  *
  * Copyright (c) 2020, Janssen Project
  */
 
-package io.jans.orm.couchbase;
+package io.jans.orm.sql;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -16,22 +16,23 @@ import org.apache.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
 
-import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
-import io.jans.orm.couchbase.model.SimpleUser;
 import io.jans.orm.search.filter.Filter;
+import io.jans.orm.sql.impl.SqlEntryManager;
+import io.jans.orm.sql.model.SimpleUser;
+import io.jans.orm.sql.persistence.SqlSampleEntryManager;
 import io.jans.orm.util.StringHelper;
 
 /**
- * @author Yuriy Movchan Date: 09/18/2019
+ * @author Yuriy Movchan Date: 01/15/2020
  */
-public final class CouchbaseSampleUserSearchSample {
+public final class SqlUserSearchSample {
 
     private static final Logger LOG;
 
     static {
         StatusLogger.getLogger().setLevel(Level.OFF);
         LoggingHelper.configureConsoleAppender();
-        LOG = Logger.getLogger(CouchbaseSampleUserSearchSample.class);
+        LOG = Logger.getLogger(SqlUserSearchSample.class);
     }
 
     private static AtomicLong successResult = new AtomicLong(0) ;
@@ -40,13 +41,13 @@ public final class CouchbaseSampleUserSearchSample {
     private static AtomicLong totalTime = new AtomicLong(0) ;
     private static AtomicLong activeCount = new AtomicLong(0) ;
 
-    private CouchbaseSampleUserSearchSample() {
+    private SqlUserSearchSample() {
     }
 
     public static void main(String[] args) throws InterruptedException {
         // Prepare sample connection details
-        CouchbaseSampleEntryManager couchbaseSampleEntryManager = new CouchbaseSampleEntryManager();
-        final CouchbaseEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createCouchbaseEntryManager();
+        SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
+        final SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
         
         int countUsers = 1000000;
         int threadCount = 200;
@@ -68,7 +69,7 @@ public final class CouchbaseSampleUserSearchSample {
 	                        try {
 		                        Filter filter = Filter.createEqualityFilter(Filter.createLowercaseFilter("uid"), StringHelper.toLowerCase(uid));
 //		                        Filter filter = Filter.createEqualityFilter("uid", uid);
-		                        List<SimpleUser> foundUsers = couchbaseEntryManager.findEntries("ou=people,o=jans", SimpleUser.class, filter);
+		                        List<SimpleUser> foundUsers = sqlEntryManager.findEntries("ou=people,o=jans", SimpleUser.class, filter);
 		                        if (foundUsers.size() > 0) {
 		                        	successResult.incrementAndGet();
 		                        } else {
@@ -95,7 +96,7 @@ public final class CouchbaseSampleUserSearchSample {
             	Thread.sleep(1000L);
             }
         } finally {
-            couchbaseEntryManager.destroy();
+            sqlEntryManager.destroy();
         }
         long totalEnd = System.currentTimeMillis();
         long duration = totalEnd - totalStart; 

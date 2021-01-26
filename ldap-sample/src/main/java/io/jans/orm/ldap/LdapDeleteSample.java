@@ -18,22 +18,22 @@ import java.util.Date;
 /**
  * @author Yuriy Movchan Date: 11/03/2016
  */
-public final class LdapSampleDelete {
+public final class LdapDeleteSample {
 
     private static final Logger LOG;
 
     static {
         StatusLogger.getLogger().setLevel(Level.OFF);
         LoggingHelper.configureConsoleAppender();
-        LOG = Logger.getLogger(LdapSampleDelete.class);
+        LOG = Logger.getLogger(LdapDeleteSample.class);
     }
 
-    private LdapSampleDelete() {
+    private LdapDeleteSample() {
     }
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        LdapSampleEntryManager ldapSampleEntryManager = new LdapSampleEntryManager();
+        LdapEntryManagerSample ldapSampleEntryManager = new LdapEntryManagerSample();
 
         // Create LDAP entry manager
         LdapEntryManager ldapEntryManager = ldapSampleEntryManager.createLdapEntryManager();

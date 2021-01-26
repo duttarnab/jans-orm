@@ -4,17 +4,19 @@
  * Copyright (c) 2020, Janssen Project
  */
 
-package io.jans.orm.couchbase;
+package io.jans.orm.ldap;
+
+import com.unboundid.util.StaticUtils;
 
 import org.apache.log4j.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.status.StatusLogger;
 
-import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
-import io.jans.orm.couchbase.model.SimpleClient;
-import io.jans.orm.couchbase.model.SimpleSession;
-import io.jans.orm.couchbase.model.SimpleTokenCouchbase;
 import io.jans.orm.exception.EntryPersistenceException;
+import io.jans.orm.ldap.impl.LdapEntryManager;
+import io.jans.orm.ldap.model.SimpleClient;
+import io.jans.orm.ldap.model.SimpleSession;
+import io.jans.orm.ldap.model.SimpleTokenLdap;
 import io.jans.orm.model.BatchOperation;
 import io.jans.orm.model.DefaultBatchOperation;
 import io.jans.orm.model.ProcessBatchOperation;
@@ -22,6 +24,7 @@ import io.jans.orm.model.SearchScope;
 import io.jans.orm.model.base.CustomAttribute;
 import io.jans.orm.search.filter.Filter;
 
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -30,35 +33,35 @@ import java.util.List;
 /**
  * Created by eugeniuparvan on 1/12/17.
  */
-public final class CouchbaseSampleBatchJob {
+public final class LdapBatchJobSample {
     private static final Logger LOG;
 
     static {
         StatusLogger.getLogger().setLevel(Level.OFF);
         LoggingHelper.configureConsoleAppender();
-        LOG = Logger.getLogger(CouchbaseSample.class);
+        LOG = Logger.getLogger(LdapSample.class);
     }
 
-    private CouchbaseSampleBatchJob() { }
+    private LdapBatchJobSample() { }
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        CouchbaseSampleEntryManager couchbaseSampleEntryManager = new CouchbaseSampleEntryManager();
+        LdapEntryManagerSample ldapSampleEntryManager = new LdapEntryManagerSample();
 
-        // Create Couchbase entry manager
-        final CouchbaseEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createCouchbaseEntryManager();
+        // Create LDAP entry manager
+        final LdapEntryManager ldapEntryManager = ldapSampleEntryManager.createLdapEntryManager();
 
-        BatchOperation<SimpleTokenCouchbase> tokenCouchbaseBatchOperation = new ProcessBatchOperation<SimpleTokenCouchbase>() {
+        BatchOperation<SimpleTokenLdap> tokenLdapBatchOperation = new ProcessBatchOperation<SimpleTokenLdap>() {
             private int processedCount = 0;
 
             @Override
-            public void performAction(List<SimpleTokenCouchbase> objects) {
-                for (SimpleTokenCouchbase simpleTokenCouchbase : objects) {
+            public void performAction(List<SimpleTokenLdap> objects) {
+                for (SimpleTokenLdap simpleTokenLdap : objects) {
                     try {
-                        CustomAttribute customAttribute = getUpdatedAttribute(couchbaseEntryManager, simpleTokenCouchbase.getDn(), "exp",
-                                simpleTokenCouchbase.getAttribute("exp"));
-                        simpleTokenCouchbase.setCustomAttributes(Arrays.asList(new CustomAttribute[] {customAttribute}));
-                        couchbaseEntryManager.merge(simpleTokenCouchbase);
+                        CustomAttribute customAttribute = getUpdatedAttribute(ldapEntryManager, simpleTokenLdap.getDn(), "exp",
+                                simpleTokenLdap.getAttribute("exp"));
+                        simpleTokenLdap.setCustomAttributes(Arrays.asList(new CustomAttribute[] {customAttribute}));
+                        ldapEntryManager.merge(simpleTokenLdap);
                         processedCount++;
                     } catch (EntryPersistenceException ex) {
                         LOG.error("Failed to update entry", ex);
@@ -70,8 +73,8 @@ public final class CouchbaseSampleBatchJob {
         };
 
         final Filter filter1 = Filter.createPresenceFilter("exp");
-        couchbaseEntryManager.findEntries("o=jans", SimpleTokenCouchbase.class, filter1, SearchScope.SUB, new String[] {"exp"},
-                tokenCouchbaseBatchOperation, 0, 0, 100);
+        ldapEntryManager.findEntries("o=jans", SimpleTokenLdap.class, filter1, SearchScope.SUB, new String[] {"exp"},
+                tokenLdapBatchOperation, 0, 0, 100);
 
         BatchOperation<SimpleSession> sessionBatchOperation = new ProcessBatchOperation<SimpleSession>() {
             private int processedCount = 0;
@@ -80,10 +83,10 @@ public final class CouchbaseSampleBatchJob {
             public void performAction(List<SimpleSession> objects) {
                 for (SimpleSession simpleSession : objects) {
                     try {
-                        CustomAttribute customAttribute = getUpdatedAttribute(couchbaseEntryManager, simpleSession.getDn(), "jansLastAccessTime",
+                        CustomAttribute customAttribute = getUpdatedAttribute(ldapEntryManager, simpleSession.getDn(), "jansLastAccessTime",
                                 simpleSession.getAttribute("jansLastAccessTime"));
                         simpleSession.setCustomAttributes(Arrays.asList(new CustomAttribute[] {customAttribute}));
-                        couchbaseEntryManager.merge(simpleSession);
+                        ldapEntryManager.merge(simpleSession);
                         processedCount++;
                     } catch (EntryPersistenceException ex) {
                         LOG.error("Failed to update entry", ex);
@@ -95,7 +98,7 @@ public final class CouchbaseSampleBatchJob {
         };
 
         final Filter filter2 = Filter.createPresenceFilter("jansLastAccessTime");
-        couchbaseEntryManager.findEntries("o=jans", SimpleSession.class, filter2, SearchScope.SUB, new String[] {"jansLastAccessTime"},
+        ldapEntryManager.findEntries("o=jans", SimpleSession.class, filter2, SearchScope.SUB, new String[] {"jansLastAccessTime"},
                 sessionBatchOperation, 0, 0, 100);
 
         BatchOperation<SimpleClient> clientBatchOperation = new ProcessBatchOperation<SimpleClient>() {
@@ -112,7 +115,7 @@ public final class CouchbaseSampleBatchJob {
         };
 
         final Filter filter3 = Filter.createPresenceFilter("exp");
-        List<SimpleClient> result3 = couchbaseEntryManager.findEntries("o=jans", SimpleClient.class, filter3, SearchScope.SUB,
+        List<SimpleClient> result3 = ldapEntryManager.findEntries("o=jans", SimpleClient.class, filter3, SearchScope.SUB,
                 new String[] {"exp"}, clientBatchOperation, 0, 0, 1000);
 
         LOG.info("Result count (without collecting results): " + result3.size());
@@ -131,25 +134,25 @@ public final class CouchbaseSampleBatchJob {
         };
 
         final Filter filter4 = Filter.createPresenceFilter("exp");
-        List<SimpleClient> result4 = couchbaseEntryManager.findEntries("o=jans", SimpleClient.class, filter4, SearchScope.SUB,
+        List<SimpleClient> result4 = ldapEntryManager.findEntries("o=jans", SimpleClient.class, filter4, SearchScope.SUB,
                 new String[] {"exp"}, clientBatchOperation2, 0, 0, 1000);
 
         LOG.info("Result count (with collecting results): " + result4.size());
     }
 
-    private static CustomAttribute getUpdatedAttribute(CouchbaseEntryManager couchbaseEntryManager, String baseDn, String attributeName, String attributeValue) {
+    private static CustomAttribute getUpdatedAttribute(LdapEntryManager ldapEntryManager, String baseDn, String attributeName, String attributeValue) {
         try {
             Calendar calendar = Calendar.getInstance();
-            Date jansLastAccessTimeDate = new Date(); //TODO: Fix it StaticUtils.decodeGeneralizedTime(attributeValue);
+            Date jansLastAccessTimeDate = StaticUtils.decodeGeneralizedTime(attributeValue);
             calendar.setTime(jansLastAccessTimeDate);
             calendar.add(Calendar.SECOND, -1);
 
             CustomAttribute customAttribute = new CustomAttribute();
             customAttribute.setName(attributeName);
-            customAttribute.setValue(couchbaseEntryManager.encodeTime(baseDn, calendar.getTime()));
+            customAttribute.setValue(ldapEntryManager.encodeTime(baseDn, calendar.getTime()));
             return customAttribute;
-        } catch (Exception ex) {
-            LOG.error("Can't parse attribute", ex);
+        } catch (ParseException e) {
+            LOG.error("Can't parse attribute", e);
         }
         return null;
     }

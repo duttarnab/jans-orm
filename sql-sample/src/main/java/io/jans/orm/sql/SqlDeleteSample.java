@@ -11,20 +11,20 @@ import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.jans.orm.model.base.DeletableEntity;
 import io.jans.orm.search.filter.Filter;
 import io.jans.orm.sql.impl.SqlEntryManager;
+import io.jans.orm.sql.model.SimpleSession;
 import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
 import io.jans.orm.sql.persistence.SqlSampleEntryManager;
 
 /**
  * @author Yuriy Movchan Date: 01/15/2020
  */
-public final class SqlSampleDelete {
+public final class SqlDeleteSample {
 
     private static final Logger LOG = LoggerFactory.getLogger(SqlConnectionProvider.class);
 
-    private SqlSampleDelete() {
+    private SqlDeleteSample() {
     }
 
     public static void main(String[] args) {
@@ -34,13 +34,13 @@ public final class SqlSampleDelete {
         // Create SQL entry manager
         SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
 
-        String baseDn = "ou=cache,o=jans";
+        String baseDn = "ou=people,o=jans";
 		Filter filter = Filter.createANDFilter(
 		        Filter.createEqualityFilter("del", true),
 				Filter.createLessOrEqualFilter("exp", sqlEntryManager.encodeTime(baseDn, new Date()))
         );
 
-        int result = sqlEntryManager.remove(baseDn, DeletableEntity.class, filter, 100);
+        int result = sqlEntryManager.remove(baseDn, SimpleSession.class, filter, 5);
         System.out.println(result);
     }
 

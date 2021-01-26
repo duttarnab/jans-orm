@@ -41,6 +41,7 @@ public interface SqlOperationService extends PersistenceOperationService {
     static String OBJECT_CLASS = "objectClass";
 
     static String DOC_ALIAS = "doc";
+    static String ID = "id";
     static String DOC_ID = "doc_id";
 
 	public static final String SQL_DATA_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";

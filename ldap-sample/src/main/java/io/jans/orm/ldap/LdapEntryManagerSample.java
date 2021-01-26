@@ -16,9 +16,9 @@ import io.jans.orm.ldap.impl.LdapEntryManagerFactory;
  * @author Yuriy Movchan
  * Date: 01/13/2017
  */
-public class LdapSampleEntryManager {
+public class LdapEntryManagerSample {
 
-    private static final Logger LOG = Logger.getLogger(LdapSampleEntryManager.class);
+    private static final Logger LOG = Logger.getLogger(LdapEntryManagerSample.class);
 
     private Properties getSampleConnectionProperties() {
         Properties connectionProperties = new Properties();

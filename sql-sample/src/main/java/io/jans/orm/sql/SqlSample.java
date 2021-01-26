@@ -80,14 +80,15 @@ public final class SqlSample {
             System.out.println("authetication result: " + result1 + ", " + result2);
         }
 
-        Filter filter = Filter.createEqualityFilter("status", "active");
+        Filter filter = Filter.createEqualityFilter("jansStatus", "active");
         List<SimpleAttribute> attributes = sqlEntryManager.findEntries("o=jans", SimpleAttribute.class, filter, SearchScope.SUB, null, null, 10,
                 0, 0);
         for (SimpleAttribute attribute : attributes) {
             LOG.info("Attribute with displayName: " + attribute.getCustomAttributes().get(1));
         }
 
-        List<SimpleSession> sessions = sqlEntryManager.findEntries("o=jans", SimpleSession.class, filter, SearchScope.SUB, null, null, 10, 0,
+        Filter filter2 = Filter.createEqualityFilter("jansState", "authenticated");
+        List<SimpleSession> sessions = sqlEntryManager.findEntries("o=jans", SimpleSession.class, filter2, SearchScope.SUB, null, null, 10, 0,
                 0);
         LOG.info("Found sessions: " + sessions.size());
 
@@ -97,7 +98,7 @@ public final class SqlSample {
 
         try {
             PagedResult<SimpleUser> listViewResponse = sqlEntryManager.findPagedEntries("o=jans", SimpleUser.class, null,
-                    new String[] { "uid", "displayName", "status" }, "uid", SortOrder.ASCENDING, 0, 6, 4);
+                    new String[] { "uid", "displayName", "jansStatus" }, "uid", SortOrder.ASCENDING, 0, 6, 4);
 
             LOG.info("Found persons: " + listViewResponse.getEntriesCount() + ", total persons: " + listViewResponse.getTotalEntriesCount());
             for (SimpleUser user : listViewResponse.getEntries()) {
@@ -109,7 +110,7 @@ public final class SqlSample {
 
         try {
             PagedResult<SimpleUser> listViewResponse = sqlEntryManager.findPagedEntries("o=jans", SimpleUser.class, null,
-                    new String[] { "uid", "displayName", "status" }, "uid", SortOrder.DESCENDING, 0, 6, 4);
+                    new String[] { "uid", "displayName", "jansStatus" }, "uid", SortOrder.DESCENDING, 0, 6, 4);
 
             LOG.info("Found persons: " + listViewResponse.getEntriesCount() + ", total persons: " + listViewResponse.getTotalEntriesCount());
             for (SimpleUser user : listViewResponse.getEntries()) {

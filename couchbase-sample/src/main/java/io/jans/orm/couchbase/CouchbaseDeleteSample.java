@@ -19,16 +19,16 @@ import java.util.Date;
 /**
  * @author Yuriy Movchan Date: 11/03/2016
  */
-public final class CouchbaseSampleDelete {
+public final class CouchbaseDeleteSample {
 
     private static final Logger LOG = LoggerFactory.getLogger(CouchbaseConnectionProvider.class);
 
-    private CouchbaseSampleDelete() {
+    private CouchbaseDeleteSample() {
     }
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        CouchbaseSampleEntryManager couchbaseSampleEntryManager = new CouchbaseSampleEntryManager();
+        CouchbaseEntryManagerSample couchbaseSampleEntryManager = new CouchbaseEntryManagerSample();
 
         // Create Couchbase entry manager
         CouchbaseEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createCouchbaseEntryManager();

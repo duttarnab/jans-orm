@@ -16,9 +16,9 @@ import io.jans.orm.couchbase.impl.CouchbaseEntryManagerFactory;
  * @author Yuriy Movchan
  * Date: 01/13/2017
  */
-public class CouchbaseSampleEntryManager {
+public class CouchbaseEntryManagerSample {
 
-    private static final Logger LOG = Logger.getLogger(CouchbaseSampleEntryManager.class);
+    private static final Logger LOG = Logger.getLogger(CouchbaseEntryManagerSample.class);
 
     private Properties getSampleConnectionProperties() {
         Properties connectionProperties = new Properties();

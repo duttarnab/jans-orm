@@ -43,10 +43,12 @@ public final class SqlCustomObjectAttributesSample {
 		newUser.setDn(String.format("inum=%s,ou=people,o=jans", System.currentTimeMillis()));
 		newUser.setUserId("sample_user_" + System.currentTimeMillis());
 		newUser.setUserPassword("test");
-		newUser.getCustomAttributes().add(new CustomObjectAttribute("streetAddress", Arrays.asList("London", "Texas", "Kiev")));
-		newUser.getCustomAttributes().add(new CustomObjectAttribute("test", "test_value"));
+		newUser.getCustomAttributes().add(new CustomObjectAttribute("address", Arrays.asList("London", "Texas", "Kiev")));
+		newUser.getCustomAttributes().add(new CustomObjectAttribute("jansGuid", "test_value"));
 		newUser.getCustomAttributes().add(new CustomObjectAttribute("birthdate", new Date()));
-		newUser.getCustomAttributes().add(new CustomObjectAttribute("enabled", false));
+		newUser.getCustomAttributes().add(new CustomObjectAttribute("jansActive", false));
+		
+		// Require cusom attribute in table with age: INT type
 		newUser.getCustomAttributes().add(new CustomObjectAttribute("age", 18));
 
 		newUser.setUserRole(UserRole.ADMIN);

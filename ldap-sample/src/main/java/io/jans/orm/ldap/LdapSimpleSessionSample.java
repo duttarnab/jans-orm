@@ -20,22 +20,22 @@ import io.jans.orm.ldap.model.SimpleSessionState;
 /**
  * @author Yuriy Movchan Date: 01/25/2016
  */
-public final class LdapSampleSimpleSessionSample {
+public final class LdapSimpleSessionSample {
 
     private static final Logger LOG;
 
     static {
         StatusLogger.getLogger().setLevel(Level.OFF);
         LoggingHelper.configureConsoleAppender();
-        LOG = Logger.getLogger(LdapSampleSimpleSessionSample.class);
+        LOG = Logger.getLogger(LdapSimpleSessionSample.class);
     }
 
-    private LdapSampleSimpleSessionSample() {
+    private LdapSimpleSessionSample() {
     }
 
     public static void main(String[] args) throws InterruptedException {
         // Prepare sample connection details
-        LdapSampleEntryManager ldapSampleEntryManager = new LdapSampleEntryManager();
+        LdapEntryManagerSample ldapSampleEntryManager = new LdapEntryManagerSample();
         final LdapEntryManager ldapEntryManager = ldapSampleEntryManager.createLdapEntryManager();
 
         try {

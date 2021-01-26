@@ -156,4 +156,10 @@ public class CustomObjectAttribute implements Serializable, Comparable<CustomObj
     public int compareTo(CustomObjectAttribute o) {
         return name.compareTo(o.name);
     }
+
+	public CustomObjectAttribute multiValued() {
+		this.multiValued = true;
+		
+		return this;
+	}
 }
