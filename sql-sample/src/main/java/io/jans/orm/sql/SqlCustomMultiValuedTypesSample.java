@@ -65,7 +65,8 @@ public final class SqlCustomMultiValuedTypesSample {
 
 		// Update custom attributes
 		foundUser.setAttributeValues("jansOptOuts", Arrays.asList("London", "Texas", "Kiev", "Dublin"));
-		foundUser.setAttributeValues("jansExtUid", Arrays.asList("test_value_1", "test_value_2", "test_value_3", "test_value_4"));
+		foundUser.setAttributeValues("jansExtUid", Arrays.asList("test_value_11", "test_value_22", "test_value_33", "test_value_44"));
+		foundUser.setAttributeValues("jansExtUid", Arrays.asList(11, 22, 33, 44));
 		foundUser.setAttributeValues("jansPPID", Arrays.asList("fuzzy_value_1", "fuzzy_value_2"));
 		foundUser.setAttributeValue("jansGuid", "simple");
 		

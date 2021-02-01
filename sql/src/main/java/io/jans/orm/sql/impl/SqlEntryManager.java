@@ -64,6 +64,8 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(SqlEntryManager.class);
 
+    private static final String JSON_DATA_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+
     @Inject
     private Logger log;
 
@@ -74,7 +76,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 
     protected SqlEntryManager(SqlOperationService operationService) {
         this.operationService = operationService;
-        this.FILTER_CONVERTER = new SqlFilterConverter(this);
+        this.FILTER_CONVERTER = new SqlFilterConverter(operationService);
         subscribers = new LinkedList<DeleteNotifier>();
     }
 
@@ -893,6 +895,12 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 	protected Object getNativeDateAttributeValue(Date dateValue) {
 		return dateValue;
     }
+
+    @Override
+    protected Object getNativeDateMultiAttributeValue(Date dateValue) {
+        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(JSON_DATA_FORMAT);
+		return jsonDateFormat.format(dateValue);
+	}
 
     @Override
 	protected boolean isStoreFullEntry() {

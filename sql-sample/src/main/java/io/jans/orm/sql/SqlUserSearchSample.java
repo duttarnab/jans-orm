@@ -6,19 +6,23 @@
 
 package io.jans.orm.sql;
 
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.log4j.Logger;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.status.StatusLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import io.jans.orm.model.base.CustomObjectAttribute;
 import io.jans.orm.search.filter.Filter;
 import io.jans.orm.sql.impl.SqlEntryManager;
 import io.jans.orm.sql.model.SimpleUser;
+import io.jans.orm.sql.model.UserRole;
+import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
 import io.jans.orm.sql.persistence.SqlSampleEntryManager;
 import io.jans.orm.util.StringHelper;
 
@@ -27,13 +31,7 @@ import io.jans.orm.util.StringHelper;
  */
 public final class SqlUserSearchSample {
 
-    private static final Logger LOG;
-
-    static {
-        StatusLogger.getLogger().setLevel(Level.OFF);
-        LoggingHelper.configureConsoleAppender();
-        LOG = Logger.getLogger(SqlUserSearchSample.class);
-    }
+    private static final Logger LOG = LoggerFactory.getLogger(SqlConnectionProvider.class);
 
     private static AtomicLong successResult = new AtomicLong(0) ;
     private static AtomicLong failedResult = new AtomicLong(0) ;
@@ -46,12 +44,18 @@ public final class SqlUserSearchSample {
 
     public static void main(String[] args) throws InterruptedException {
         // Prepare sample connection details
-        SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
+    	final SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
         final SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
         
         int countUsers = 1000000;
-        int threadCount = 200;
+        int threadCount = 100;
         int threadIterationCount = 10;
+
+        Filter filter = Filter.createEqualityFilter(Filter.createLowercaseFilter("uid"), String.format("user%06d", countUsers));
+        boolean foundUser = sqlEntryManager.contains("ou=people,o=jans", SimpleUser.class, filter);
+        if (!foundUser) {
+        	addTestUsers(sqlEntryManager, countUsers);
+        }
 
     	long totalStart = System.currentTimeMillis();
         try {
@@ -106,7 +110,49 @@ public final class SqlUserSearchSample {
         System.out.println(String.format("successResult: '%d', failedResult: '%d', errorResult: '%d'", successResult.get(), failedResult.get(), errorResult.get()));
     }
 
-    public static ThreadFactory daemonThreadFactory() {
+    private static void addTestUsers(SqlEntryManager sqlEntryManager, int countUsers) {
+    	long startTime = System.currentTimeMillis();
+        for (int j = 0; j <= countUsers; j++) {
+        	String uid = String.format("user%06d", j);
+
+        	SimpleUser newUser = new SimpleUser();
+	        newUser.setDn(String.format("inum=%s,ou=people,o=jans", System.currentTimeMillis()));
+	        newUser.setUserId(uid);
+	        newUser.setUserPassword("pwd");
+	        newUser.setUserRole(j % 2 == 0 ? UserRole.ADMIN : UserRole.USER);
+
+	        newUser.setMemberOf(Arrays.asList("group_1", "group_2", "group_3"));
+
+			newUser.setAttributeValue("givenName", "Agent Smith");
+	        newUser.getCustomAttributes().add(new CustomObjectAttribute("address", Arrays.asList("London", "Texas", "Kiev")));
+	        newUser.getCustomAttributes().add(new CustomObjectAttribute("transientId", "transientId"));
+
+	        List<Object> jansExtUid = Arrays.asList(1, 11);
+	        if (j % 2 == 0) {
+	        	jansExtUid = Arrays.asList(1, 11, 2, 22);
+	        } else if (j % 3 == 0) {
+	        	jansExtUid = Arrays.asList(2, 22, 3, 33);
+	        } else if (j % 5 == 0) {
+	        	jansExtUid = Arrays.asList(1, 11, 2, 22, 3, 33, 4, 44);
+	        }
+	        newUser.getCustomAttributes().add(new CustomObjectAttribute("jansExtUid", jansExtUid));
+			newUser.getCustomAttributes().add(new CustomObjectAttribute("birthdate", new Date()));
+			newUser.getCustomAttributes().add(new CustomObjectAttribute("jansActive", false));
+
+			sqlEntryManager.persist(newUser);
+
+			if (j % 1000 == 0) {
+				LOG.info("Added: '{}'", j);
+			}
+        }
+
+        long endTime = System.currentTimeMillis();
+        long duration = (endTime - startTime) / 1000L;
+
+        LOG.info("Duration: '{}'", duration);
+	}
+
+	public static ThreadFactory daemonThreadFactory() {
         return new ThreadFactory() {
             public Thread newThread(Runnable runnable) {
                 Thread thread = new Thread(runnable);

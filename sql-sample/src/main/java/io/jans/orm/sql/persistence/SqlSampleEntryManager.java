@@ -37,7 +37,7 @@ public class SqlSampleEntryManager {
         connectionProperties.put("sql.password.encryption.method", "SSHA-256");
         
         // Connection pool size
-        connectionProperties.put("sql.connection.pool.max-total", "5");
+        connectionProperties.put("sql.connection.pool.max-total", "500");
         connectionProperties.put("sql.connection.pool.max-idle", "3");
         connectionProperties.put("sql.connection.pool.min-idle", "2");
         

@@ -37,7 +37,8 @@ public final class SqlCustomStringAttributesSample {
 		// Create SQL entry manager
 		SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
 
-		String randomExternalUid = "otp:" + System.currentTimeMillis();
+		String randomExternalUid = "" + System.currentTimeMillis();
+//		String randomExternalUid = "otp:" + System.currentTimeMillis();
 
 		// Add dummy user
 		SimpleCustomStringUser newUser = new SimpleCustomStringUser();

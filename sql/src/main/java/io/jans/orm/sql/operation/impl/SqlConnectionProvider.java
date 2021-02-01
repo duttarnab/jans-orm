@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.querydsl.sql.Configuration;
+import com.querydsl.sql.MySQLTemplates;
 import com.querydsl.sql.SQLQueryFactory;
 import com.querydsl.sql.SQLTemplates;
 import com.querydsl.sql.SQLTemplatesRegistry;
@@ -34,6 +35,7 @@ import io.jans.orm.exception.KeyConversionException;
 import io.jans.orm.exception.operation.ConfigurationException;
 import io.jans.orm.exception.operation.ConnectionException;
 import io.jans.orm.operation.auth.PasswordEncryptionMethod;
+import io.jans.orm.sql.dsl.template.SqlJsonMySQLTemplates;
 import io.jans.orm.sql.model.ResultCode;
 import io.jans.orm.sql.model.TableMapping;
 import io.jans.orm.util.ArrayHelper;
@@ -188,7 +190,11 @@ public class SqlConnectionProvider {
 		PoolingDataSource<PoolableConnection> dataSource = poolingDataSource;
 		try (Connection con = dataSource.getConnection()) {
 			DatabaseMetaData databaseMetaData = con.getMetaData();
-			this.sqlTemplates = templatesRegistry.getBuilder(databaseMetaData).printSchema().build();
+			SQLTemplates.Builder sqlBuilder = templatesRegistry.getBuilder(databaseMetaData);
+			if (sqlBuilder instanceof MySQLTemplates.Builder) {
+				sqlBuilder = SqlJsonMySQLTemplates.builder();
+			}
+			this.sqlTemplates = sqlBuilder.printSchema().build();
 			Configuration configuration = new Configuration(sqlTemplates);
 
 			this.sqlQueryFactory = new SQLQueryFactory(configuration, dataSource);

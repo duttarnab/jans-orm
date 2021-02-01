@@ -32,6 +32,7 @@ public final class SqlCustomObjectAttributesSample {
 	}
 
 	public static void main(String[] args) {
+		Date currentDate = new Date();
 		// Prepare sample connection details
 		SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
 
@@ -43,7 +44,7 @@ public final class SqlCustomObjectAttributesSample {
 		newUser.setDn(String.format("inum=%s,ou=people,o=jans", System.currentTimeMillis()));
 		newUser.setUserId("sample_user_" + System.currentTimeMillis());
 		newUser.setUserPassword("test");
-		newUser.getCustomAttributes().add(new CustomObjectAttribute("address", Arrays.asList("London", "Texas", "Kiev")));
+		newUser.getCustomAttributes().add(new CustomObjectAttribute("address", Arrays.asList(currentDate, new Date(2), new Date(3))));
 		newUser.getCustomAttributes().add(new CustomObjectAttribute("jansGuid", "test_value"));
 		newUser.getCustomAttributes().add(new CustomObjectAttribute("birthdate", new Date()));
 		newUser.getCustomAttributes().add(new CustomObjectAttribute("jansActive", false));
@@ -73,7 +74,7 @@ public final class SqlCustomObjectAttributesSample {
 			}
 
 		}
-
+/*
 		// Find added dummy user by numeric attribute
 		Filter filter = Filter.createGreaterOrEqualFilter("age", 16);
 		List<SimpleUser> foundUsers = sqlEntryManager.findEntries("ou=people,o=jans", SimpleUser.class, filter);
@@ -82,6 +83,17 @@ public final class SqlCustomObjectAttributesSample {
 			LOG.info("Found User '{}' by filter '{}' with uid '{}' and key '{}'", foundUser, filter, foundUser, foundUser);
 		} else {
 			LOG.error("Can't find User by filter '{}'", filter);
+		}
+*/
+		// Find added dummy user by numeric attribute
+		Filter filter1 = Filter.createEqualityFilter("id", 2367898);
+		Filter filter2 = Filter.createEqualityFilter("address", currentDate).multiValued();
+		List<SimpleUser> foundUsers2 = sqlEntryManager.findEntries("ou=people,o=jans", SimpleUser.class, Filter.createANDFilter(filter1, filter2));
+		if (foundUsers2.size() > 0) {
+			foundUser = foundUsers2.get(0);
+			LOG.info("Found User '{}' by filter '{}' with uid '{}' and key '{}'", foundUser, filter2, foundUser, foundUser);
+		} else {
+			LOG.error("Can't find User by filter '{}'", filter2);
 		}
 	}
 

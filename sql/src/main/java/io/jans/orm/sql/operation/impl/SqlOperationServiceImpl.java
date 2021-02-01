@@ -787,7 +787,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	protected String convertValueToJson(Object propertyValue) {
 		try {
 			String value = JSON_OBJECT_MAPPER.writeValueAsString(propertyValue);
-
+			
 			return value;
 		} catch (Exception ex) {
 			LOG.error("Failed to convert '{}' to json value:", propertyValue, ex);
