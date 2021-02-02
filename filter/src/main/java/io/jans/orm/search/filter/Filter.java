@@ -30,6 +30,7 @@ public class Filter {
     private String subFinal;
 
     private Boolean multiValued;
+	private int multiValuedCount;
 
     public Filter(FilterType type) {
         this.type = type;
@@ -195,13 +196,23 @@ public class Filter {
         return multiValued;
     }
 
-    public Filter multiValued() {
+    public int getMultiValuedCount() {
+		return multiValuedCount;
+	}
+
+	public Filter multiValued() {
+        return multiValued(1);
+    }
+
+    public Filter multiValued(int multiValuedCount) {
         this.multiValued = Boolean.TRUE;
+        this.multiValuedCount = multiValuedCount;
         return this;
     }
 
     public Filter multiValued(Boolean multiValued) {
         this.multiValued = multiValued;
+        this.multiValuedCount = 1;
         return this;
     }
 
@@ -217,6 +228,7 @@ public class Filter {
     	clonedFilter.subAny = this.subAny;
     	clonedFilter.subFinal = this.subFinal;
     	clonedFilter.multiValued = this.multiValued;
+    	clonedFilter.multiValuedCount = this.multiValuedCount;
 
     	return clonedFilter;
 	}

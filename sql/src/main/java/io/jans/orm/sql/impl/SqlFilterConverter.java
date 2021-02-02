@@ -6,10 +6,10 @@
 
 package io.jans.orm.sql.impl;
 
-import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +30,6 @@ import com.querydsl.core.types.dsl.Expressions;
 
 import io.jans.orm.annotation.AttributeEnum;
 import io.jans.orm.annotation.AttributeName;
-import io.jans.orm.exception.MappingException;
 import io.jans.orm.exception.operation.SearchException;
 import io.jans.orm.ldap.impl.LdapFilterConverter;
 import io.jans.orm.reflect.property.PropertyAnnotation;
@@ -177,33 +176,48 @@ public class SqlFilterConverter {
 
         	String internalAttribute = toInternalAttribute(currentGenericFilter);
     		if (Boolean.TRUE.equals(currentGenericFilter.getMultiValued()) || Boolean.TRUE.equals(isMultiValuedDetected)) {
-    			Expression convertedExpression;
+    			Expression expression;
         		if (hasSubFilters) {
-            		convertedExpression = convertToSqlFilterImpl(currentGenericFilter.getFilters()[0], propertiesAnnotationsMap, jsonAttributes, processor, skipAlias).expression();
+            		expression = convertToSqlFilterImpl(currentGenericFilter.getFilters()[0], propertiesAnnotationsMap, jsonAttributes, processor, skipAlias).expression();
         		} else {
-        			convertedExpression = buildTypedPath(currentGenericFilter, internalAttribute, skipAlias);
+        			expression = buildTypedPath(currentGenericFilter, internalAttribute, skipAlias);
         		}
 
-				Operation<Boolean> operation = ExpressionUtils.predicate(SqlOps.JSON_CONTAINS, convertedExpression,
+				Operation<Boolean> operation = ExpressionUtils.predicate(SqlOps.JSON_CONTAINS, expression,
 						buildTypedExpression(currentGenericFilter), Expressions.constant("$"));
 
         		return ConvertedExpression.build(operation, jsonAttributes);
             } else {
-            	Expression convertedExpression;
+            	Expression expression;
             	if (hasSubFilters) {
-            		convertedExpression = convertToSqlFilterImpl(currentGenericFilter.getFilters()[0], propertiesAnnotationsMap, jsonAttributes, processor, skipAlias).expression();
+            		expression = convertToSqlFilterImpl(currentGenericFilter.getFilters()[0], propertiesAnnotationsMap, jsonAttributes, processor, skipAlias).expression();
             	} else {
-            		convertedExpression = buildTypedPath(currentGenericFilter, skipAlias);
+            		expression = buildTypedPath(currentGenericFilter, skipAlias);
             	}
 
-            	return ConvertedExpression.build(ExpressionUtils.eq(convertedExpression, buildTypedExpression(currentGenericFilter)), jsonAttributes);
+            	return ConvertedExpression.build(ExpressionUtils.eq(expression, buildTypedExpression(currentGenericFilter)), jsonAttributes);
             }
         }
 
         if (FilterType.LESS_OR_EQUAL == type) {
         	String internalAttribute = toInternalAttribute(currentGenericFilter);
             if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
-        		Operation<Boolean> operation = ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
+            	if (currentGenericFilter.getMultiValuedCount() > 1) {
+                	Collection<Predicate> expressions = new ArrayList<>(currentGenericFilter.getMultiValuedCount());
+            		for (int i = 0; i < currentGenericFilter.getMultiValuedCount(); i++) {
+                		Operation<Boolean> operation = ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
+                				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$[" + i + "]"));
+                		Predicate predicate = Expressions.asComparable(operation).loe(buildTypedExpression(currentGenericFilter));
+
+                		expressions.add(predicate);
+            		}
+
+            		Expression expression = ExpressionUtils.anyOf(expressions);
+
+            		return ConvertedExpression.build(expression, jsonAttributes);
+            	}
+
+            	Operation<Boolean> operation = ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
         				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$[0]"));
         		Expression expression = Expressions.asComparable(operation).loe(buildTypedExpression(currentGenericFilter));
 
@@ -216,7 +230,21 @@ public class SqlFilterConverter {
         if (FilterType.GREATER_OR_EQUAL == type) {
         	String internalAttribute = toInternalAttribute(currentGenericFilter);
             if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
-        		Operation<Boolean> operation = ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
+            	if (currentGenericFilter.getMultiValuedCount() > 1) {
+                	Collection<Predicate> expressions = new ArrayList<>(currentGenericFilter.getMultiValuedCount());
+            		for (int i = 0; i < currentGenericFilter.getMultiValuedCount(); i++) {
+                		Operation<Boolean> operation = ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
+                				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$[" + i + "]"));
+                		Predicate predicate = Expressions.asComparable(operation).goe(buildTypedExpression(currentGenericFilter));
+
+                		expressions.add(predicate);
+            		}
+            		Expression expression = ExpressionUtils.anyOf(expressions);
+
+            		return ConvertedExpression.build(expression, jsonAttributes);
+            	}
+
+            	Operation<Boolean> operation = ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
         				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$[0]"));
         		Expression expression = Expressions.asComparable(operation).goe(buildTypedExpression(currentGenericFilter));
 
@@ -228,11 +256,27 @@ public class SqlFilterConverter {
 
         if (FilterType.PRESENCE == type) {
         	String internalAttribute = toInternalAttribute(currentGenericFilter);
+        	Expression expression;
             if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
-            	return ConvertedExpression.build(ExpressionUtils.isNotNull(buildTypedPath(currentGenericFilter, internalAttribute + "_.v$", skipAlias)), jsonAttributes);
+            	if (currentGenericFilter.getMultiValuedCount() > 1) {
+                	Collection<Predicate> expressions = new ArrayList<>(currentGenericFilter.getMultiValuedCount());
+            		for (int i = 0; i < currentGenericFilter.getMultiValuedCount(); i++) {
+            			Predicate predicate = ExpressionUtils.isNotNull(ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
+                				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$[" + i + "]")));
+            			expressions.add(predicate);
+            		}
+            		Predicate predicate = ExpressionUtils.anyOf(expressions);
+
+            		return ConvertedExpression.build(predicate, jsonAttributes);
+            	}
+
+            	expression = ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
+        				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$[0]"));
             } else {
-            	return ConvertedExpression.build(ExpressionUtils.isNotNull(buildTypedPath(currentGenericFilter, internalAttribute, skipAlias)), jsonAttributes);
+            	expression = buildTypedPath(currentGenericFilter, internalAttribute, skipAlias);
             }
+
+            return ConvertedExpression.build(ExpressionUtils.isNotNull(expression), jsonAttributes);
         }
 
         if (FilterType.APPROXIMATE_MATCH == type) {
@@ -257,20 +301,32 @@ public class SqlFilterConverter {
             if (currentGenericFilter.getSubFinal() != null) {
                 like.append(currentGenericFilter.getSubFinal());
             }
-        	String internalAttribute = toInternalAttribute(currentGenericFilter);
+
+            String internalAttribute = toInternalAttribute(currentGenericFilter);
+
+            Expression expression;
             if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
-            	if (skipAlias) {
-                	return ConvertedExpression.build(Expressions.stringPath(internalAttribute + "_.v$").like(Expressions.constant(like.toString())), jsonAttributes);
-            	} else {
-                	return ConvertedExpression.build(Expressions.stringPath(objectDocAlias, internalAttribute + "_.v$").like(Expressions.constant(like.toString())), jsonAttributes);
+            	if (currentGenericFilter.getMultiValuedCount() > 1) {
+                	Collection<Predicate> expressions = new ArrayList<>(currentGenericFilter.getMultiValuedCount());
+            		for (int i = 0; i < currentGenericFilter.getMultiValuedCount(); i++) {
+                		Operation<Boolean> operation = ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
+                				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$[" + i + "]"));
+                		Predicate predicate = Expressions.booleanOperation(Ops.LIKE, operation, Expressions.constant(like.toString()));
+
+                		expressions.add(predicate);
+            		}
+            		Predicate predicate = ExpressionUtils.anyOf(expressions);
+
+            		return ConvertedExpression.build(predicate, jsonAttributes);
             	}
+
+            	expression = ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
+        				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$[0]"));
             } else {
-            	if (skipAlias) {
-                	return ConvertedExpression.build(Expressions.stringPath(internalAttribute).like(Expressions.constant(like.toString())), jsonAttributes);
-            	} else {
-                	return ConvertedExpression.build(Expressions.stringPath(objectDocAlias, internalAttribute).like(Expressions.constant(like.toString())), jsonAttributes);
-            	}
+            	expression = buildTypedPath(currentGenericFilter, skipAlias);
             }
+
+            return ConvertedExpression.build(Expressions.booleanOperation(Ops.LIKE, expression, Expressions.constant(like.toString())), jsonAttributes);
         }
 
         if (FilterType.LOWERCASE == type) {
