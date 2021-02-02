@@ -414,7 +414,7 @@ public class SqlFilterConverterTest {
 		return queryStr;
 	}
 
-	private Date getUtcDateFromMillis(long millis) {
+	private static Date getUtcDateFromMillis(long millis) {
 		TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 		calendar.setTimeInMillis(millis);
