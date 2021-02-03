@@ -6,6 +6,7 @@
 
 package io.jans.orm.sql.operation.impl;
 
+import java.lang.reflect.Array;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -56,6 +57,7 @@ import io.jans.orm.model.SearchScope;
 import io.jans.orm.operation.auth.PasswordEncryptionHelper;
 import io.jans.orm.sql.impl.SqlBatchOperationWraper;
 import io.jans.orm.sql.model.ConvertedExpression;
+import io.jans.orm.sql.model.JsonAttributeValue;
 import io.jans.orm.sql.model.SearchReturnDataType;
 import io.jans.orm.sql.model.TableMapping;
 import io.jans.orm.sql.operation.SqlOperationService;
@@ -174,7 +176,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 			for (AttributeData attribute : attributes) {
 				sqlInsertQuery.columns(Expressions.stringPath(attribute.getName()));
 				if (Boolean.TRUE.equals(attribute.getMultiValued())) {
-					sqlInsertQuery.values(convertValueToJson(attribute.getValues()));
+					sqlInsertQuery.values(convertValueToDbJson(attribute.getValues()));
 				} else {
 					sqlInsertQuery.values(attribute.getValue());
 				}
@@ -212,13 +214,13 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 				AttributeModificationType type = attributeMod.getModificationType();
                 if (AttributeModificationType.ADD == type) {
 					if (Boolean.TRUE.equals(attribute.getMultiValued())) {
-    					sqlUpdateQuery.set(path, convertValueToJson(attribute.getValues()));
+    					sqlUpdateQuery.set(path, convertValueToDbJson(attribute.getValues()));
     				} else {
     					sqlUpdateQuery.set(path, attribute.getValue());
     				}
                 } else if (AttributeModificationType.REPLACE == type) {
 					if (Boolean.TRUE.equals(attribute.getMultiValued())) {
-    					sqlUpdateQuery.set(path, convertValueToJson(attribute.getValues()));
+    					sqlUpdateQuery.set(path, convertValueToDbJson(attribute.getValues()));
     				} else {
     					sqlUpdateQuery.set(path, attribute.getValue());
     				}
@@ -566,7 +568,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	                }
 	            } else {
 	            	if ("json".equals(columnTypeName)) {
-	            		attributeValueObjects = convertJsonToValue(attributeObject.toString());
+	            		attributeValueObjects = convertDbJsonToValue(attributeObject.toString());
 	            		multiValued = Boolean.TRUE;
 	            	} else if (attributeObject instanceof Integer) {
 						int columnType = resultSet.getMetaData().getColumnType(i);
@@ -784,10 +786,23 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 //		return resultAttributeNames;
 	}
 
-	protected String convertValueToJson(Object propertyValue) {
+	private String convertValueToDbJson(Object propertyValue) {
 		try {
-			String value = JSON_OBJECT_MAPPER.writeValueAsString(propertyValue);
-			
+//			String value = JSON_OBJECT_MAPPER.writeValueAsString(propertyValue);
+
+			JsonAttributeValue attributeValue;
+			if (propertyValue == null) {
+				attributeValue = new JsonAttributeValue();
+			} if (propertyValue instanceof List) {
+				attributeValue = new JsonAttributeValue(((List) propertyValue).toArray());
+			} else if (propertyValue.getClass().isArray()) {
+				attributeValue = new JsonAttributeValue((Object[]) propertyValue);
+			} else {
+				attributeValue = new JsonAttributeValue(new Object[] { propertyValue });
+			}
+
+			String value = JSON_OBJECT_MAPPER.writeValueAsString(attributeValue);
+
 			return value;
 		} catch (Exception ex) {
 			LOG.error("Failed to convert '{}' to json value:", propertyValue, ex);
@@ -795,9 +810,16 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 		}
 	}
 
-	protected Object[] convertJsonToValue(String jsonValue) {
+	private Object[] convertDbJsonToValue(String jsonValue) {
 		try {
-			Object[] values = JSON_OBJECT_MAPPER.readValue(jsonValue, Object[].class);
+//			Object[] values = JSON_OBJECT_MAPPER.readValue(jsonValue, Object[].class);
+
+			JsonAttributeValue attributeValue = JSON_OBJECT_MAPPER.readValue(jsonValue, JsonAttributeValue.class);
+			
+			Object[] values = null;
+			if (attributeValue != null) {
+				values = attributeValue.getValues();
+			}
 
 			return values;
 		} catch (Exception ex) {
@@ -805,5 +827,6 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 			throw new MappingException(String.format("Failed to convert json value '%s' to array", jsonValue));
 		}
 	}
+
 
 }

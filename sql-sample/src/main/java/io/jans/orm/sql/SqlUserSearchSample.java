@@ -48,8 +48,8 @@ public final class SqlUserSearchSample {
         final SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
         
         int countUsers = 1000000;
-        int threadCount = 100;
-        int threadIterationCount = 10;
+        int threadCount = 200;
+        int threadIterationCount = 20;
 
         Filter filter = Filter.createEqualityFilter(Filter.createLowercaseFilter("uid"), String.format("user%06d", countUsers));
         boolean foundUser = sqlEntryManager.contains("ou=people,o=jans", SimpleUser.class, filter);

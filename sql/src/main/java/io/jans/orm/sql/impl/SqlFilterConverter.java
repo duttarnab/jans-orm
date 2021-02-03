@@ -184,7 +184,7 @@ public class SqlFilterConverter {
         		}
 
 				Operation<Boolean> operation = ExpressionUtils.predicate(SqlOps.JSON_CONTAINS, expression,
-						buildTypedExpression(currentGenericFilter), Expressions.constant("$"));
+						buildTypedExpression(currentGenericFilter), Expressions.constant("$.v"));
 
         		return ConvertedExpression.build(operation, jsonAttributes);
             } else {
@@ -206,7 +206,7 @@ public class SqlFilterConverter {
                 	Collection<Predicate> expressions = new ArrayList<>(currentGenericFilter.getMultiValuedCount());
             		for (int i = 0; i < currentGenericFilter.getMultiValuedCount(); i++) {
                 		Operation<Boolean> operation = ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
-                				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$[" + i + "]"));
+                				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$.v[" + i + "]"));
                 		Predicate predicate = Expressions.asComparable(operation).loe(buildTypedExpression(currentGenericFilter));
 
                 		expressions.add(predicate);
@@ -218,7 +218,7 @@ public class SqlFilterConverter {
             	}
 
             	Operation<Boolean> operation = ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
-        				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$[0]"));
+        				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$.v[0]"));
         		Expression expression = Expressions.asComparable(operation).loe(buildTypedExpression(currentGenericFilter));
 
             	return ConvertedExpression.build(expression, jsonAttributes);
@@ -234,7 +234,7 @@ public class SqlFilterConverter {
                 	Collection<Predicate> expressions = new ArrayList<>(currentGenericFilter.getMultiValuedCount());
             		for (int i = 0; i < currentGenericFilter.getMultiValuedCount(); i++) {
                 		Operation<Boolean> operation = ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
-                				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$[" + i + "]"));
+                				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$.v[" + i + "]"));
                 		Predicate predicate = Expressions.asComparable(operation).goe(buildTypedExpression(currentGenericFilter));
 
                 		expressions.add(predicate);
@@ -245,7 +245,7 @@ public class SqlFilterConverter {
             	}
 
             	Operation<Boolean> operation = ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
-        				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$[0]"));
+        				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$.v[0]"));
         		Expression expression = Expressions.asComparable(operation).goe(buildTypedExpression(currentGenericFilter));
 
             	return ConvertedExpression.build(expression, jsonAttributes);
@@ -262,7 +262,7 @@ public class SqlFilterConverter {
                 	Collection<Predicate> expressions = new ArrayList<>(currentGenericFilter.getMultiValuedCount());
             		for (int i = 0; i < currentGenericFilter.getMultiValuedCount(); i++) {
             			Predicate predicate = ExpressionUtils.isNotNull(ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
-                				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$[" + i + "]")));
+                				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$.v[" + i + "]")));
             			expressions.add(predicate);
             		}
             		Predicate predicate = ExpressionUtils.anyOf(expressions);
@@ -271,7 +271,7 @@ public class SqlFilterConverter {
             	}
 
             	expression = ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
-        				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$[0]"));
+        				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$.v[0]"));
             } else {
             	expression = buildTypedPath(currentGenericFilter, internalAttribute, skipAlias);
             }
@@ -310,7 +310,7 @@ public class SqlFilterConverter {
                 	Collection<Predicate> expressions = new ArrayList<>(currentGenericFilter.getMultiValuedCount());
             		for (int i = 0; i < currentGenericFilter.getMultiValuedCount(); i++) {
                 		Operation<Boolean> operation = ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
-                				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$[" + i + "]"));
+                				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$.v[" + i + "]"));
                 		Predicate predicate = Expressions.booleanOperation(Ops.LIKE, operation, Expressions.constant(like.toString()));
 
                 		expressions.add(predicate);
@@ -321,7 +321,7 @@ public class SqlFilterConverter {
             	}
 
             	expression = ExpressionUtils.predicate(SqlOps.JSON_EXTRACT,
-        				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$[0]"));
+        				buildTypedPath(currentGenericFilter, skipAlias), Expressions.constant("$.v[0]"));
             } else {
             	expression = buildTypedPath(currentGenericFilter, skipAlias);
             }
