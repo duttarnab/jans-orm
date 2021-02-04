@@ -857,7 +857,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 
 	@Override
 	public boolean hasExpirationSupport(String primaryKey) {
-		return true;
+		return false;
 	}
 
 	@Override
@@ -881,14 +881,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 
 	@Override
 	protected Object convertJsonToValue(Class<?> parameterType, Object propertyValue) {
-    	Object jsonStringPropertyValue = propertyValue;
-    	// TODO: Review
-    	if (propertyValue instanceof ResultSet) {
-    		ResultSet ResultSet = (ResultSet) propertyValue;
-    		jsonStringPropertyValue = ResultSet.toString();
-    	}
-
-    	return super.convertJsonToValue(parameterType, jsonStringPropertyValue);
+    	return super.convertJsonToValue(parameterType, propertyValue);
 	}
 
     @Override
