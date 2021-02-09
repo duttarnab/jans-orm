@@ -23,7 +23,7 @@ import io.jans.orm.util.StringHelper;
  * @author Yuriy Movchan
  * Date: 11/03/2016
  */
-@DataEntry(sortBy = { "userId" })
+@DataEntry(sortBy = "userId")
 @ObjectClass(value = "jansPerson")
 public class SimpleUser implements Serializable {
 

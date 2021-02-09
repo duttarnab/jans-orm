@@ -22,8 +22,7 @@ import java.util.Map;
  * @author Javier Rojas Blum
  * @version December 8, 2018
  */
-@Named("sessionUser")
-@DataEntry
+@DataEntry(sortBy = { "creationDate", "id" }, sortByName = { "creationDate", "jansId" })
 @ObjectClass(value = "jansSessId")
 public class SessionId implements Deletable, Serializable {
 

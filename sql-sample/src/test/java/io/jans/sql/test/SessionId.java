@@ -35,7 +35,7 @@ import io.jans.orm.util.StringHelper;
 *
 * @author Yuriy Movchan Date: 01/15/2020
 */
-@DataEntry(sortBy = { "creationDate", "jansId" })
+@DataEntry(sortBy = { "creationDate", "id" }, sortByName = { "creationDate", "jansId" })
 @ObjectClass(value = "jansSessId")
 public class SessionId implements Deletable, Serializable {
 
