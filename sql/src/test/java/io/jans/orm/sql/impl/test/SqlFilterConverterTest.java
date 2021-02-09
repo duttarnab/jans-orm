@@ -94,21 +94,21 @@ public class SqlFilterConverterTest {
 		ConvertedExpression expressionEq2 = simpleConverter.convertToSqlFilter(filterEq2, null, null);
 
 		String queryEq2 = toSelectSQL(expressionEq2);
-		assertEquals(queryEq2, "select doc.`*` from `table` as doc where JSON_CONTAINS(doc.age, CAST('[23]' AS JSON), '$')");
+		assertEquals(queryEq2, "select doc.`*` from `table` as doc where JSON_CONTAINS(doc.age->'$.v', CAST('[23]' AS JSON))");
 
 		// EQ -- Long
 		Filter filterEq3 = Filter.createEqualityFilter("age", 23L).multiValued();
 		ConvertedExpression expressionEq3 = simpleConverter.convertToSqlFilter(filterEq3, null, null);
 
 		String queryEq3 = toSelectSQL(expressionEq3);
-		assertEquals(queryEq3, "select doc.`*` from `table` as doc where JSON_CONTAINS(doc.age, CAST('[23]' AS JSON), '$')");
+		assertEquals(queryEq3, "select doc.`*` from `table` as doc where JSON_CONTAINS(doc.age->'$.v', CAST('[23]' AS JSON))");
 
 		// EQ -- Date
 		Filter filterEq4 = Filter.createEqualityFilter("added", getUtcDateFromMillis(1608130698398L)).multiValued();
 		ConvertedExpression expressionEq4 = simpleConverter.convertToSqlFilter(filterEq4, null, null);
 
 		String queryEq4 = toSelectSQL(expressionEq4);
-		assertEquals(queryEq4, "select doc.`*` from `table` as doc where JSON_CONTAINS(doc.added, CAST('[\"2020-12-16T14:58:18.398\"]' AS JSON), '$')");
+		assertEquals(queryEq4, "select doc.`*` from `table` as doc where JSON_CONTAINS(doc.added->'$.v', CAST('[\"2020-12-16T14:58:18.398\"]' AS JSON))");
 	}
 
 	@Test
