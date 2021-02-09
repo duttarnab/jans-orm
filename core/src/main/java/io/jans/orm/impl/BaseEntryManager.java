@@ -753,7 +753,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		return dataEntry.configurationDefinition();
 	}
 
-	protected String[] getEntrySortBy(Class<?> entryClass) {
+	protected String[] getEntrySortByProperties(Class<?> entryClass) {
 		if (entryClass == null) {
 			throw new MappingException("Entry class is null");
 		}
@@ -767,6 +767,22 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		}
 
 		return ((DataEntry) annotation).sortBy();
+	}
+
+	protected String[] getEntrySortByNames(Class<?> entryClass) {
+		if (entryClass == null) {
+			throw new MappingException("Entry class is null");
+		}
+
+		// Check if entry is LDAP Entry
+		List<Annotation> entryAnnotations = ReflectHelper.getClassAnnotations(entryClass, LDAP_ENTRY_TYPE_ANNOTATIONS);
+		Annotation annotation = ReflectHelper.getAnnotationByType(entryAnnotations, DataEntry.class);
+
+		if (annotation == null) {
+			return null;
+		}
+
+		return ((DataEntry) annotation).sortByName();
 	}
 
 	@Override
@@ -1080,7 +1096,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 	}
 
 	protected <T> void sortEntriesIfNeeded(Class<T> entryClass, List<T> entries) {
-		String[] sortByProperties = getEntrySortBy(entryClass);
+		String[] sortByProperties = getEntrySortByProperties(entryClass);
 
 		if (ArrayHelper.isEmpty(sortByProperties)) {
 			return;

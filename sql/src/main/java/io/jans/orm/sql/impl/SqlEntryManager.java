@@ -727,7 +727,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
     }
 
     protected <T> OrderSpecifier[] getDefaultSort(Class<T> entryClass) {
-        String[] sortByProperties = getEntrySortBy(entryClass);
+        String[] sortByProperties = getEntrySortByNames(entryClass);
 
         if (ArrayHelper.isEmpty(sortByProperties)) {
             return null;

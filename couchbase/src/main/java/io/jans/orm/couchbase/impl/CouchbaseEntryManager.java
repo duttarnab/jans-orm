@@ -750,7 +750,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
     }
 
     protected <T> Sort[] getDefaultSort(Class<T> entryClass) {
-        String[] sortByProperties = getEntrySortBy(entryClass);
+        String[] sortByProperties = getEntrySortByNames(entryClass);
 
         if (ArrayHelper.isEmpty(sortByProperties)) {
             return null;

@@ -20,6 +20,11 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DataEntry {
 
+	/**
+     * (Optional) The name of the Persistance attributes
+     */
+	String[] sortByName() default "";
+
     /**
      * (Optional) Specify that this entry contains LDAP configuration definition.
      */
