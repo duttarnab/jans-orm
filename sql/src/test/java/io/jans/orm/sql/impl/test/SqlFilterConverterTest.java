@@ -87,7 +87,7 @@ public class SqlFilterConverterTest {
 		ConvertedExpression expressionEq1 = simpleConverter.convertToSqlFilter(filterEq1, null, null);
 
 		String queryEq1 = toSelectSQL(expressionEq1);
-		assertEquals(queryEq1, "select doc.`*` from `table` as doc where JSON_CONTAINS(doc.uid, CAST('[\"test\"]' AS JSON), '$')");
+		assertEquals(queryEq1, "select doc.`*` from `table` as doc where JSON_CONTAINS(doc.uid->'$.v', CAST('[\"test\"]' AS JSON))");
 
 		// EQ -- Integer
 		Filter filterEq2 = Filter.createEqualityFilter("age", 23).multiValued();
@@ -149,7 +149,7 @@ public class SqlFilterConverterTest {
 		ConvertedExpression expressionLe1 = simpleConverter.convertToSqlFilter(filterLe1, null, null);
 
 		String queryLe1 = toSelectSQL(expressionLe1);
-		assertEquals(queryLe1, "select doc.`*` from `table` as doc where doc.uid->'$[0]' <= '[\"test\"]'");
+		assertEquals(queryLe1, "select doc.`*` from `table` as doc where doc.uid->'$.v[0]' <= '[\"test\"]'");
 
 		// LE -- Integer
 		Filter filterLe2 = Filter.createLessOrEqualFilter("age", 23).multiValued();
@@ -218,7 +218,7 @@ public class SqlFilterConverterTest {
 		ConvertedExpression expressionGe1 = simpleConverter.convertToSqlFilter(filterGe1, null, null);
 
 		String queryGe1 = toSelectSQL(expressionGe1);
-		assertEquals(queryGe1, "select doc.`*` from `table` as doc where doc.uid->'$[0]' >= '[\"test\"]'");
+		assertEquals(queryGe1, "select doc.`*` from `table` as doc where doc.uid->'$.v[0]' >= '[\"test\"]'");
 
 		// GE -- Integer
 		Filter filterGe2 = Filter.createGreaterOrEqualFilter("age", 23).multiValued();
@@ -266,7 +266,7 @@ public class SqlFilterConverterTest {
 		ConvertedExpression expressionPresence1 = simpleConverter.convertToSqlFilter(filterPresence1, null, null);
 
 		String queryPresence1 = toSelectSQL(expressionPresence1);
-		assertEquals(queryPresence1, "select doc.`*` from `table` as doc where doc.uid->'$[0]' is not null");
+		assertEquals(queryPresence1, "select doc.`*` from `table` as doc where doc.uid->'$.v[0]' is not null");
 
 		// Presence -- String -- Multivalued = 3
 		Filter filterPresence2 = Filter.createPresenceFilter("uid").multiValued(3);
@@ -303,7 +303,7 @@ public class SqlFilterConverterTest {
 		ConvertedExpression expressionSub1 = simpleConverter.convertToSqlFilter(filterSub1, null, null);
 
 		String querySub1 = toSelectSQL(expressionSub1);
-		assertEquals(querySub1, "select doc.`*` from `table` as doc where doc.uid->'$[0]' like '%test%'");
+		assertEquals(querySub1, "select doc.`*` from `table` as doc where doc.uid->'$.v[0]' like '%test%'");
 
 		Filter filterSub2 = Filter.createSubstringFilter("uid", "a", new String[] { "test" }, null).multiValued();
 		ConvertedExpression expressionSub2 = simpleConverter.convertToSqlFilter(filterSub2, null, null);
@@ -341,7 +341,7 @@ public class SqlFilterConverterTest {
 		ConvertedExpression expressionUserUid = simpleConverter.convertToSqlFilter(userUidFilter, null, null);
 
 		String queryUserUid = toSelectSQL(expressionUserUid);
-		assertEquals(queryUserUid, "select doc.`*` from `table` as doc where JSON_CONTAINS(lower(doc.uid), CAST('[\"test\"]' AS JSON), '$')");
+		assertEquals(queryUserUid, "select doc.`*` from `table` as doc where JSON_CONTAINS(lower(doc.uid)->'$.v', CAST('[\"test\"]' AS JSON))");
 	}
 
 	@Test
