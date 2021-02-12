@@ -23,7 +23,7 @@ public @interface DataEntry {
 	/**
      * (Optional) The name of the Persistance attributes
      */
-	String[] sortByName() default "";
+	String[] sortByName() default {};
 
     /**
      * (Optional) Specify that this entry contains LDAP configuration definition.
