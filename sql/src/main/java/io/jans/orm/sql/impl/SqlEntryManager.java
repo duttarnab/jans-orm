@@ -32,6 +32,7 @@ import io.jans.orm.exception.AuthenticationException;
 import io.jans.orm.exception.EntryDeleteException;
 import io.jans.orm.exception.EntryPersistenceException;
 import io.jans.orm.exception.MappingException;
+import io.jans.orm.exception.operation.EntryNotFoundException;
 import io.jans.orm.exception.operation.SearchException;
 import io.jans.orm.impl.BaseEntryManager;
 import io.jans.orm.impl.GenericKeyConverter;
@@ -326,7 +327,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 			LOG.trace("Filter: {}", filter);
 			searchFilter = addObjectClassFilter(filter, objectClasses);
         } else {
-            searchFilter = filter;
+            throw new EntryDeleteException(String.format("Failed to delete entries with DN: '%s', filter: '%s' becuase objectClass is not specified", dn, filter));
         }
 
         // Find entries
