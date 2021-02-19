@@ -24,12 +24,9 @@ import io.jans.orm.util.StringHelper;
  */
 @DataEntry
 @ObjectClass
-public class SimpleUser implements Serializable {
+public class SimpleUser extends BaseEntry implements Serializable {
 
     private static final long serialVersionUID = -1634191420188575733L;
-
-    @DN
-    private String dn;
 
     @AttributeName(name = "uid", consistency = true)
     private String userId;
@@ -48,14 +45,6 @@ public class SimpleUser implements Serializable {
 
     @CustomObjectClass
     private String[] customObjectClasses;
-
-    public String getDn() {
-        return dn;
-    }
-
-    public void setDn(String dn) {
-        this.dn = dn;
-    }
 
     public String getUserId() {
         return userId;
