@@ -477,7 +477,11 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 		    			searchResultList.addAll(lastResult);
                     }
         		} catch (QueryException ex) {
-        			throw new SearchException(String.format("Failed to build search entries query. Key: '%s', expression: '%s'", key, expression.expression()), ex);
+        			String sqlExpression = queryStr;
+        			if (StringHelper.isEmpty(sqlExpression)) {
+        				sqlExpression = expression.expression().toString();
+        			}
+					throw new SearchException(String.format("Failed to build search entries query. Key: '%s', expression: '%s'", key, sqlExpression), ex);
 	            } catch (SQLException | EntryConvertationException ex) {
 	                throw new SearchException("Failed to search entries. Query: '" + queryStr + "'", ex);
 	            }

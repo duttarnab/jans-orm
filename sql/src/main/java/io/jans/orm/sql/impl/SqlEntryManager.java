@@ -327,7 +327,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 			LOG.trace("Filter: {}", filter);
 			searchFilter = addObjectClassFilter(filter, objectClasses);
         } else {
-            throw new EntryDeleteException(String.format("Failed to delete entries with DN: '%s', filter: '%s' becuase objectClass is not specified", dn, filter));
+            throw new EntryDeleteException(String.format("Failed to delete entries with DN: '%s', filter: '%s' because objectClass is not specified", dn, filter));
         }
 
         // Find entries
@@ -483,6 +483,8 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
             }
 
             return searchResult;
+        } catch (SearchException ex) {
+            throw new EntryPersistenceException(String.format("Failed to find entries with key: '%s'", keyWithInum.getKey()), ex);
         } catch (Exception ex) {
             throw new EntryPersistenceException(String.format("Failed to find entries with key: '%s', expression: '%s'", keyWithInum.getKey(), convertedExpression), ex);
         }
