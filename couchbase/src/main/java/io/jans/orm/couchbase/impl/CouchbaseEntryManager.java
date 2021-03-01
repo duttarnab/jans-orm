@@ -919,7 +919,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
 
     @Override
 	protected Object getNativeDateAttributeValue(Date dateValue) {
-		return dateValue;
+		return encodeTime(dateValue);
     }
 
 	private ScanConsistency getScanConsistency(ConvertedExpression convertedExpression) {
