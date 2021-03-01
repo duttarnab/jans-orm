@@ -319,7 +319,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
     }
 
 	private boolean deleteRecursivelyImpl(TableMapping tableMapping, String key) throws SearchException, EntryNotFoundException {
-    	LOG.warn("Removing only base key without sub-tree: " + key);
+    	LOG.warn("Removing only base key without sub-tree. Table: {}, Key: {}", tableMapping.getTableName(), key);
     	return deleteImpl(tableMapping, key);
 	}
 
