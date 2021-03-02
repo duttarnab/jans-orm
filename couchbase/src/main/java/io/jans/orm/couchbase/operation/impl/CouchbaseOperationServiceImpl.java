@@ -424,7 +424,7 @@ public class CouchbaseOperationServiceImpl implements CouchbaseOperationService 
                 JsonDocument doc = bucket.get(key);
                 if (doc != null) {
                 	Set<String> docAtributesKeep = new HashSet<String>(Arrays.asList(attributes));
-                	docAtributesKeep.add(CouchbaseOperationService.DN);
+//                	docAtributesKeep.add(CouchbaseOperationService.DN);
 
                 	for (Iterator<String> it = doc.content().getNames().iterator(); it.hasNext();) {
 						String docAtribute = (String) it.next();
