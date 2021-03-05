@@ -49,7 +49,7 @@ public final class SqlUserSearchSample {
         
         int countUsers = 1000000;
         int threadCount = 200;
-        int threadIterationCount = 20;
+        int threadIterationCount = 200;
 
         Filter filter = Filter.createEqualityFilter(Filter.createLowercaseFilter("uid"), String.format("user%06d", countUsers));
         boolean foundUser = sqlEntryManager.contains("ou=people,o=jans", SimpleUser.class, filter);
@@ -69,7 +69,7 @@ public final class SqlUserSearchSample {
                     	long start = System.currentTimeMillis();
                         for (int j = 0; j < threadIterationCount; j++) {
 	                    	long userUid = Math.round(Math.random() * countUsers);
-	                    	String uid = String.format("user%06d", userUid);
+	                    	String uid = "user" + userUid; /*String.format("user%06d", userUid);*/
 	                        try {
 		                        Filter filter = Filter.createEqualityFilter(Filter.createLowercaseFilter("uid"), StringHelper.toLowerCase(uid));
 //		                        Filter filter = Filter.createEqualityFilter("uid", uid);
@@ -113,7 +113,7 @@ public final class SqlUserSearchSample {
     private static void addTestUsers(SqlEntryManager sqlEntryManager, int countUsers) {
     	long startTime = System.currentTimeMillis();
         for (int j = 0; j <= countUsers; j++) {
-        	String uid = String.format("user%06d", j);
+        	String uid = "user" + j; /*String.format("user%06d", userUid);*/
 
         	SimpleUser newUser = new SimpleUser();
 	        newUser.setDn(String.format("inum=%s,ou=people,o=jans", System.currentTimeMillis()));
