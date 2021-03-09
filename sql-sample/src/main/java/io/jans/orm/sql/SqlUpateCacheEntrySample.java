@@ -6,6 +6,7 @@
 
 package io.jans.orm.sql;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import io.jans.orm.exception.EntryPersistenceException;
 import io.jans.orm.sql.impl.SqlEntryManager;
+import io.jans.orm.sql.model.SimpleCacheEntry;
 import io.jans.orm.sql.model.SimpleSessionState;
 import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
 import io.jans.orm.sql.persistence.SqlEntryManagerSample;
@@ -21,11 +23,11 @@ import io.jans.orm.sql.persistence.SqlEntryManagerSample;
 /**
  * @author Yuriy Movchan Date: 03/09/2020
  */
-public final class SqlUpateMissingEntrySample {
+public final class SqlUpateCacheEntrySample {
 
     private static final Logger LOG = LoggerFactory.getLogger(SqlConnectionProvider.class);
 
-    private SqlUpateMissingEntrySample() {
+    private SqlUpateCacheEntrySample() {
     }
 
     public static void main(String[] args) {
@@ -35,20 +37,31 @@ public final class SqlUpateMissingEntrySample {
         // Create SQL entry manager
         SqlEntryManager sqlEntryManager = sqlEntryManagerSample.createSqlEntryManager();
 
-        String sessionId = UUID.randomUUID().toString();
-        final String sessionDn = "uniqueIdentifier=" + sessionId + ",ou=session,o=jans";
+        String key = UUID.randomUUID().toString();
+        final String cacheDn = String.format("uuid=%s,%s", key, "ou=cache,o=gluu");
 
-        final SimpleSessionState simpleSessionState = new SimpleSessionState();
-        simpleSessionState.setDn(sessionDn);
-        simpleSessionState.setId(sessionId);
-        simpleSessionState.setLastUsedAt(new Date());
+        int expirationInSeconds = 60;
+        Calendar expirationDate = Calendar.getInstance();
+		expirationDate.setTime(new Date());
+		expirationDate.add(Calendar.SECOND, expirationInSeconds);
 
-        try {
-			sqlEntryManager.merge(simpleSessionState);
-			System.out.println("Updated");
-		} catch (EntryPersistenceException ex) {
-            LOG.info("Failed to update, root case exception: {}", ex.getCause().getClass(), ex);
-		}
+        SimpleCacheEntry entity = new SimpleCacheEntry();
+        entity.setTtl(expirationInSeconds);
+        entity.setData("sample_data");
+        entity.setId(key);
+        entity.setDn(cacheDn);
+        entity.setCreationDate(new Date());
+        entity.setExpirationDate(expirationDate.getTime());
+        entity.setDeletable(true);
+
+		sqlEntryManager.persist(entity);
+
+		// Try to update
+		sqlEntryManager.merge(entity);
+
+		// Try to update with removed value
+        entity.setData(null);
+		sqlEntryManager.merge(entity);
     }
 
 }

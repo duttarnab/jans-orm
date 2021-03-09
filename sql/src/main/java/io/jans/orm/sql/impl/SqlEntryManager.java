@@ -236,16 +236,18 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
                 }
                 
                 AttributeDataModification modification = null;
-                if (AttributeModificationType.ADD.equals(attributeDataModification.getModificationType())) {
-                    modification = createModification(AttributeModificationType.ADD, toInternalAttribute(attributeName), multiValued, attributeValues);
+                AttributeModificationType modificationType = attributeDataModification.getModificationType();
+				if ((AttributeModificationType.ADD == modificationType) ||
+                	(AttributeModificationType.FORCE_UPDATE == modificationType)) {
+                    modification = createModification(modificationType, toInternalAttribute(attributeName), multiValued, attributeValues);
                 } else {
-                    if (AttributeModificationType.REMOVE.equals(attributeDataModification.getModificationType())) {
+                    if ((AttributeModificationType.REMOVE == modificationType)) {
                 		if ((attribute == null) && !isEmptyAttributeValues(oldAttribute)) {
 							// It's RDBS case. We don't need to set null to already empty table cell
                 			continue;
                 		}
                         modification = createModification(AttributeModificationType.REMOVE, toInternalAttribute(oldAttributeName), multiValued, oldAttributeValues);
-                    } else if (AttributeModificationType.REPLACE.equals(attributeDataModification.getModificationType())) {
+                    } else if ((AttributeModificationType.REPLACE == modificationType)) {
                         modification = createModification(AttributeModificationType.REPLACE, toInternalAttribute(attributeName), multiValued, attributeValues);
                     }
                 }
@@ -710,7 +712,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
         if (Boolean.TRUE.equals(multiValued)) {
             return new AttributeDataModification(type, new AttributeData(realAttributeName, realValues, multiValued));
         } else {
-        	if (realValues.length == 0) {
+        	if ((realValues == null) || (realValues.length == 0)) {
                 return new AttributeDataModification(type, new AttributeData(realAttributeName, null));
         	}
             return new AttributeDataModification(type, new AttributeData(realAttributeName, realValues[0]));
@@ -937,6 +939,10 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 
 	public String[] fromInternalAttributes(String[] internalAttributeNames) {
 		return ((SqlOperationService) operationService).fromInternalAttributes(internalAttributeNames);
+	}
+
+	protected boolean isSupportForceUpdate() {
+		return true;
 	}
 
 }

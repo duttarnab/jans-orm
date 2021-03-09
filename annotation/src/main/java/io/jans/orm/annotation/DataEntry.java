@@ -35,4 +35,9 @@ public @interface DataEntry {
      */
     String[] sortBy() default {};
 
+    /**
+     * (Optional) Specify that ORM should update entry without it lookup.
+     */
+    boolean forceUpdate() default false;
+
 }

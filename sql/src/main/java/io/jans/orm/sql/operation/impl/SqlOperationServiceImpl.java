@@ -212,7 +212,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 				AttributeData attribute = attributeMod.getAttribute();
 				Path path = Expressions.stringPath(attribute.getName());
 				AttributeModificationType type = attributeMod.getModificationType();
-                if (AttributeModificationType.ADD == type) {
+                if ((AttributeModificationType.ADD == type) || AttributeModificationType.FORCE_UPDATE == type) {
 					if (Boolean.TRUE.equals(attribute.getMultiValued())) {
     					sqlUpdateQuery.set(path, convertValueToDbJson(attribute.getValues()));
     				} else {

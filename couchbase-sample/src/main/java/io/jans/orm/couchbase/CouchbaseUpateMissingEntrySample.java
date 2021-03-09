@@ -6,9 +6,7 @@
 
 package io.jans.orm.couchbase;
 
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -18,14 +16,9 @@ import io.jans.orm.couchbase.impl.CouchbaseEntryManager;
 import io.jans.orm.couchbase.model.SimpleSessionState;
 import io.jans.orm.couchbase.operation.impl.CouchbaseConnectionProvider;
 import io.jans.orm.exception.EntryPersistenceException;
-import io.jans.orm.model.PagedResult;
-import io.jans.orm.model.SearchScope;
-import io.jans.orm.model.SortOrder;
-import io.jans.orm.model.base.CustomObjectAttribute;
-import io.jans.orm.search.filter.Filter;
 
 /**
- * @author Yuriy Movchan Date: 01/15/2020
+ * @author Yuriy Movchan Date: 03/09/2020
  */
 public final class CouchbaseUpateMissingEntrySample {
 
@@ -43,8 +36,6 @@ public final class CouchbaseUpateMissingEntrySample {
 
         String sessionId = UUID.randomUUID().toString();
         final String sessionDn = "uniqueIdentifier=" + sessionId + ",ou=session,o=jans";
-        final String userDn =
-                "inum=@!E8F2.853B.1E7B.ACE2!0001!39A4.C163!0000!A8F2.DE1E.D7FB,ou=people,o=jans";
 
         final SimpleSessionState simpleSessionState = new SimpleSessionState();
         simpleSessionState.setDn(sessionDn);

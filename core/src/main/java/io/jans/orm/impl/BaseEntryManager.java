@@ -209,6 +209,10 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 		Class<?> entryClass = entry.getClass();
 		checkEntryClass(entryClass, isSchemaUpdate);
+
+		// Determine entry update method
+		boolean forceUpdate = isUseEntryForceUpdate(entryClass);
+
 		String[] objectClasses = getObjectClasses(entry, entryClass);
 
 		List<PropertyAnnotation> propertiesAnnotations = getEntryPropertyAnnotations(entryClass);
@@ -222,8 +226,8 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		Map<String, AttributeData> attributesToPersistMap = getAttributesMap(attributesToPersist);
 
 		// Load entry
-		List<AttributeData> attributesFromLdap;
-		if (isSchemaUpdate) {
+		List<AttributeData> attributesFromLdap = null;
+		if (isSchemaUpdate || forceUpdate) {
 			// If it's schema modification request we don't need to load
 			// attributes from LDAP
 			attributesFromLdap = new ArrayList<AttributeData>();
@@ -248,13 +252,15 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		// Process properties with Attribute annotation
 		List<AttributeDataModification> attributeDataModifications = collectAttributeModifications(
 				propertiesAnnotations, attributesToPersistMap, attributesFromLdapMap, isSchemaUpdate,
-				schemaModificationType);
+				schemaModificationType, forceUpdate);
 
 		if (LOG.isTraceEnabled()) {
 			dumpAttributeDataModifications("attributeDataModifications before updateMergeChanges", attributeDataModifications);
 		}
 
-		updateMergeChanges(dnValue.toString(), entry, isSchemaUpdate | isConfigurationUpdate, entryClass, attributesFromLdapMap, attributeDataModifications);
+		if (!forceUpdate) {
+			updateMergeChanges(dnValue.toString(), entry, isSchemaUpdate | isConfigurationUpdate, entryClass, attributesFromLdapMap, attributeDataModifications);
+		}
 
 		if (LOG.isTraceEnabled()) {
 			dumpAttributeDataModifications("attributeDataModifications after updateMergeChanges", attributeDataModifications);
@@ -274,7 +280,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 	protected List<AttributeDataModification> collectAttributeModifications(
 			List<PropertyAnnotation> propertiesAnnotations, Map<String, AttributeData> attributesToPersistMap,
 			Map<String, AttributeData> attributesFromLdapMap, boolean isSchemaUpdate,
-			AttributeModificationType schemaModificationType) {
+			AttributeModificationType schemaModificationType, boolean forceUpdate) {
 		List<AttributeDataModification> attributeDataModifications = new ArrayList<AttributeDataModification>();
 
 		for (PropertyAnnotation propertiesAnnotation : propertiesAnnotations) {
@@ -321,10 +327,16 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 					}
 					AttributeModificationType modType = isSchemaUpdate ? schemaModificationType
 							: AttributeModificationType.ADD;
-					if (AttributeModificationType.ADD.equals(modType)) {
-						if (!isEmptyAttributeValues(attributeToPersist)) {
+					if (AttributeModificationType.ADD == modType) {
+						if (isEmptyAttributeValues(attributeToPersist)) {
+							if (forceUpdate) {
+								attributeDataModifications.add(new AttributeDataModification(AttributeModificationType.REMOVE,
+										null, attributeToPersist));
+							}
+						} else {
+							modType = forceUpdate ? AttributeModificationType.FORCE_UPDATE : modType;
 							attributeDataModifications.add(
-									new AttributeDataModification(AttributeModificationType.ADD, attributeToPersist));
+									new AttributeDataModification(modType, attributeToPersist));
 						}
 					} else {
 						attributeDataModifications.add(new AttributeDataModification(AttributeModificationType.REMOVE,
@@ -341,6 +353,9 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 						attributeDataModifications.add(new AttributeDataModification(AttributeModificationType.REMOVE,
 								null, attributeFromLdap));
 					}
+				} else if (forceUpdate && (attributeFromLdap == null) && (attributeToPersist == null)) {
+					attributeDataModifications.add(new AttributeDataModification(AttributeModificationType.REMOVE,
+							null, new AttributeData(ldapAttributeName, null)));
 				}
 			}
 		}
@@ -724,6 +739,30 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		}
 
 		return true;
+	}
+
+	protected boolean isUseEntryForceUpdate(Class<?> entryClass) {
+		if (!isSupportForceUpdate()) {
+			return false;
+		}
+
+		if (entryClass == null) {
+			throw new MappingException("Entry class is null");
+		}
+
+		// Check if entry is LDAP Entry
+		List<Annotation> entryAnnotations = ReflectHelper.getClassAnnotations(entryClass, LDAP_ENTRY_TYPE_ANNOTATIONS);
+
+		Annotation dataEntry = ReflectHelper.getAnnotationByType(entryAnnotations, DataEntry.class);
+		if (dataEntry == null) {
+			return false;
+		}
+		
+		return ((DataEntry) dataEntry).forceUpdate();
+	}
+
+	protected boolean isSupportForceUpdate() {
+		return false;
 	}
 
 	protected boolean isSchemaEntry(Class<?> entryClass) {

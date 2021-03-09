@@ -14,7 +14,7 @@ package io.jans.orm.model;
 public class AttributeDataModification {
 
     public enum AttributeModificationType {
-        ADD, REMOVE, REPLACE;
+        ADD, REMOVE, REPLACE, FORCE_UPDATE;
     }
 
     private final AttributeModificationType modificationType;
@@ -35,7 +35,7 @@ public class AttributeDataModification {
         return modificationType;
     }
 
-    public final AttributeData getOldAttribute() {
+	public final AttributeData getOldAttribute() {
         return oldAttribute;
     }
 

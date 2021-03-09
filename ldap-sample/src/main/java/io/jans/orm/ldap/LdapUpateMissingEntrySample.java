@@ -18,7 +18,7 @@ import io.jans.orm.ldap.impl.LdapEntryManager;
 import io.jans.orm.ldap.model.SimpleSessionState;
 
 /**
- * @author Yuriy Movchan Date: 01/15/2020
+ * @author Yuriy Movchan Date: 03/09/2020
  */
 public final class LdapUpateMissingEntrySample {
     private static final Logger LOG;
@@ -41,8 +41,6 @@ public final class LdapUpateMissingEntrySample {
 
         String sessionId = UUID.randomUUID().toString();
         final String sessionDn = "uniqueIdentifier=" + sessionId + ",ou=session,o=jans";
-        final String userDn =
-                "inum=@!E8F2.853B.1E7B.ACE2!0001!39A4.C163!0000!A8F2.DE1E.D7FB,ou=people,o=jans";
 
         final SimpleSessionState simpleSessionState = new SimpleSessionState();
         simpleSessionState.setDn(sessionDn);
