@@ -16,30 +16,25 @@ import io.jans.orm.sql.impl.SqlEntryManagerFactory;
 /**
  * @author Yuriy Movchan Date: 01/15/2020
  */
-public class SqlSampleEntryManager {
+public class SqlEntryManagerSample {
 
-    private static final Logger LOG = Logger.getLogger(SqlSampleEntryManager.class);
+    private static final Logger LOG = Logger.getLogger(SqlEntryManagerSample.class);
 
     private Properties getSampleConnectionProperties() {
         Properties connectionProperties = new Properties();
 
         connectionProperties.put("sql.db.schema.name", "jans");
-        connectionProperties.put("sql.connection.uri", "jdbc:mysql://localhost:3306/gluu");
+        connectionProperties.put("sql.connection.uri", "jdbc:mysql://localhost:3306/jans?profileSQL=true");
 
         connectionProperties.put("sql.connection.driver-property.serverTimezone", "GMT+2");
-        // Prefix connection.driver-property.key=value will be coverterd to key=value JDBC driver properties
-        //connectionProperties.put("sql.connection.driver-property.driverProperty", "driverPropertyValue");
+        connectionProperties.put("sql.connection.pool.max-total", "300");
+        connectionProperties.put("sql.connection.pool.max-idle", "300");
 
-        connectionProperties.put("sql.auth.userName", "root");
-        connectionProperties.put("sql.auth.userPassword", "Secret1!");
+        connectionProperties.put("sql.auth.userName", "jans");
+        connectionProperties.put("sql.auth.userPassword", "secret");
         
         // Password hash method
         connectionProperties.put("sql.password.encryption.method", "SSHA-256");
-        
-        // Connection pool size
-        connectionProperties.put("sql.connection.pool.max-total", "500");
-        connectionProperties.put("sql.connection.pool.max-idle", "3");
-        connectionProperties.put("sql.connection.pool.min-idle", "2");
         
         // Max time needed to create connection pool in milliseconds
         connectionProperties.put("sql.connection.pool.create-max-wait-time-millis", "20000");

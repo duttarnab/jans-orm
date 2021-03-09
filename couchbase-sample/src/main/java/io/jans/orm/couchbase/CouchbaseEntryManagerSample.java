@@ -23,7 +23,7 @@ public class CouchbaseEntryManagerSample {
     private Properties getSampleConnectionProperties() {
         Properties connectionProperties = new Properties();
 
-        connectionProperties.put("couchbase.servers", "test.jans.info");
+        connectionProperties.put("couchbase.servers", "localhost");
         connectionProperties.put("couchbase.auth.userName", "admin");
         connectionProperties.put("couchbase.auth.userPassword", "secret");
 //        connectionProperties.put("couchbase.buckets", "jans");

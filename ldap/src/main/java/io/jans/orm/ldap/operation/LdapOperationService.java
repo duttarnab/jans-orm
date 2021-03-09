@@ -72,7 +72,7 @@ public interface LdapOperationService extends PersistenceOperationService {
      * @return SearchResultEntry
      * @throws ConnectionException
      */
-    SearchResultEntry lookup(String dn, String... attributes) throws ConnectionException;
+    SearchResultEntry lookup(String dn, String... attributes) throws ConnectionException, SearchException;
 
     /**
      * Use this method to add new entry

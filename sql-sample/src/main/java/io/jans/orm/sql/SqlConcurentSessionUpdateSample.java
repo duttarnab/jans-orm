@@ -18,7 +18,7 @@ import org.apache.logging.log4j.status.StatusLogger;
 
 import io.jans.orm.sql.impl.SqlEntryManager;
 import io.jans.orm.sql.model.SimpleSessionState;
-import io.jans.orm.sql.persistence.SqlSampleEntryManager;
+import io.jans.orm.sql.persistence.SqlEntryManagerSample;
 
 /**
  * @author Yuriy Movchan Date: 01/15/2020
@@ -38,11 +38,12 @@ public final class SqlConcurentSessionUpdateSample {
 
     public static void main(String[] args) throws InterruptedException {
         // Prepare sample connection details
-        SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
-        final SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
+        SqlEntryManagerSample sqlEntryManagerSample = new SqlEntryManagerSample();
+
+        // Create SQL entry manager
+        final SqlEntryManager sqlEntryManager = sqlEntryManagerSample.createSqlEntryManager();
 
         try {
-            // Create SQL entry manager
             String sessionId = UUID.randomUUID().toString();
             final String sessionDn = "uniqueIdentifier=" + sessionId + ",ou=session,o=jans";
             final String userDn =

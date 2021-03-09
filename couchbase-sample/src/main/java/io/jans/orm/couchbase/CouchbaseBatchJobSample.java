@@ -43,10 +43,10 @@ public final class CouchbaseBatchJobSample {
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        CouchbaseEntryManagerSample couchbaseSampleEntryManager = new CouchbaseEntryManagerSample();
+        CouchbaseEntryManagerSample couchbaseEntryManagerSample = new CouchbaseEntryManagerSample();
 
         // Create Couchbase entry manager
-        final CouchbaseEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createCouchbaseEntryManager();
+        final CouchbaseEntryManager couchbaseEntryManager = couchbaseEntryManagerSample.createCouchbaseEntryManager();
 
         BatchOperation<SimpleTokenCouchbase> tokenCouchbaseBatchOperation = new ProcessBatchOperation<SimpleTokenCouchbase>() {
             private int processedCount = 0;

@@ -23,7 +23,7 @@ import io.jans.orm.sql.model.SimpleGrant;
 import io.jans.orm.sql.model.SimpleSession;
 import io.jans.orm.sql.model.SimpleUser;
 import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
-import io.jans.orm.sql.persistence.SqlSampleEntryManager;
+import io.jans.orm.sql.persistence.SqlEntryManagerSample;
 
 /**
  * @author Yuriy Movchan Date: 01/15/2020
@@ -37,10 +37,10 @@ public final class SqlSample {
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
+        SqlEntryManagerSample sqlEntryManagerSample = new SqlEntryManagerSample();
 
         // Create SQL entry manager
-        SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
+        SqlEntryManager sqlEntryManager = sqlEntryManagerSample.createSqlEntryManager();
 
         SimpleUser newUser = new SimpleUser();
         newUser.setDn(String.format("inum=%s,ou=people,o=jans", System.currentTimeMillis()));

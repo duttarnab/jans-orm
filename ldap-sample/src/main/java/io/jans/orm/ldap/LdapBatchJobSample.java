@@ -46,10 +46,10 @@ public final class LdapBatchJobSample {
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        LdapEntryManagerSample ldapSampleEntryManager = new LdapEntryManagerSample();
+        LdapEntryManagerSample ldapEntryManagerSample = new LdapEntryManagerSample();
 
         // Create LDAP entry manager
-        final LdapEntryManager ldapEntryManager = ldapSampleEntryManager.createLdapEntryManager();
+        final LdapEntryManager ldapEntryManager = ldapEntryManagerSample.createLdapEntryManager();
 
         BatchOperation<SimpleTokenLdap> tokenLdapBatchOperation = new ProcessBatchOperation<SimpleTokenLdap>() {
             private int processedCount = 0;

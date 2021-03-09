@@ -350,14 +350,15 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 			
 			try (ResultSet resultSet = sqlSelectQuery.getResults();) {
 				List<AttributeData> result = getAttributeDataList(resultSet);
-
-				return result;
+				if (result != null) {
+					return result;
+				}
 			}
-		} catch (QueryException ex) {
-			throw new SearchException(String.format("Failed to lookup entry by key: '%s'", key), ex);
-		} catch (SQLException ex) {
+		} catch (SQLException | QueryException ex) {
 			throw new SearchException(String.format("Failed to lookup query by key: '%s'", key), ex);
 		}
+
+		throw new SearchException(String.format("Failed to lookup entry by key: '%s'", key));
 	}
 
 	@Override

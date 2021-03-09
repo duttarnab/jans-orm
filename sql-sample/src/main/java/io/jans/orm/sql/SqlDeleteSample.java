@@ -15,7 +15,7 @@ import io.jans.orm.search.filter.Filter;
 import io.jans.orm.sql.impl.SqlEntryManager;
 import io.jans.orm.sql.model.SimpleSession;
 import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
-import io.jans.orm.sql.persistence.SqlSampleEntryManager;
+import io.jans.orm.sql.persistence.SqlEntryManagerSample;
 
 /**
  * @author Yuriy Movchan Date: 01/15/2020
@@ -29,10 +29,10 @@ public final class SqlDeleteSample {
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
+        SqlEntryManagerSample sqlEntryManagerSample = new SqlEntryManagerSample();
 
         // Create SQL entry manager
-        SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
+        SqlEntryManager sqlEntryManager = sqlEntryManagerSample.createSqlEntryManager();
 
         String baseDn = "ou=people,o=jans";
 		Filter filter = Filter.createANDFilter(

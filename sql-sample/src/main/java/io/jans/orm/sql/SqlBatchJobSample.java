@@ -26,7 +26,7 @@ import io.jans.orm.sql.impl.SqlEntryManager;
 import io.jans.orm.sql.model.SimpleClient;
 import io.jans.orm.sql.model.SimpleSession;
 import io.jans.orm.sql.model.SimpleToken;
-import io.jans.orm.sql.persistence.SqlSampleEntryManager;
+import io.jans.orm.sql.persistence.SqlEntryManagerSample;
 
 /**
  * @author Yuriy Movchan Date: 01/15/2020
@@ -44,10 +44,10 @@ public final class SqlBatchJobSample {
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
+        SqlEntryManagerSample sqlEntryManagerSample = new SqlEntryManagerSample();
 
         // Create SQL entry manager
-        final SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
+        final SqlEntryManager sqlEntryManager = sqlEntryManagerSample.createSqlEntryManager();
 
         BatchOperation<SimpleToken> tokenSQLBatchOperation = new ProcessBatchOperation<SimpleToken>() {
             private int processedCount = 0;

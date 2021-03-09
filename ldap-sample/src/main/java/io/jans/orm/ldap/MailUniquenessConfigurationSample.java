@@ -30,10 +30,10 @@ public final class MailUniquenessConfigurationSample {
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        LdapEntryManagerSample ldapSampleEntryManager = new LdapEntryManagerSample();
+        LdapEntryManagerSample ldapEntryManagerSample = new LdapEntryManagerSample();
 
         // Create LDAP entry manager
-        LdapEntryManager ldapEntryManager = ldapSampleEntryManager.createLdapEntryManager();
+        LdapEntryManager ldapEntryManager = ldapEntryManagerSample.createLdapEntryManager();
 
         MailUniquenessConfiguration conf = ldapEntryManager.find("cn=Unique mail address,cn=Plugins,cn=config", MailUniquenessConfiguration.class, null);
         System.out.println("Current mail uniqueness: " + conf.isEnabled());

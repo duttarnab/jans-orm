@@ -28,10 +28,10 @@ public final class CouchbaseDeleteSample {
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        CouchbaseEntryManagerSample couchbaseSampleEntryManager = new CouchbaseEntryManagerSample();
+        CouchbaseEntryManagerSample couchbaseEntryManagerSample = new CouchbaseEntryManagerSample();
 
         // Create Couchbase entry manager
-        CouchbaseEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createCouchbaseEntryManager();
+        CouchbaseEntryManager couchbaseEntryManager = couchbaseEntryManagerSample.createCouchbaseEntryManager();
 
         String baseDn = "ou=cache,o=jans";
 		Filter filter = Filter.createANDFilter(

@@ -45,8 +45,8 @@ public final class CouchbaseUserSearchSample {
 
     public static void main(String[] args) throws InterruptedException {
         // Prepare sample connection details
-        CouchbaseEntryManagerSample couchbaseSampleEntryManager = new CouchbaseEntryManagerSample();
-        final CouchbaseEntryManager couchbaseEntryManager = couchbaseSampleEntryManager.createCouchbaseEntryManager();
+        CouchbaseEntryManagerSample couchbaseEntryManagerSample = new CouchbaseEntryManagerSample();
+        final CouchbaseEntryManager couchbaseEntryManager = couchbaseEntryManagerSample.createCouchbaseEntryManager();
         
         int countUsers = 1000000;
         int threadCount = 200;

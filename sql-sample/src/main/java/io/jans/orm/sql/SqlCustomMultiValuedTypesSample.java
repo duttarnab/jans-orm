@@ -17,7 +17,7 @@ import io.jans.orm.search.filter.Filter;
 import io.jans.orm.sql.impl.SqlEntryManager;
 import io.jans.orm.sql.model.SimpleUser;
 import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
-import io.jans.orm.sql.persistence.SqlSampleEntryManager;
+import io.jans.orm.sql.persistence.SqlEntryManagerSample;
 import io.jans.orm.util.StringHelper;
 
 /**
@@ -32,10 +32,10 @@ public final class SqlCustomMultiValuedTypesSample {
 
 	public static void main(String[] args) {
 		// Prepare sample connection details
-		SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
+		SqlEntryManagerSample sqlEntryManagerSample = new SqlEntryManagerSample();
 
 		// Create SQL entry manager
-		SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
+		SqlEntryManager sqlEntryManager = sqlEntryManagerSample.createSqlEntryManager();
 
 		// Add dummy user
 		SimpleUser newUser = new SimpleUser();

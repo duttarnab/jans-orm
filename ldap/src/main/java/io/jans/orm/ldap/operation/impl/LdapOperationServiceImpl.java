@@ -167,7 +167,7 @@ public class LdapOperationServiceImpl implements LdapOperationService {
         }
     }
 
-    private boolean authenticateImpl(final String bindDn, final String password) throws LDAPException, ConnectionException {
+    private boolean authenticateImpl(final String bindDn, final String password) throws LDAPException, ConnectionException, SearchException {
         Instant startTime = OperationDurationUtil.instance().now();
 
         boolean result = false;
@@ -599,7 +599,7 @@ public class LdapOperationServiceImpl implements LdapOperationService {
     }
 
     @Override
-    public SearchResultEntry lookup(String dn, String... attributes) throws ConnectionException {
+    public SearchResultEntry lookup(String dn, String... attributes) throws ConnectionException, SearchException {
         Instant startTime = OperationDurationUtil.instance().now();
         
         SearchResultEntry result = lookupImpl(dn, attributes);
@@ -610,16 +610,23 @@ public class LdapOperationServiceImpl implements LdapOperationService {
         return result;
     }
 
-    private SearchResultEntry lookupImpl(String dn, String... attributes) {
+    private SearchResultEntry lookupImpl(String dn, String... attributes) throws SearchException {
         try {
+        	SearchResultEntry result;
             if (attributes == null) {
-                return getConnectionPool().getEntry(dn);
+            	result = getConnectionPool().getEntry(dn);
             } else {
-                return getConnectionPool().getEntry(dn, attributes);
+            	result = getConnectionPool().getEntry(dn, attributes);
+            }
+
+            if (result != null) {
+            	return result;
             }
         } catch (Exception ex) {
             throw new ConnectionException("Failed to lookup entry", ex);
         }
+
+        throw new SearchException(String.format("Failed to lookup entry by DN: '%s'", dn));
     }
 
     @Override

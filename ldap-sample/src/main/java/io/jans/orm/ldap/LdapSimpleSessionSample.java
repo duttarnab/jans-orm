@@ -35,8 +35,8 @@ public final class LdapSimpleSessionSample {
 
     public static void main(String[] args) throws InterruptedException {
         // Prepare sample connection details
-        LdapEntryManagerSample ldapSampleEntryManager = new LdapEntryManagerSample();
-        final LdapEntryManager ldapEntryManager = ldapSampleEntryManager.createLdapEntryManager();
+        LdapEntryManagerSample ldapEntryManagerSample = new LdapEntryManagerSample();
+        final LdapEntryManager ldapEntryManager = ldapEntryManagerSample.createLdapEntryManager();
 
         try {
 

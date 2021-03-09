@@ -8,6 +8,7 @@ package io.jans.orm.couchbase.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import io.jans.orm.annotation.AttributeName;
@@ -157,5 +158,12 @@ public class SimpleUser implements Serializable {
     public void setCustomObjectClasses(String[] customObjectClasses) {
         this.customObjectClasses = customObjectClasses;
     }
+
+	@Override
+	public String toString() {
+		return "SimpleUser [dn=" + dn + ", userId=" + userId + ", userPassword=" + userPassword + ", userRole="
+				+ userRole + ", notes=" + notes + ", customAttributes=" + customAttributes + ", customObjectClasses="
+				+ Arrays.toString(customObjectClasses) + "]";
+	}
 
 }

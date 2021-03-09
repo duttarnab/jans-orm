@@ -876,7 +876,7 @@ public class LdapEntryManager extends BaseEntryManager implements Serializable {
             }
             
             return null;
-        } catch (ConnectionException ex) {
+        } catch (ConnectionException | SearchException ex) {
             throw new EntryPersistenceException(String.format("Failed to find entry: %s", dn), ex);
         }
     }

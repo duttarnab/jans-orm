@@ -33,10 +33,10 @@ public final class LdapDeleteSample {
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        LdapEntryManagerSample ldapSampleEntryManager = new LdapEntryManagerSample();
+        LdapEntryManagerSample ldapEntryManagerSample = new LdapEntryManagerSample();
 
         // Create LDAP entry manager
-        LdapEntryManager ldapEntryManager = ldapSampleEntryManager.createLdapEntryManager();
+        LdapEntryManager ldapEntryManager = ldapEntryManagerSample.createLdapEntryManager();
 
         String baseDn = "ou=cache,o=jans";
 		Filter filter = Filter.createANDFilter(

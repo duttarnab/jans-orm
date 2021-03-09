@@ -19,7 +19,7 @@ import io.jans.orm.sql.impl.SqlEntryManager;
 import io.jans.orm.sql.model.SimpleUser;
 import io.jans.orm.sql.model.UserRole;
 import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
-import io.jans.orm.sql.persistence.SqlSampleEntryManager;
+import io.jans.orm.sql.persistence.SqlEntryManagerSample;
 
 /**
  * @author Yuriy Movchan Date: 01/15/2020
@@ -33,10 +33,10 @@ public final class SqlCustomObjectAttributesSample {
 
 	public static void main(String[] args) {
 		// Prepare sample connection details
-		SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
+		SqlEntryManagerSample sqlEntryManagerSample = new SqlEntryManagerSample();
 
 		// Create SQL entry manager
-		SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
+		SqlEntryManager sqlEntryManager = sqlEntryManagerSample.createSqlEntryManager();
 
 		// Add dummy user
 		SimpleUser newUser = new SimpleUser();

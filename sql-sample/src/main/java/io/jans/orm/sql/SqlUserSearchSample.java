@@ -23,7 +23,7 @@ import io.jans.orm.sql.impl.SqlEntryManager;
 import io.jans.orm.sql.model.SimpleUser;
 import io.jans.orm.sql.model.UserRole;
 import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
-import io.jans.orm.sql.persistence.SqlSampleEntryManager;
+import io.jans.orm.sql.persistence.SqlEntryManagerSample;
 import io.jans.orm.util.StringHelper;
 
 /**
@@ -44,10 +44,10 @@ public final class SqlUserSearchSample {
 
     public static void main(String[] args) throws InterruptedException {
         // Prepare sample connection details
-    	final SqlSampleEntryManager sqlSampleEntryManager = new SqlSampleEntryManager();
-        final SqlEntryManager sqlEntryManager = sqlSampleEntryManager.createSqlEntryManager();
+    	final SqlEntryManagerSample sqlEntryManagerSample = new SqlEntryManagerSample();
+        final SqlEntryManager sqlEntryManager = sqlEntryManagerSample.createSqlEntryManager();
         
-        int countUsers = 1000000;
+        int countUsers = 2000000;
         int threadCount = 200;
         int threadIterationCount = 200;
 

@@ -41,10 +41,10 @@ public final class LdapSample {
 
     public static void main(String[] args) {
         // Prepare sample connection details
-        LdapEntryManagerSample ldapSampleEntryManager = new LdapEntryManagerSample();
+        LdapEntryManagerSample ldapEntryManagerSample = new LdapEntryManagerSample();
 
         // Create LDAP entry manager
-        LdapEntryManager ldapEntryManager = ldapSampleEntryManager.createLdapEntryManager();
+        LdapEntryManager ldapEntryManager = ldapEntryManagerSample.createLdapEntryManager();
 
         // Find all users which have specified object classes defined in SimpleUser
         List<SimpleUser> users = ldapEntryManager.findEntries("o=jans", SimpleUser.class, null);
