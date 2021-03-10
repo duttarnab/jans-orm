@@ -123,7 +123,7 @@ public class LdapEntryManager extends BaseEntryManager implements Serializable {
 
     @Override
     protected <T> void updateMergeChanges(String baseDn, T entry, boolean isConfigurationUpdate, Class<?> entryClass, Map<String, AttributeData> attributesFromLdapMap,
-            List<AttributeDataModification> attributeDataModifications) {
+            List<AttributeDataModification> attributeDataModifications, boolean forceUpdate) {
         // Update object classes if entry contains custom object classes
         if (getSupportedLDAPVersion() > 2) {
             if (!isConfigurationUpdate) {

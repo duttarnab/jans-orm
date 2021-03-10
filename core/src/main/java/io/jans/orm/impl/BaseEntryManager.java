@@ -258,9 +258,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 			dumpAttributeDataModifications("attributeDataModifications before updateMergeChanges", attributeDataModifications);
 		}
 
-		if (!forceUpdate) {
-			updateMergeChanges(dnValue.toString(), entry, isSchemaUpdate | isConfigurationUpdate, entryClass, attributesFromLdapMap, attributeDataModifications);
-		}
+		updateMergeChanges(dnValue.toString(), entry, isSchemaUpdate | isConfigurationUpdate, entryClass, attributesFromLdapMap, attributeDataModifications, forceUpdate);
 
 		if (LOG.isTraceEnabled()) {
 			dumpAttributeDataModifications("attributeDataModifications after updateMergeChanges", attributeDataModifications);
@@ -275,7 +273,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 
 	protected abstract <T> void updateMergeChanges(String baseDn, T entry, boolean isConfigurationUpdate, Class<?> entryClass,
 			Map<String, AttributeData> attributesFromLdapMap,
-			List<AttributeDataModification> attributeDataModifications);
+			List<AttributeDataModification> attributeDataModifications, boolean forceUpdate);
 
 	protected List<AttributeDataModification> collectAttributeModifications(
 			List<PropertyAnnotation> propertiesAnnotations, Map<String, AttributeData> attributesToPersistMap,

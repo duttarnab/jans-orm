@@ -13,10 +13,8 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.jans.orm.exception.EntryPersistenceException;
 import io.jans.orm.sql.impl.SqlEntryManager;
 import io.jans.orm.sql.model.SimpleCacheEntry;
-import io.jans.orm.sql.model.SimpleSessionState;
 import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
 import io.jans.orm.sql.persistence.SqlEntryManagerSample;
 

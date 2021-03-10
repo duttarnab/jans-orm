@@ -117,8 +117,13 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 
     @Override
     protected <T> void updateMergeChanges(String baseDn, T entry, boolean isConfigurationUpdate, Class<?> entryClass, Map<String, AttributeData> attributesFromDbMap,
-            List<AttributeDataModification> attributeDataModifications) {
-        // Update object classes if entry contains custom object classes
+            List<AttributeDataModification> attributeDataModifications, boolean forceUpdate) {
+    	if (forceUpdate) {
+    		// SQL ORM can't update objectClass because it select table by objectClass name  
+    		return;
+    	}
+
+    	// Update object classes if entry contains custom object classes
         if (!isConfigurationUpdate) {
             String[] objectClasses = getObjectClasses(entry, entryClass);
             if (ArrayHelper.isEmpty(objectClasses)) {
@@ -137,8 +142,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
             
             // We need to check only first element of each array because objectCLass in SQL is single value attribute
             if (!StringHelper.equals(objectClassesFromDb[0], objectClasses[0])) {
-                attributeDataModifications.add(new AttributeDataModification(AttributeModificationType.REPLACE,
-                        new AttributeData(OBJECT_CLASS, objectClasses, false), new AttributeData(OBJECT_CLASS, objectClassesFromDb, false)));
+            	throw new UnsupportedOperationException(String.format("It's not possible to change objectClasses of already persisted entry! Entry is invalid: '%s'", entry));
             }
         }
     }

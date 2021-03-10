@@ -439,7 +439,7 @@ public class HybridEntryManager extends BaseEntryManager implements Serializable
 
 	@Override
 	protected <T> void updateMergeChanges(String baseDn, T entry, boolean isConfigurationUpdate, Class<?> entryClass,
-			Map<String, AttributeData> attributesFromLdapMap, List<AttributeDataModification> attributeDataModifications) {
+			Map<String, AttributeData> attributesFromLdapMap, List<AttributeDataModification> attributeDataModifications, boolean forceUpdate) {
         throw new UnsupportedOperationException("Method not implemented.");
 	}
 

@@ -122,7 +122,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
 
     @Override
     protected <T> void updateMergeChanges(String baseDn, T entry, boolean isConfigurationUpdate, Class<?> entryClass, Map<String, AttributeData> attributesFromDbMap,
-            List<AttributeDataModification> attributeDataModifications) {
+            List<AttributeDataModification> attributeDataModifications, boolean forceUpdate) {
         // Update object classes if entry contains custom object classes
         if (!isConfigurationUpdate) {
             String[] objectClasses = getObjectClasses(entry, entryClass);

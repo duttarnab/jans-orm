@@ -112,13 +112,13 @@ public final class SqlUserSearchSample {
 
     private static void addTestUsers(SqlEntryManager sqlEntryManager, int countUsers) {
     	long startTime = System.currentTimeMillis();
-        for (int j = 0; j <= countUsers; j++) {
+        for (int j = 137; j <= countUsers; j++) {
         	String uid = "user" + j; /*String.format("user%06d", userUid);*/
 
         	SimpleUser newUser = new SimpleUser();
 	        newUser.setDn(String.format("inum=%s,ou=people,o=jans", System.currentTimeMillis()));
 	        newUser.setUserId(uid);
-	        newUser.setUserPassword("pwd");
+	        newUser.setUserPassword("topsecret" + uid);
 	        newUser.setUserRole(j % 2 == 0 ? UserRole.ADMIN : UserRole.USER);
 
 	        newUser.setMemberOf(Arrays.asList("group_1", "group_2", "group_3"));
