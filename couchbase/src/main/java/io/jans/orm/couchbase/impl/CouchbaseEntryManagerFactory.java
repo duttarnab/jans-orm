@@ -93,6 +93,12 @@ public class CouchbaseEntryManagerFactory extends Initializable implements Persi
         	builder.computationPoolSize(computationPoolSize);
         }
 
+        String keepAliveTimeoutString = couchbaseConnectionProperties.getProperty("connection.keep-alive-timeout");
+        if (StringHelper.isNotEmpty(keepAliveTimeoutString)) {
+        	long keepAliveTimeout = Integer.valueOf(keepAliveTimeoutString);
+        	builder.keepAliveTimeout(keepAliveTimeout);
+        }
+
         this.couchbaseEnvironment = builder.build();
 
         this.builder = null;
