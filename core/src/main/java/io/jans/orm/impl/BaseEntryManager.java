@@ -415,7 +415,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 							attributeDataModifications.add(new AttributeDataModification(
 									AttributeModificationType.REMOVE, null, attributeToPersist));
 						}
-					} else if ((attributeFromLdap != null) && (Arrays.equals(attributeToPersist.getValues(), new String[] {}))) {
+					} else if ((attributeFromLdap != null) && isEmptyAttributeValues(attributeToPersist)) {
 						if (isEmptyAttributeValues(attributeFromLdap) && isStoreFullEntry()) {
 							// It's RDBS case. We don't need to set null to already empty table cell
 							continue;

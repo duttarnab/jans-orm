@@ -349,7 +349,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 					.where(whereExp).limit(1);
 			
 			try (ResultSet resultSet = sqlSelectQuery.getResults();) {
-				List<AttributeData> result = getAttributeDataList(resultSet);
+				List<AttributeData> result = getAttributeDataList(resultSet, true);
 				if (result != null) {
 					return result;
 				}
@@ -535,7 +535,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
         return results;
     }
 
-    private List<AttributeData> getAttributeDataList(ResultSet resultSet) throws EntryConvertationException {
+    private List<AttributeData> getAttributeDataList(ResultSet resultSet, boolean skipDn) throws EntryConvertationException {
         try {
             if ((resultSet == null)) {
                 return null;
@@ -558,6 +558,11 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	        	if (SqlOperationService.DOC_ID.equalsIgnoreCase(shortAttributeName) ||
 	        		SqlOperationService.ID.equalsIgnoreCase(shortAttributeName)) {
 	        		// Skip internal attributes 
+	        		continue;
+	        	}
+
+	        	if (skipDn && SqlOperationService.DN.equalsIgnoreCase(shortAttributeName)) {
+	        		// Skip DN attribute 
 	        		continue;
 	        	}
 
@@ -625,7 +630,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
     	List<AttributeData> attributeDataList = null;
     	while (!resultSet.isLast()) {
-    		attributeDataList = getAttributeDataList(resultSet);
+    		attributeDataList = getAttributeDataList(resultSet, false);
     		if (attributeDataList == null) {
     			break;
     		}

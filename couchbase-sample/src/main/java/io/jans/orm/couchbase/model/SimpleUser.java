@@ -1,5 +1,5 @@
 /*
- * Janssen Project software is available under the Apache License (2004). See http://www.apache.org/licenses/ for full text.
+ * Janssen Project software is available under the MIT License (2008). See http://opensource.org/licenses/MIT for full text.
  *
  * Copyright (c) 2020, Janssen Project
  */
@@ -8,7 +8,6 @@ package io.jans.orm.couchbase.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import io.jans.orm.annotation.AttributeName;
@@ -21,8 +20,7 @@ import io.jans.orm.model.base.CustomObjectAttribute;
 import io.jans.orm.util.StringHelper;
 
 /**
- * @author Yuriy Movchan
- * Date: 11/03/2016
+* @author Yuriy Movchan Date: 01/15/2020
  */
 @DataEntry
 @ObjectClass(value = "jansPerson")
@@ -42,8 +40,8 @@ public class SimpleUser implements Serializable {
     @AttributeName(name = "role")
     private UserRole userRole; 
 
-    @AttributeName(name = "notes")
-    private List<String> notes; 
+    @AttributeName(name = "memberOf")
+    private List<String> memberOf; 
 
     @AttributesList(name = "name", value = "values", multiValued = "multiValued", sortByName = true)
     private List<CustomObjectAttribute> customAttributes = new ArrayList<CustomObjectAttribute>();
@@ -83,12 +81,12 @@ public class SimpleUser implements Serializable {
 		this.userRole = userRole;
 	}
 
-	public List<String> getNotes() {
-		return notes;
+	public List<String> getMemberOf() {
+		return memberOf;
 	}
 
-	public void setNotes(List<String> notes) {
-		this.notes = notes;
+	public void setMemberOf(List<String> memberOf) {
+		this.memberOf = memberOf;
 	}
 
 	public List<CustomObjectAttribute> getCustomAttributes() {
@@ -158,12 +156,5 @@ public class SimpleUser implements Serializable {
     public void setCustomObjectClasses(String[] customObjectClasses) {
         this.customObjectClasses = customObjectClasses;
     }
-
-	@Override
-	public String toString() {
-		return "SimpleUser [dn=" + dn + ", userId=" + userId + ", userPassword=" + userPassword + ", userRole="
-				+ userRole + ", notes=" + notes + ", customAttributes=" + customAttributes + ", customObjectClasses="
-				+ Arrays.toString(customObjectClasses) + "]";
-	}
 
 }

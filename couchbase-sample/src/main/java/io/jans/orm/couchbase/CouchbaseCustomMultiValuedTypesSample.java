@@ -43,7 +43,8 @@ public final class CouchbaseCustomMultiValuedTypesSample {
 		newUser.getCustomAttributes().add(new CustomObjectAttribute("streetAddress", Arrays.asList("London", "Texas", "Kiev")));
 		newUser.getCustomAttributes().add(new CustomObjectAttribute("test", "test_value"));
 		newUser.getCustomAttributes().add(new CustomObjectAttribute("fuzzy", "test_value"));
-		newUser.setNotes(Arrays.asList("note 1", "note 2", "note 3"));
+		newUser.setMemberOf(Arrays.asList("group_1", "group_2", "group_3"));
+		newUser.setAttributeValue("givenName", "john");
 
 		couchbaseEntryManager.persist(newUser);
 

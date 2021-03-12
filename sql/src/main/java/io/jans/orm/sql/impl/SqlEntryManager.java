@@ -246,7 +246,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
                     modification = createModification(modificationType, toInternalAttribute(attributeName), multiValued, attributeValues);
                 } else {
                     if ((AttributeModificationType.REMOVE == modificationType)) {
-                		if ((attribute == null) && !isEmptyAttributeValues(oldAttribute)) {
+                		if ((attribute == null) && isEmptyAttributeValues(oldAttribute)) {
 							// It's RDBS case. We don't need to set null to already empty table cell
                 			continue;
                 		}
