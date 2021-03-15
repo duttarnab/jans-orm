@@ -32,7 +32,6 @@ public class CustomAttribute implements Serializable, Comparable<CustomAttribute
     public CustomAttribute(String name, String value) {
         this.name = name;
         setValue(value);
-        this.multiValued = false;
     }
 
     public CustomAttribute(String name, List<String> values) {

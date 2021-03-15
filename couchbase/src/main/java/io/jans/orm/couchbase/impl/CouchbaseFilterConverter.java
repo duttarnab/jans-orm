@@ -224,26 +224,26 @@ public class CouchbaseFilterConverter {
         if (FilterType.SUBSTRING == type) {
             StringBuilder like = new StringBuilder();
             if (currentGenericFilter.getSubInitial() != null) {
-                like.append(currentGenericFilter.getSubInitial());
+                like.append(StringHelper.escapeJson(currentGenericFilter.getSubInitial()));
             }
             like.append("%");
 
             String[] subAny = currentGenericFilter.getSubAny();
             if ((subAny != null) && (subAny.length > 0)) {
                 for (String any : subAny) {
-                    like.append(any);
+                    like.append(StringHelper.escapeJson(any));
                     like.append("%");
                 }
             }
 
             if (currentGenericFilter.getSubFinal() != null) {
-                like.append(currentGenericFilter.getSubFinal());
+                like.append(StringHelper.escapeJson(currentGenericFilter.getSubFinal()));
             }
         	String internalAttribute = toInternalAttribute(currentGenericFilter);
             if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
-            	return ConvertedExpression.build(Collections.anyIn(internalAttribute + "_", Expression.path(Expression.path(toInternalAttribute(currentGenericFilter)))).satisfies(Expression.path(Expression.path(internalAttribute + "_")).like(Expression.s(StringHelper.escapeJson(like.toString())))), requiredConsistency);
+            	return ConvertedExpression.build(Collections.anyIn(internalAttribute + "_", Expression.path(Expression.path(toInternalAttribute(currentGenericFilter)))).satisfies(Expression.path(Expression.path(internalAttribute + "_")).like(Expression.s(like.toString()))), requiredConsistency);
             } else {
-            	return ConvertedExpression.build(Expression.path(Expression.path(internalAttribute).like(Expression.s(StringHelper.escapeJson(like.toString())))), requiredConsistency);
+            	return ConvertedExpression.build(Expression.path(Expression.path(internalAttribute).like(Expression.s(like.toString()))), requiredConsistency);
             }
         }
 
