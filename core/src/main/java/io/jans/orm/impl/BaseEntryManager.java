@@ -6,43 +6,13 @@
 
 package io.jans.orm.impl;
 
-import java.io.Serializable;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.commons.codec.binary.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.jans.orm.PersistenceEntryManager;
-import io.jans.orm.annotation.AttributeEnum;
-import io.jans.orm.annotation.AttributeName;
-import io.jans.orm.annotation.AttributesList;
-import io.jans.orm.annotation.CustomObjectClass;
-import io.jans.orm.annotation.DN;
-import io.jans.orm.annotation.DataEntry;
-import io.jans.orm.annotation.Expiration;
-import io.jans.orm.annotation.JsonObject;
-import io.jans.orm.annotation.ObjectClass;
-import io.jans.orm.annotation.SchemaEntry;
+import io.jans.orm.annotation.*;
+import io.jans.orm.exception.EntryPersistenceException;
 import io.jans.orm.exception.InvalidArgumentException;
 import io.jans.orm.exception.MappingException;
 import io.jans.orm.exception.extension.PersistenceExtension;
-import io.jans.orm.exception.EntryPersistenceException;
 import io.jans.orm.model.AttributeData;
 import io.jans.orm.model.AttributeDataModification;
 import io.jans.orm.model.AttributeDataModification.AttributeModificationType;
@@ -55,6 +25,15 @@ import io.jans.orm.reflect.util.ReflectHelper;
 import io.jans.orm.search.filter.Filter;
 import io.jans.orm.util.ArrayHelper;
 import io.jans.orm.util.StringHelper;
+import org.apache.commons.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Abstract Entry Manager
@@ -1901,6 +1880,10 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 	protected <T> Integer getExpirationValue(Object entry, Class<T> entryClass, boolean merge) {
 		// Check if entry has Expiration property
 		PropertyAnnotation expirationProperty = getExpirationProperty(entryClass);
+		if (expirationProperty == null) {
+            return null;
+        }
+
 		String expirationPropertyName = expirationProperty.getPropertyName();
 
 		Expiration expirationAnnotation = (Expiration) ReflectHelper.getAnnotationByType(expirationProperty.getAnnotations(),
