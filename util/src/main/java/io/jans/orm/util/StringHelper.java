@@ -396,7 +396,7 @@ public final class StringHelper {
     }
 
 	public static String escapeJson(Object str) {
-		String result = StringEscapeUtils.escapeJson(String.valueOf(str)).replace("\\\\", "\\u005c");
+		String result = StringEscapeUtils.escapeJson(String.valueOf(str));
 		
 		return result;
 	}

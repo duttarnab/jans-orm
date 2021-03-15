@@ -11,6 +11,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.couchbase.client.java.document.json.JsonArray;
+import com.couchbase.client.java.query.dsl.Expression;
+import com.couchbase.client.java.query.dsl.functions.Collections;
+import com.couchbase.client.java.query.dsl.functions.StringFunctions;
+
 import io.jans.orm.annotation.AttributeEnum;
 import io.jans.orm.annotation.AttributeName;
 import io.jans.orm.couchbase.model.ConvertedExpression;
@@ -22,13 +30,6 @@ import io.jans.orm.search.filter.Filter;
 import io.jans.orm.search.filter.FilterType;
 import io.jans.orm.util.ArrayHelper;
 import io.jans.orm.util.StringHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.couchbase.client.java.document.json.JsonArray;
-import com.couchbase.client.java.query.dsl.Expression;
-import com.couchbase.client.java.query.dsl.functions.Collections;
-import com.couchbase.client.java.query.dsl.functions.StringFunctions;
 
 /**
  * Filter to Couchbase expressions convert
@@ -224,26 +225,26 @@ public class CouchbaseFilterConverter {
         if (FilterType.SUBSTRING == type) {
             StringBuilder like = new StringBuilder();
             if (currentGenericFilter.getSubInitial() != null) {
-                like.append(StringHelper.escapeJson(currentGenericFilter.getSubInitial()));
+                like.append(currentGenericFilter.getSubInitial());
             }
             like.append("%");
 
             String[] subAny = currentGenericFilter.getSubAny();
             if ((subAny != null) && (subAny.length > 0)) {
                 for (String any : subAny) {
-                    like.append(StringHelper.escapeJson(any));
+                    like.append(any);
                     like.append("%");
                 }
             }
 
             if (currentGenericFilter.getSubFinal() != null) {
-                like.append(StringHelper.escapeJson(currentGenericFilter.getSubFinal()));
+                like.append(currentGenericFilter.getSubFinal());
             }
         	String internalAttribute = toInternalAttribute(currentGenericFilter);
             if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
-            	return ConvertedExpression.build(Collections.anyIn(internalAttribute + "_", Expression.path(Expression.path(toInternalAttribute(currentGenericFilter)))).satisfies(Expression.path(Expression.path(internalAttribute + "_")).like(Expression.s(like.toString()))), requiredConsistency);
+            	return ConvertedExpression.build(Collections.anyIn(internalAttribute + "_", Expression.path(Expression.path(toInternalAttribute(currentGenericFilter)))).satisfies(Expression.path(Expression.path(internalAttribute + "_")).like(Expression.s(escapeValue(like.toString())))), requiredConsistency);
             } else {
-            	return ConvertedExpression.build(Expression.path(Expression.path(internalAttribute).like(Expression.s(like.toString()))), requiredConsistency);
+            	return ConvertedExpression.build(Expression.path(Expression.path(internalAttribute).like(Expression.s(escapeValue(like.toString())))), requiredConsistency);
             }
         }
 
@@ -296,7 +297,7 @@ public class CouchbaseFilterConverter {
 			return Expression.x((Long) currentGenericFilter.getAssertionValue());
 		}
 
-		return Expression.s(StringHelper.escapeJson(currentGenericFilter.getAssertionValue()));
+		return Expression.s(escapeValue(currentGenericFilter.getAssertionValue()));
 	}
 
 	private Boolean determineMultiValuedByType(String attributeName, Map<String, PropertyAnnotation> propertiesAnnotationsMap) {
@@ -338,6 +339,15 @@ public class CouchbaseFilterConverter {
 		}
 
 		return false;
+	}
+
+	public static String escapeValue(Object str) {
+		String result = StringHelper.escapeJson(str);
+		
+		// Workaround for Couchbase 6.6
+		result = result.replace("\\\\", "\\u005c");
+		
+		return result;
 	}
 
 }
