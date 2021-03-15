@@ -1901,6 +1901,10 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 	protected <T> Integer getExpirationValue(Object entry, Class<T> entryClass, boolean merge) {
 		// Check if entry has Expiration property
 		PropertyAnnotation expirationProperty = getExpirationProperty(entryClass);
+		if (expirationProperty == null) {
+			return null;
+		}
+
 		String expirationPropertyName = expirationProperty.getPropertyName();
 
 		Expiration expirationAnnotation = (Expiration) ReflectHelper.getAnnotationByType(expirationProperty.getAnnotations(),
