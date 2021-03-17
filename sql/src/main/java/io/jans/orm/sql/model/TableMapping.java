@@ -6,6 +6,8 @@
 
 package io.jans.orm.sql.model;
 
+import java.util.Map;
+
 /**
  * Mapping to DB table
  *
@@ -16,11 +18,13 @@ public class TableMapping {
     private final String baseKeyName;
     private final String tableName;
     private final String objectClass;
+    private final Map<String, String> columTypes;
 
-    public TableMapping(final String baseKeyName, final String tableName, final String objectClass) {
+    public TableMapping(final String baseKeyName, final String tableName, final String objectClass, Map<String, String> columTypes) {
         this.baseKeyName = baseKeyName;
         this.tableName = tableName;
         this.objectClass = objectClass;
+        this.columTypes = columTypes;
     }
 
 	public String getBaseKeyName() {
@@ -33,6 +37,10 @@ public class TableMapping {
 
 	public String getObjectClass() {
 		return objectClass;
+	}
+
+	public Map<String, String> getColumTypes() {
+		return columTypes;
 	}
 
 }

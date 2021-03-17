@@ -6,6 +6,8 @@
 
 package io.jans.orm.sql.operation;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.util.Collection;
 import java.util.List;
 
@@ -82,5 +84,9 @@ public interface SqlOperationService extends PersistenceOperationService {
 	String[] fromInternalAttributes(String[] internalAttributeNames);
 
     boolean destroy();
+
+	Connection getConnection();
+
+	DatabaseMetaData getMetadata();
 
 }

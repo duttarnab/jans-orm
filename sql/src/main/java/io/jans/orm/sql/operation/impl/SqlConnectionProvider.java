@@ -8,9 +8,12 @@ package io.jans.orm.sql.operation.impl;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
@@ -73,12 +76,15 @@ public class SqlConnectionProvider {
 	private SQLTemplates sqlTemplates;
 
 	private SQLQueryFactory sqlQueryFactory;
+	
+	private Map<String, Map<String, String>> tableColumnsMap;
 
     protected SqlConnectionProvider() {
     }
 
     public SqlConnectionProvider(Properties props) {
         this.props = props;
+        this.tableColumnsMap = new HashMap<>();
     }
 
     public void create() {
@@ -178,17 +184,39 @@ public class SqlConnectionProvider {
         	DatabaseMetaData databaseMetaData = con.getMetaData();
         	this.dbType = databaseMetaData.getDatabaseProductName().toLowerCase();
             LOG.debug("Database product name: '{}'", dbType);
+            loadTableMetaData(databaseMetaData);
         } catch (Exception ex) {
-            new ConnectionException("Failed to detect database product name", ex);
+            throw new ConnectionException("Failed to detect database product name", ex);
         }
 
         this.creationResultCode = ResultCode.SUCCESS_INT_VALUE;
     }
 
-    private void initDsl() throws SQLException {
+    private void loadTableMetaData(DatabaseMetaData databaseMetaData) throws SQLException {
+        LOG.info("Scanning DB metadata...");
+
+        long takes = System.currentTimeMillis();
+    	ResultSet tableResultSet = databaseMetaData.getTables(null, schemaName, null, new String[]{"TABLE"});
+    	while (tableResultSet.next()) {
+    		String tableName = tableResultSet.getString("TABLE_NAME");
+    		Map<String, String> tableColumns = new HashMap<>();
+    		
+            LOG.debug("Found table: '{}'.", tableName);
+            ResultSet columnResultSet = databaseMetaData.getColumns(null, schemaName, tableName, null);
+        	while (columnResultSet.next()) {
+        		tableColumns.put(columnResultSet.getString("COLUMN_NAME").toLowerCase(), columnResultSet.getString("TYPE_NAME").toLowerCase());
+        	}
+
+        	tableColumnsMap.put(tableName, tableColumns);
+    	}
+
+    	takes = System.currentTimeMillis() - takes;
+        LOG.info("Metadata scan finisehd in {} milliseconds", takes);
+   	}
+
+	private void initDsl() throws SQLException {
 		SQLTemplatesRegistry templatesRegistry = new SQLTemplatesRegistry();
-		PoolingDataSource<PoolableConnection> dataSource = poolingDataSource;
-		try (Connection con = dataSource.getConnection()) {
+		try (Connection con = poolingDataSource.getConnection()) {
 			DatabaseMetaData databaseMetaData = con.getMetaData();
 			SQLTemplates.Builder sqlBuilder = templatesRegistry.getBuilder(databaseMetaData);
 			if (sqlBuilder instanceof MySQLTemplates.Builder) {
@@ -197,7 +225,7 @@ public class SqlConnectionProvider {
 			this.sqlTemplates = sqlBuilder.printSchema().build();
 			Configuration configuration = new Configuration(sqlTemplates);
 
-			this.sqlQueryFactory = new SQLQueryFactory(configuration, dataSource);
+			this.sqlQueryFactory = new SQLQueryFactory(configuration, poolingDataSource);
 		}
 	}
 
@@ -330,8 +358,10 @@ public class SqlConnectionProvider {
 	}
 
 	public TableMapping getTableMappingByKey(String key, String objectClass) {
+		String tableName = objectClass;
+		Map<String, String> columTypes = tableColumnsMap.get(tableName);
 		if ("_".equals(key)) {
-			return new TableMapping("", objectClass.toLowerCase(), objectClass);
+			return new TableMapping("", tableName, objectClass, columTypes);
 		}
 
 		String[] baseNameParts = key.split("_");
@@ -339,9 +369,26 @@ public class SqlConnectionProvider {
 			throw new KeyConversionException("Failed to determine base key part!");
 		}
 
-		TableMapping tableMapping = new TableMapping(baseNameParts[0], objectClass, objectClass);
+		TableMapping tableMapping = new TableMapping(baseNameParts[0], tableName, objectClass, columTypes);
 		
 		return tableMapping;
 	}
 
+	public Connection getConnection() {
+        try {
+			return this.poolingDataSource.getConnection();
+		} catch (SQLException ex) {
+            throw new ConnectionException("Failed to get connection from pool", ex);
+		}
+	}
+
+	public DatabaseMetaData getDatabaseMetaData() {
+        try (Connection con = this.poolingDataSource.getConnection()) {
+        	DatabaseMetaData databaseMetaData = con.getMetaData();
+        	return databaseMetaData;
+        } catch (SQLException ex) {
+        	throw new ConnectionException("Failed to get database metadata", ex);
+        }
+	}
+	
 }

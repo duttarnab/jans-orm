@@ -6,7 +6,8 @@
 
 package io.jans.orm.sql.operation.impl;
 
-import java.lang.reflect.Array;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -18,7 +19,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -170,12 +173,17 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
 	private boolean addEntryImpl(TableMapping tableMapping, String key, Collection<AttributeData> attributes) throws PersistenceException {
 		try {
+			Map<String, String> columTypes = tableMapping.getColumTypes();
+
 			RelationalPathBase<Object> tableRelationalPath = buildTableRelationalPath(tableMapping);
 			SQLInsertClause sqlInsertQuery = this.sqlQueryFactory.insert(tableRelationalPath);
 
 			for (AttributeData attribute : attributes) {
+				String attributeType = columTypes.get(attribute.getName().toLowerCase());
+				boolean multiValued = (attributeType != null) && "json".equals(attributeType);
+
 				sqlInsertQuery.columns(Expressions.stringPath(attribute.getName()));
-				if (Boolean.TRUE.equals(attribute.getMultiValued())) {
+				if (multiValued || Boolean.TRUE.equals(attribute.getMultiValued())) {
 					sqlInsertQuery.values(convertValueToDbJson(attribute.getValues()));
 				} else {
 					sqlInsertQuery.values(attribute.getValue());
@@ -205,21 +213,27 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
 	private boolean updateEntryImpl(TableMapping tableMapping, String key, List<AttributeDataModification> mods) throws PersistenceException {
 		try {
+			Map<String, String> columTypes = tableMapping.getColumTypes();
+
 			RelationalPathBase<Object> tableRelationalPath = buildTableRelationalPath(tableMapping);
 			SQLUpdateClause sqlUpdateQuery = this.sqlQueryFactory.update(tableRelationalPath);
 
 			for (AttributeDataModification attributeMod : mods) {
 				AttributeData attribute = attributeMod.getAttribute();
 				Path path = Expressions.stringPath(attribute.getName());
+
+				String attributeType = columTypes.get(attribute.getName().toLowerCase());
+				boolean multiValued = (attributeType != null) && "json".equals(attributeType);
+				
 				AttributeModificationType type = attributeMod.getModificationType();
                 if ((AttributeModificationType.ADD == type) || AttributeModificationType.FORCE_UPDATE == type) {
-					if (Boolean.TRUE.equals(attribute.getMultiValued())) {
+					if (multiValued || Boolean.TRUE.equals(attribute.getMultiValued())) {
     					sqlUpdateQuery.set(path, convertValueToDbJson(attribute.getValues()));
     				} else {
     					sqlUpdateQuery.set(path, attribute.getValue());
     				}
                 } else if (AttributeModificationType.REPLACE == type) {
-					if (Boolean.TRUE.equals(attribute.getMultiValued())) {
+					if (multiValued || Boolean.TRUE.equals(attribute.getMultiValued())) {
     					sqlUpdateQuery.set(path, convertValueToDbJson(attribute.getValues()));
     				} else {
     					sqlUpdateQuery.set(path, attribute.getValue());
@@ -675,6 +689,16 @@ public class SqlOperationServiceImpl implements SqlOperationService {
     @Override
     public boolean isConnected() {
         return connectionProvider.isConnected();
+    }
+
+    @Override
+    public Connection getConnection() {
+        return connectionProvider.getConnection();
+    }
+
+    @Override
+    public DatabaseMetaData getMetadata() {
+        return connectionProvider.getDatabaseMetaData();
     }
 
 	@Override
