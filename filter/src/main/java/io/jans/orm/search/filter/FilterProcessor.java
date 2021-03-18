@@ -21,6 +21,10 @@ public class FilterProcessor {
 	public static final Filter OBJECT_CLASS_PRESENCE_FILTER = Filter.createPresenceFilter("objectClass");
 
 	public Filter excludeFilter(Filter genericFilter, Filter... excludeFilters) {
+		if (genericFilter == null) {
+			return null;
+		}
+
 		FilterType type = genericFilter.getType();
 		if (FilterType.RAW == type) {
 			return genericFilter;
