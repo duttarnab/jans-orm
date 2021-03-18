@@ -48,6 +48,7 @@ import io.jans.orm.model.SearchScope;
 import io.jans.orm.model.SortOrder;
 import io.jans.orm.reflect.property.PropertyAnnotation;
 import io.jans.orm.search.filter.Filter;
+import io.jans.orm.search.filter.FilterProcessor;
 import io.jans.orm.sql.model.ConvertedExpression;
 import io.jans.orm.sql.model.SearchReturnDataType;
 import io.jans.orm.sql.operation.SqlOperationService;
@@ -70,14 +71,17 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
     @Inject
     private Logger log;
 
-    private final SqlFilterConverter FILTER_CONVERTER;
-    private static final GenericKeyConverter KEY_CONVERTER = new GenericKeyConverter(false);
+    private final SqlFilterConverter filterConverter;
+	private FilterProcessor filterProcessor;
+
+	private static final GenericKeyConverter KEY_CONVERTER = new GenericKeyConverter(false);
 
     private List<DeleteNotifier> subscribers;
 
     protected SqlEntryManager(SqlOperationService operationService) {
         this.operationService = operationService;
-        this.FILTER_CONVERTER = new SqlFilterConverter(operationService);
+        this.filterConverter = new SqlFilterConverter(operationService);
+        this.filterProcessor = new FilterProcessor();
         subscribers = new LinkedList<DeleteNotifier>();
     }
 
@@ -772,19 +776,23 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
     }
 
     private ConvertedExpression toSqlFilter(Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap) throws SearchException {
-        return FILTER_CONVERTER.convertToSqlFilter(genericFilter, propertiesAnnotationsMap);
+        return filterConverter.convertToSqlFilter(excludeObjectClassFilters(genericFilter), propertiesAnnotationsMap);
     }
 
     private ConvertedExpression toSqlFilterWithEmptyAlias(Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap) throws SearchException {
-        return FILTER_CONVERTER.convertToSqlFilter(genericFilter, propertiesAnnotationsMap, true);
+        return filterConverter.convertToSqlFilter(excludeObjectClassFilters(genericFilter), propertiesAnnotationsMap, true);
     }
 
     private ConvertedExpression toSqlFilter(Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap, Function<? super Filter, Boolean> processor) throws SearchException {
-        return FILTER_CONVERTER.convertToSqlFilter(genericFilter, propertiesAnnotationsMap, processor);
+        return filterConverter.convertToSqlFilter(excludeObjectClassFilters(genericFilter), propertiesAnnotationsMap, processor);
     }
     private ConvertedExpression toSqlFilterWithEmptyAlias(Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap, Function<? super Filter, Boolean> processor) throws SearchException {
-        return FILTER_CONVERTER.convertToSqlFilter(genericFilter, propertiesAnnotationsMap, processor, true);
+        return filterConverter.convertToSqlFilter(excludeObjectClassFilters(genericFilter), propertiesAnnotationsMap, processor, true);
     }
+
+	private Filter excludeObjectClassFilters(Filter genericFilter) {
+		return filterProcessor.excludeFilter(genericFilter, FilterProcessor.OBJECT_CLASS_EQUALITY_FILTER, FilterProcessor.OBJECT_CLASS_PRESENCE_FILTER);
+	}
 
     private ParsedKey toSQLKey(String dn) {
         return KEY_CONVERTER.convertToKey(dn);

@@ -188,14 +188,16 @@ public class SqlFilterConverter {
 
         		return ConvertedExpression.build(operation, jsonAttributes);
             } else {
+            	Filter usedFilter = currentGenericFilter;
             	Expression expression;
             	if (hasSubFilters) {
+//            		usedFilter = currentGenericFilter.getFilters()[0];
             		expression = convertToSqlFilterImpl(currentGenericFilter.getFilters()[0], propertiesAnnotationsMap, jsonAttributes, processor, skipAlias).expression();
             	} else {
             		expression = buildTypedPath(currentGenericFilter, skipAlias);
             	}
 
-            	return ConvertedExpression.build(ExpressionUtils.eq(expression, buildTypedExpression(currentGenericFilter)), jsonAttributes);
+            	return ConvertedExpression.build(ExpressionUtils.eq(expression, buildTypedExpression(usedFilter)), jsonAttributes);
             }
         }
 
