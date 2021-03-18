@@ -400,10 +400,15 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
         RelationalPathBase<Object> tableRelationalPath = buildTableRelationalPath(tableMapping);
 
-		Predicate whereExp = (Predicate) expression.expression();
 		Expression<?> attributesExp = buildSelectAttributes(attributes);
 
-		SQLQuery<?> sqlSelectQuery = sqlQueryFactory.select(attributesExp).from(tableRelationalPath).where(whereExp);
+		SQLQuery<?> sqlSelectQuery;
+		if (expression == null) {
+			sqlSelectQuery = sqlQueryFactory.select(attributesExp).from(tableRelationalPath);
+		} else {
+			Predicate whereExp = (Predicate) expression.expression();
+			sqlSelectQuery = sqlQueryFactory.select(attributesExp).from(tableRelationalPath).where(whereExp);
+		}
 
         SQLQuery<?> baseQuery = sqlSelectQuery;
         if (orderBy != null) {
@@ -509,7 +514,13 @@ public class SqlOperationServiceImpl implements SqlOperationService {
         result.setStart(start);
 
         if ((SearchReturnDataType.COUNT == returnDataType) || (SearchReturnDataType.SEARCH_COUNT == returnDataType)) {
-    		SQLQuery<?> sqlCountSelectQuery = sqlQueryFactory.select(Expressions.as(ExpressionUtils.count(Wildcard.all), "TOTAL")).from(tableRelationalPath).where(whereExp);
+    		SQLQuery<?> sqlCountSelectQuery;
+    		if (expression == null) {
+    			sqlCountSelectQuery = sqlQueryFactory.select(Expressions.as(ExpressionUtils.count(Wildcard.all), "TOTAL")).from(tableRelationalPath);
+    		} else {
+    			Predicate whereExp = (Predicate) expression.expression();
+    			sqlCountSelectQuery = sqlQueryFactory.select(Expressions.as(ExpressionUtils.count(Wildcard.all), "TOTAL")).from(tableRelationalPath).where(whereExp);
+    		}
 
     		try {
                 queryStr = sqlCountSelectQuery.getSQL().getSQL();

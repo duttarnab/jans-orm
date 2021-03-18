@@ -800,7 +800,9 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 
     @Override
 	protected Filter addObjectClassFilter(Filter filter, String[] objectClasses) {
-		if (objectClasses.length == 0) {
+    	return filter;
+/*
+    	if (objectClasses.length == 0) {
 			return filter;
 		}
 		
@@ -811,6 +813,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 		}
 
 		return searchFilter;
+*/
 	}
 
     private static final class CountBatchOperation<T> extends DefaultBatchOperation<T> {

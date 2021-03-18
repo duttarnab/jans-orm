@@ -88,6 +88,10 @@ public class SqlFilterConverter {
 
 	private ConvertedExpression convertToSqlFilterImpl(Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap,
 			Map<String, Class<?>> jsonAttributes, Function<? super Filter, Boolean> processor, boolean skipAlias) throws SearchException {
+		if (genericFilter == null) {
+			return null;
+		}
+
 		Filter currentGenericFilter = genericFilter;
 
         FilterType type = currentGenericFilter.getType();
