@@ -7,7 +7,6 @@
 package io.jans.orm.sql.impl;
 
 import java.io.Serializable;
-import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -32,7 +31,6 @@ import io.jans.orm.exception.AuthenticationException;
 import io.jans.orm.exception.EntryDeleteException;
 import io.jans.orm.exception.EntryPersistenceException;
 import io.jans.orm.exception.MappingException;
-import io.jans.orm.exception.operation.EntryNotFoundException;
 import io.jans.orm.exception.operation.SearchException;
 import io.jans.orm.impl.BaseEntryManager;
 import io.jans.orm.impl.GenericKeyConverter;
