@@ -11,6 +11,7 @@ import java.util.Properties;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import io.jans.orm.PersistenceEntryManager;
 import io.jans.orm.PersistenceEntryManagerFactory;
 import io.jans.orm.exception.operation.ConfigurationException;
 import io.jans.orm.ldap.operation.impl.LdapAuthConnectionProvider;
@@ -29,7 +30,7 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class LdapEntryManagerFactory implements PersistenceEntryManagerFactory {
 
-    public static final String PERSISTENCE_TYPE = "ldap";
+    public static final String PERSISTENCE_TYPE = PersistenceEntryManager.PERSITENCE_TYPES.ldap.name();
     public static final String LDAP_DEFAULT_PROPERTIES_FILE = "jans-ldap.properties";
 
 	private static final Logger LOG = LoggerFactory.getLogger(LdapEntryManagerFactory.class);

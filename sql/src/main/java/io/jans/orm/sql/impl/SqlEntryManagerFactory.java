@@ -16,6 +16,7 @@ import javax.enterprise.context.ApplicationScoped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.jans.orm.PersistenceEntryManager;
 import io.jans.orm.PersistenceEntryManagerFactory;
 import io.jans.orm.exception.operation.ConfigurationException;
 import io.jans.orm.service.BaseFactoryService;
@@ -31,7 +32,7 @@ import io.jans.orm.util.PropertiesHelper;
 @ApplicationScoped
 public class SqlEntryManagerFactory implements PersistenceEntryManagerFactory {
 
-    public static final String PERSISTENCE_TYPE = "sql";
+    public static final String PERSISTENCE_TYPE = PersistenceEntryManager.PERSITENCE_TYPES.sql.name();
     public static final String SQL_DEFAULT_PROPERTIES_FILE = "jans-sql.properties";
 
 	private static final Logger LOG = LoggerFactory.getLogger(SqlEntryManagerFactory.class);

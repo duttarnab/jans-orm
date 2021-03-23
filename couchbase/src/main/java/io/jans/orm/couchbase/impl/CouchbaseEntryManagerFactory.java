@@ -11,6 +11,7 @@ import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import io.jans.orm.couchbase.operation.impl.CouchbaseConnectionProvider;
 import io.jans.orm.couchbase.operation.impl.CouchbaseOperationServiceImpl;
 import io.jans.orm.service.BaseFactoryService;
+import io.jans.orm.PersistenceEntryManager;
 import io.jans.orm.PersistenceEntryManagerFactory;
 import io.jans.orm.exception.operation.ConfigurationException;
 import io.jans.orm.util.PropertiesHelper;
@@ -35,7 +36,7 @@ public class CouchbaseEntryManagerFactory extends Initializable implements Persi
 
     private static final Logger LOG = LoggerFactory.getLogger(CouchbaseEntryManagerFactory.class);
 
-    public static final String PERSISTENCE_TYPE = "couchbase";
+    public static final String PERSISTENCE_TYPE = PersistenceEntryManager.PERSITENCE_TYPES.couchbase.name();
 
     private DefaultCouchbaseEnvironment.Builder builder;
     private CouchbaseEnvironment couchbaseEnvironment;

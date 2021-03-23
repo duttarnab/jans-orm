@@ -19,7 +19,7 @@ import io.jans.orm.exception.operation.SearchException;
  */
 public interface PersistenceOperationService {
 
-    boolean isConnected();
+	boolean isConnected();
 
     boolean authenticate(String key, String password, String objectClass) throws ConnectionException, SearchException, AuthenticationException, EntryConvertationException;
 

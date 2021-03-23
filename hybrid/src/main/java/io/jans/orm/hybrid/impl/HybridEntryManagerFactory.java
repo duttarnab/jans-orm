@@ -51,7 +51,7 @@ public class HybridEntryManagerFactory implements PersistenceEntryManagerFactory
 	public static final String BASE_DIR;
 	public static final String DIR = BASE_DIR + File.separator + "conf" + File.separator;
 
-    public static final String PERSISTENCE_TYPE = "hybrid";
+    public static final String PERSISTENCE_TYPE = PersistenceEntryManager.PERSITENCE_TYPES.hybrid.name();
     public static final String PROPERTIES_FILE = "jans-hybrid.properties";
 
 	private static final Logger LOG = LoggerFactory.getLogger(HybridEntryManagerFactory.class);
