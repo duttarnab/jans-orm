@@ -162,7 +162,7 @@ public class SqlFilterConverter {
                     	Filter lastEqFilter = null;
                 		for (Filter eqFilter : joinOrFilters) {
                 			lastEqFilter = eqFilter;
-                			rightObjs.add(eqFilter.getAssertionValue());
+                			rightObjs.add(buildTypedExpression(eqFilter));
             			}
                 		
                 		String internalAttributeName = toInternalAttribute(joinOrAttributeName);
@@ -362,14 +362,22 @@ public class SqlFilterConverter {
 
 	private Expression buildTypedExpression(Filter filter) throws SearchException {
 		if (Boolean.TRUE.equals(filter.getMultiValued())) {
-			if (filter.getAssertionValue() instanceof Date) {
+			Object assertionValue = filter.getAssertionValue();
+			if (assertionValue instanceof AttributeEnum) {
+				assertionValue = ((AttributeEnum) assertionValue).getValue();
+			} else if (assertionValue instanceof Date) {
 		        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(JSON_DATA_FORMAT);
-		        return Expressions.constant(convertValueToJson(Arrays.asList(jsonDateFormat.format(filter.getAssertionValue()))));
+		        assertionValue = jsonDateFormat.format(filter.getAssertionValue());
 			}
 	
-			return Expressions.constant(convertValueToJson(Arrays.asList(filter.getAssertionValue())));
+	        return Expressions.constant(convertValueToJson(Arrays.asList(assertionValue)));
 		} else {
-			return Expressions.constant(filter.getAssertionValue());
+			Object assertionValue = filter.getAssertionValue();
+			if (assertionValue instanceof AttributeEnum) {
+				assertionValue = ((AttributeEnum) assertionValue).getValue();
+			}
+
+			return Expressions.constant(assertionValue);
 		}
 	}
 
