@@ -66,6 +66,14 @@ public class Filter {
         this.subFinal = subFinal;
     }
 
+    public Filter(FilterType type, Filter filter, String subInitial, String[] subAny, String subFinal) {
+        this(type);
+        this.filters = new Filter[] { filter };
+        this.subInitial = subInitial;
+        this.subAny = subAny;
+        this.subFinal = subFinal;
+    }
+
 	/*
      * This method force filter to use specific syntax. It's not useful when we need
      * to support different persistent mechanisms
@@ -110,6 +118,11 @@ public class Filter {
     public static Filter createSubstringFilter(final String attributeName, final String subInitial,
             final String[] subAny, final String subFinal) {
         return new Filter(FilterType.SUBSTRING, attributeName, subInitial, subAny, subFinal);
+    }
+
+    public static Filter createSubstringFilter(final Filter filter, final String subInitial,
+            final String[] subAny, final String subFinal) {
+        return new Filter(FilterType.SUBSTRING, filter, subInitial, subAny, subFinal);
     }
 
     public static Filter createORFilter(final Filter... filters) {
