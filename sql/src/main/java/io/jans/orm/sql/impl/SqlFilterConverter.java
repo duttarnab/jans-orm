@@ -162,7 +162,12 @@ public class SqlFilterConverter {
                     	Filter lastEqFilter = null;
                 		for (Filter eqFilter : joinOrFilters) {
                 			lastEqFilter = eqFilter;
-                			rightObjs.add(buildTypedExpression(eqFilter));
+
+                			Object assertionValue = eqFilter.getAssertionValue();
+                			if (assertionValue instanceof AttributeEnum) {
+                				assertionValue = ((AttributeEnum) assertionValue).getValue();
+                			}
+                			rightObjs.add(assertionValue);
             			}
                 		
                 		String internalAttributeName = toInternalAttribute(joinOrAttributeName);
