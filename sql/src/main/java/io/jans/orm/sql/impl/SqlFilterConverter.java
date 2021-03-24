@@ -170,7 +170,6 @@ public class SqlFilterConverter {
                 			rightObjs.add(assertionValue);
             			}
                 		
-                		String internalAttributeName = toInternalAttribute(joinOrAttributeName);
                 		return ConvertedExpression.build(ExpressionUtils.in(buildTypedPath(lastEqFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias), rightObjs), jsonAttributes);
                 	} else {
                         return ConvertedExpression.build(ExpressionUtils.anyOf(expFilters), jsonAttributes);
@@ -452,26 +451,6 @@ public class SqlFilterConverter {
 		boolean isMultiValued = parameterType.equals(Object[].class) || parameterType.equals(String[].class) || ReflectHelper.assignableFrom(parameterType, List.class) || ReflectHelper.assignableFrom(parameterType, AttributeEnum[].class);
 		
 		return isMultiValued;
-	}
-
-	private boolean isRequiredConsistency(Filter filter, Map<String, PropertyAnnotation> propertiesAnnotationsMap) {
-		if (propertiesAnnotationsMap == null) {
-			return false;
-		}
-
-		String attributeName = filter.getAttributeName();
-    	PropertyAnnotation propertyAnnotation = propertiesAnnotationsMap.get(attributeName);
-		if ((propertyAnnotation == null) || (propertyAnnotation.getParameterType() == null)) {
-			return false;
-		}
-		AttributeName attributeNameAnnotation = (AttributeName) ReflectHelper.getAnnotationByType(propertyAnnotation.getAnnotations(),
-				AttributeName.class);
-		
-		if (attributeNameAnnotation.consistency()) {
-			return true;
-		}
-
-		return false;
 	}
 
 	protected String convertValueToJson(Object propertyValue) throws SearchException {

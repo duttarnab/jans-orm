@@ -325,6 +325,33 @@ public class SqlFilterConverterTest {
 	}
 
 	@Test
+	public void checkMultivaluedSubWithLowerFilters() throws SearchException {
+		Filter filterSub1 = Filter.createSubstringFilter(Filter.createLowercaseFilter("uid"), null, new String[] { "test" }, null).multiValued();
+		ConvertedExpression expressionSub1 = simpleConverter.convertToSqlFilter(filterSub1, null, null);
+
+		String querySub1 = toSelectSQL(expressionSub1);
+		assertEquals(querySub1, "select doc.`*` from `table` as doc where lower(doc.uid)->'$.v[0]' like '%test%'");
+
+		Filter filterSub2 = Filter.createSubstringFilter(Filter.createLowercaseFilter("uid"), "a", new String[] { "test" }, null).multiValued();
+		ConvertedExpression expressionSub2 = simpleConverter.convertToSqlFilter(filterSub2, null, null);
+
+		String querySub2 = toSelectSQL(expressionSub2);
+		assertEquals(querySub2, "select doc.`*` from `table` as doc where lower(doc.uid)->'$.v[0]' like 'a%test%'");
+
+		Filter filterSub3 = Filter.createSubstringFilter(Filter.createLowercaseFilter("uid"), null, new String[] { "test" }, "z").multiValued();
+		ConvertedExpression expressionSub3 = simpleConverter.convertToSqlFilter(filterSub3, null, null);
+
+		String querySub3 = toSelectSQL(expressionSub3);
+		assertEquals(querySub3, "select doc.`*` from `table` as doc where lower(doc.uid)->'$.v[0]' like '%test%z'");
+
+		Filter filterSub4 = Filter.createSubstringFilter(Filter.createLowercaseFilter("uid"), null, new String[] { "test" }, "z").multiValued(3);
+		ConvertedExpression expressionSub4 = simpleConverter.convertToSqlFilter(filterSub4, null, null);
+
+		String querySub4 = toSelectSQL(expressionSub4);
+		assertEquals(querySub4, "select doc.`*` from `table` as doc where lower(doc.uid)->'$.v[0]' like '%test%z' or lower(doc.uid)->'$.v[1]' like '%test%z' or lower(doc.uid)->'$.v[2]' like '%test%z'");
+	}
+
+	@Test
 	public void checkLowerFilters() throws SearchException {
 		Filter userUidFilter1 = Filter.createEqualityFilter(Filter.createLowercaseFilter("uid"), "test");
 

@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.query.dsl.Expression;
 import com.couchbase.client.java.query.dsl.functions.Collections;
+import com.couchbase.client.java.query.dsl.functions.Collections.SatisfiesBuilder;
 import com.couchbase.client.java.query.dsl.functions.StringFunctions;
 
 import io.jans.orm.annotation.AttributeEnum;
@@ -29,6 +30,7 @@ import io.jans.orm.reflect.util.ReflectHelper;
 import io.jans.orm.search.filter.Filter;
 import io.jans.orm.search.filter.FilterType;
 import io.jans.orm.util.ArrayHelper;
+import io.jans.orm.util.Pair;
 import io.jans.orm.util.StringHelper;
 
 /**
@@ -132,12 +134,15 @@ public class CouchbaseFilterConverter {
 
                     if (canJoinOrFilters) {
                 		JsonArray jsonArrayValues = JsonArray.create();
+                    	Filter lastEqFilter = null;
                 		for (Filter eqFilter : joinOrFilters) {
+                			lastEqFilter = eqFilter;
+
                 			jsonArrayValues.add(eqFilter.getAssertionValue());
             			}
-                		String internalAttributeName = toInternalAttribute(joinOrAttributeName);
-                        Expression exp = Expression
-                                .par(Expression.path(Expression.path(internalAttributeName)).in(jsonArrayValues));
+
+                		Expression exp = Expression
+                                .par(buildPath(lastEqFilter, propertiesAnnotationsMap, processor).getFirst().in(jsonArrayValues));
                         return ConvertedExpression.build(exp, requiredConsistency);
                 	} else {
 	                    Expression result = expFilters[0].expression();
@@ -156,33 +161,17 @@ public class CouchbaseFilterConverter {
         	Boolean isMultiValuedDetected = determineMultiValuedByType(currentGenericFilter.getAttributeName(), propertiesAnnotationsMap);
 
         	String internalAttribute = toInternalAttribute(currentGenericFilter);
+			Pair<Expression, Expression> pairExpression = buildPath(currentGenericFilter, propertiesAnnotationsMap, processor);
     		if (Boolean.TRUE.equals(currentGenericFilter.getMultiValued()) || Boolean.TRUE.equals(isMultiValuedDetected)) {
-            	if (hasSubFilters) {
-            		Filter clonedFilter = currentGenericFilter.getFilters()[0];
-            		clonedFilter.setAttributeName(internalAttribute + "_");
-
-            		ConvertedExpression nameConvertedExpression = convertToCouchbaseFilter(clonedFilter, propertiesAnnotationsMap, processor);
-                	return ConvertedExpression.build(Collections.anyIn(internalAttribute + "_", Expression.path(Expression.path(internalAttribute))).satisfies(nameConvertedExpression.expression().eq(buildTypedExpression(currentGenericFilter))), requiredConsistency);
-            	}
-
-            	return ConvertedExpression.build(Collections.anyIn(internalAttribute + "_", Expression.path(Expression.path(internalAttribute))).satisfies(Expression.path(Expression.path(internalAttribute + "_").eq(buildTypedExpression(currentGenericFilter)))), requiredConsistency);
-            } else if (Boolean.FALSE.equals(currentGenericFilter.getMultiValued()) || Boolean.FALSE.equals(isMultiValuedDetected)) {
-            	if (hasSubFilters) {
-            		ConvertedExpression nameConvertedExpression = convertToCouchbaseFilter(currentGenericFilter.getFilters()[0], propertiesAnnotationsMap, processor);
-                	return ConvertedExpression.build(nameConvertedExpression.expression().eq(buildTypedExpression(currentGenericFilter)), requiredConsistency);
-            	}
-            	return ConvertedExpression.build(Expression.path(Expression.path(toInternalAttribute(currentGenericFilter))).eq(buildTypedExpression(currentGenericFilter)), requiredConsistency);
-            } else if (hasSubFilters && (isMultiValuedDetected == null)) {
-        		ConvertedExpression nameConvertedExpression = convertToCouchbaseFilter(currentGenericFilter.getFilters()[0], propertiesAnnotationsMap, processor);
-            	return ConvertedExpression.build(nameConvertedExpression.expression().eq(buildTypedExpression(currentGenericFilter)), nameConvertedExpression.consistency() || requiredConsistency);
+            	return ConvertedExpression.build(
+            			Collections.anyIn(internalAttribute + "_", pairExpression.getFirst()).
+            			satisfies(pairExpression.getSecond().eq(buildTypedExpression(currentGenericFilter))),
+            			requiredConsistency);
+            } else if (Boolean.FALSE.equals(currentGenericFilter.getMultiValued()) || Boolean.FALSE.equals(isMultiValuedDetected) ||
+            			(hasSubFilters && (isMultiValuedDetected == null))) {
+            	return ConvertedExpression.build(pairExpression.getSecond().eq(buildTypedExpression(currentGenericFilter)), requiredConsistency);
             } else {
-            	Expression nameExpression;
-            	if (hasSubFilters) {
-            		ConvertedExpression nameConvertedExpression = convertToCouchbaseFilter(currentGenericFilter.getFilters()[0], propertiesAnnotationsMap, processor);
-            		nameExpression = nameConvertedExpression.expression();
-            	} else {
-            		nameExpression = Expression.path(toInternalAttribute(currentGenericFilter));
-            	}
+            	Expression nameExpression = pairExpression.getSecond();
                 Expression exp1 = Expression
                         .par(Expression.path(nameExpression).eq(buildTypedExpression(currentGenericFilter)));
                 Expression exp2 = Expression
@@ -193,28 +182,40 @@ public class CouchbaseFilterConverter {
 
         if (FilterType.LESS_OR_EQUAL == type) {
         	String internalAttribute = toInternalAttribute(currentGenericFilter);
+			Pair<Expression, Expression> pairExpression = buildPath(currentGenericFilter, propertiesAnnotationsMap, processor);
             if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
-            	return ConvertedExpression.build(Collections.anyIn(internalAttribute + "_", Expression.path(Expression.path(internalAttribute))).satisfies(Expression.path(Expression.path(internalAttribute + "_")).lte(buildTypedExpression(currentGenericFilter))), requiredConsistency);
+            	return ConvertedExpression.build(
+            			Collections.anyIn(internalAttribute + "_", pairExpression.getFirst()).
+            			satisfies(pairExpression.getSecond().lte(buildTypedExpression(currentGenericFilter))),
+            			requiredConsistency);
             } else {
-            	return ConvertedExpression.build(Expression.path(Expression.path(internalAttribute)).lte(buildTypedExpression(currentGenericFilter)), requiredConsistency);
+            	return ConvertedExpression.build(pairExpression.getSecond().lte(buildTypedExpression(currentGenericFilter)), requiredConsistency);
             }
         }
 
         if (FilterType.GREATER_OR_EQUAL == type) {
         	String internalAttribute = toInternalAttribute(currentGenericFilter);
+			Pair<Expression, Expression> pairExpression = buildPath(currentGenericFilter, propertiesAnnotationsMap, processor);
             if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
-            	return ConvertedExpression.build(Collections.anyIn(internalAttribute + "_", Expression.path(Expression.path(internalAttribute))).satisfies(Expression.path(Expression.path(internalAttribute + "_")).gte(buildTypedExpression(currentGenericFilter))), requiredConsistency);
+            	return ConvertedExpression.build(
+            			Collections.anyIn(internalAttribute + "_", pairExpression.getFirst()).
+            			satisfies(pairExpression.getSecond().gte(buildTypedExpression(currentGenericFilter))),
+            			requiredConsistency);
             } else {
-            	return ConvertedExpression.build(Expression.path(Expression.path(internalAttribute)).gte(buildTypedExpression(currentGenericFilter)), requiredConsistency);
+            	return ConvertedExpression.build(pairExpression.getSecond().gte(buildTypedExpression(currentGenericFilter)), requiredConsistency);
             }
         }
 
         if (FilterType.PRESENCE == type) {
         	String internalAttribute = toInternalAttribute(currentGenericFilter);
+			Pair<Expression, Expression> pairExpression = buildPath(currentGenericFilter, propertiesAnnotationsMap, processor);
             if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
-            	return ConvertedExpression.build(Collections.anyIn(internalAttribute + "_", Expression.path(Expression.path(internalAttribute))).satisfies(Expression.path(Expression.path(internalAttribute + "_")).isNotMissing()), requiredConsistency);
+            	return ConvertedExpression.build(
+            			Collections.anyIn(internalAttribute + "_", pairExpression.getFirst()).
+            			satisfies(pairExpression.getSecond().isNotMissing()),
+            			requiredConsistency);
             } else {
-            	return ConvertedExpression.build(Expression.path(Expression.path(internalAttribute)).isNotMissing(), requiredConsistency);
+            	return ConvertedExpression.build(pairExpression.getSecond().isNotMissing(), requiredConsistency);
             }
         }
 
@@ -241,10 +242,14 @@ public class CouchbaseFilterConverter {
                 like.append(currentGenericFilter.getSubFinal());
             }
         	String internalAttribute = toInternalAttribute(currentGenericFilter);
+			Pair<Expression, Expression> pairExpression = buildPath(currentGenericFilter, propertiesAnnotationsMap, processor);
             if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
-            	return ConvertedExpression.build(Collections.anyIn(internalAttribute + "_", Expression.path(Expression.path(toInternalAttribute(currentGenericFilter)))).satisfies(Expression.path(Expression.path(internalAttribute + "_")).like(Expression.s(escapeValue(like.toString())))), requiredConsistency);
+            	return ConvertedExpression.build(
+            			Collections.anyIn(internalAttribute + "_", pairExpression.getFirst()).
+            			satisfies(pairExpression.getSecond().like(Expression.s(escapeValue(like.toString())))),
+            			requiredConsistency);
             } else {
-            	return ConvertedExpression.build(Expression.path(Expression.path(internalAttribute).like(Expression.s(escapeValue(like.toString())))), requiredConsistency);
+            	return ConvertedExpression.build(pairExpression.getSecond().like(Expression.s(escapeValue(like.toString()))), requiredConsistency);
             }
         }
 
@@ -298,6 +303,35 @@ public class CouchbaseFilterConverter {
 		}
 
 		return Expression.s(escapeValue(currentGenericFilter.getAssertionValue()));
+	}
+
+	private Pair<Expression, Expression> buildPath(Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap, Function<? super Filter, Boolean> processor) throws SearchException {
+		boolean hasSubFilters = ArrayHelper.isNotEmpty(genericFilter.getFilters());
+		boolean isMultiValue = isMultiValue(genericFilter, propertiesAnnotationsMap);
+		String internalAttribute = toInternalAttribute(genericFilter);
+
+		Expression expression = Expression.path(Expression.path(internalAttribute));
+		Expression innerExpression = null;
+		if (isMultiValue) {
+			expression = Expression.path(Expression.path(internalAttribute));
+			innerExpression = null;
+			if (hasSubFilters) {
+	    		Filter clonedFilter = genericFilter.getFilters()[0].clone();
+	    		clonedFilter.setAttributeName(internalAttribute + "_");
+	
+	    		innerExpression = convertToCouchbaseFilter(clonedFilter, propertiesAnnotationsMap, processor).expression();
+			} else {
+				innerExpression = Expression.path(Expression.path(internalAttribute + "_"));
+			}
+		} else {
+			if (hasSubFilters) {
+				innerExpression = convertToCouchbaseFilter(genericFilter.getFilters()[0], propertiesAnnotationsMap, processor).expression();
+			} else {
+				innerExpression = Expression.path(Expression.path(internalAttribute));
+			}
+		}
+		
+		return new Pair<>(expression, innerExpression);
 	}
 
 	private Boolean determineMultiValuedByType(String attributeName, Map<String, PropertyAnnotation> propertiesAnnotationsMap) {

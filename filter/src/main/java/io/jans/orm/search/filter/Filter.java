@@ -230,7 +230,7 @@ public class Filter {
     }
 
     @Override
-	protected Filter clone() {
+	public Filter clone() {
     	Filter clonedFilter = new Filter(type);
 
     	clonedFilter.filters = this.filters;
