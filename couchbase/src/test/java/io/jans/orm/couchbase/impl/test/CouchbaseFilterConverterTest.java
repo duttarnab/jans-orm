@@ -449,6 +449,30 @@ public class CouchbaseFilterConverterTest {
 		assertEquals(queryOr2, "SELECT jans_doc.* FROM `jans` AS jans_doc WHERE ( ( ( uid = \"test\" ) OR ( \"test\" IN uid ) ) OR ( ( uid = \"test2\" ) OR ( \"test2\" IN uid ) ) OR ( ( uid = \"test3\" ) OR ( \"test3\" IN uid ) ) )");
 	}
 
+	@Test
+	public void checkOrWithLowerCaseFilter() throws SearchException {
+        boolean useLowercaseFilter = true;
+
+        String[] targetArray = new String[] { "test_value" };
+
+        Filter descriptionFilter, displayNameFilter;
+		if (useLowercaseFilter) {
+			descriptionFilter = Filter.createSubstringFilter(Filter.createLowercaseFilter("description"), null, targetArray, null);
+			displayNameFilter = Filter.createSubstringFilter(Filter.createLowercaseFilter("displayName"), null, targetArray, null);
+		} else {
+			descriptionFilter = Filter.createSubstringFilter("description", null, targetArray, null);
+			displayNameFilter = Filter.createSubstringFilter("displayName", null, targetArray, null);
+		}
+
+		Filter searchFilter = Filter.createORFilter(descriptionFilter, displayNameFilter);
+		Filter typeFilter = Filter.createEqualityFilter("jansScrTyp", "person_authentication");
+        Filter filter = Filter.createANDFilter(searchFilter, typeFilter);
+        
+		ConvertedExpression expression = simpleConverter.convertToCouchbaseFilter(filter, null, null);
+		String query = toSelectSQL(expression);
+		assertEquals(query, "SELECT jans_doc.* FROM `jans` AS jans_doc WHERE ( ( LOWER(description) LIKE \"%test_value%\" OR LOWER(displayName) LIKE \"%test_value%\" ) AND ( ( jansScrTyp = \"person_authentication\" ) OR ( \"person_authentication\" IN jansScrTyp ) ) )");
+	}
+
 	private String toSelectSQL(ConvertedExpression convertedExpression) {
 		GroupByPath select = Select.select("jans_doc.*").from(Expression.i("jans")).as("jans_doc").where(convertedExpression.expression());
 

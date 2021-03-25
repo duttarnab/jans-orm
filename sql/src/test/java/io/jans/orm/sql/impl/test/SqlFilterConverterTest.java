@@ -431,6 +431,30 @@ public class SqlFilterConverterTest {
 		assertEquals(queryOr2, "select doc.`*` from `table` as doc where doc.uid = 'test' or doc.uid = 'test2' or doc.uid = 'test3'");
 	}
 
+	@Test
+	public void checkOrWithLowerCaseFilter() throws SearchException {
+        boolean useLowercaseFilter = true;
+
+        String[] targetArray = new String[] { "test_value" };
+
+        Filter descriptionFilter, displayNameFilter;
+		if (useLowercaseFilter) {
+			descriptionFilter = Filter.createSubstringFilter(Filter.createLowercaseFilter("description"), null, targetArray, null);
+			displayNameFilter = Filter.createSubstringFilter(Filter.createLowercaseFilter("displayName"), null, targetArray, null);
+		} else {
+			descriptionFilter = Filter.createSubstringFilter("description", null, targetArray, null);
+			displayNameFilter = Filter.createSubstringFilter("displayName", null, targetArray, null);
+		}
+
+		Filter searchFilter = Filter.createORFilter(descriptionFilter, displayNameFilter);
+		Filter typeFilter = Filter.createEqualityFilter("jansScrTyp", "person_authentication");
+        Filter filter = Filter.createANDFilter(searchFilter, typeFilter);
+        
+		ConvertedExpression expression = simpleConverter.convertToSqlFilter(filter, null, null);
+		String query = toSelectSQL(expression);
+		assertEquals(query, "select doc.`*` from `table` as doc where (lower(doc.description) like '%test_value%' or lower(doc.displayName) like '%test_value%') and doc.jansScrTyp = 'person_authentication'");
+	}
+
 	private String toSelectSQL(ConvertedExpression convertedExpression) {
 		SQLQuery sqlQuery = (SQLQuery) new SQLQuery(configuration).select(allPath).from(tableAlieasPath)
 				.where((Predicate) convertedExpression.expression());
