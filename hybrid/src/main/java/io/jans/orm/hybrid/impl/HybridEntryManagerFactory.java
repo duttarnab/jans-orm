@@ -74,7 +74,7 @@ public class HybridEntryManagerFactory implements PersistenceEntryManagerFactory
 
     	HashMap<String, String> confs = new HashMap<String, String>();
     	String confFileName = String.format(PROPERTIES_FILE, usedAlias);
-    	confs.put(PERSISTENCE_TYPE, confFileName);
+    	confs.put(PERSISTENCE_TYPE + usedAlias, confFileName);
 
     	HashMap<String, String> allConfs = getAllConfigurationFileNames(alias, confFileName);
     	confs.putAll(allConfs);
