@@ -19,6 +19,8 @@ import io.jans.orm.ldap.operation.impl.LdapConnectionProvider;
 import io.jans.orm.ldap.operation.impl.LdapOperationServiceImpl;
 import io.jans.orm.service.BaseFactoryService;
 import io.jans.orm.util.PropertiesHelper;
+import io.jans.orm.util.StringHelper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +34,7 @@ public class LdapEntryManagerFactory implements PersistenceEntryManagerFactory {
 
     public static final String PERSISTENCE_TYPE = PersistenceEntryManager.PERSITENCE_TYPES.ldap.name();
     public static final String LDAP_DEFAULT_PROPERTIES_FILE = "jans-ldap.properties";
+    public static final String PROPERTIES_FILE = "jans-ldap%s.properties";
 
 	private static final Logger LOG = LoggerFactory.getLogger(LdapEntryManagerFactory.class);
 
@@ -41,16 +44,19 @@ public class LdapEntryManagerFactory implements PersistenceEntryManagerFactory {
     }
 
     @Override
-    public HashMap<String, String> getConfigurationFileNames() {
+    public HashMap<String, String> getConfigurationFileNames(String alias) {
+    	String usedAlias = StringHelper.isEmpty(alias) ? "" : "." + alias; 
+
     	HashMap<String, String> confs = new HashMap<String, String>();
-    	confs.put(PERSISTENCE_TYPE, LDAP_DEFAULT_PROPERTIES_FILE);
+    	String confFileName = String.format(PROPERTIES_FILE, usedAlias);
+    	confs.put(PERSISTENCE_TYPE + usedAlias, confFileName);
 
     	return confs;
     }
 
 	@Override
     public LdapEntryManager createEntryManager(Properties conf) {
-		Properties entryManagerConf = PropertiesHelper.filterProperties(conf, PERSISTENCE_TYPE);
+		Properties entryManagerConf = PropertiesHelper.filterProperties(conf, "#");
 
 		LdapConnectionProvider connectionProvider = new LdapConnectionProvider(entryManagerConf);
 		connectionProvider.create();

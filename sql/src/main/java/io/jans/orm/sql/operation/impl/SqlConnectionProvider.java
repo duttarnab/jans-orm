@@ -115,7 +115,7 @@ public class SqlConnectionProvider {
         }
         this.connectionUri = props.getProperty("connection.uri");
 
-		Properties filteredDriverProperties = PropertiesHelper.findProperties(props, DRIVER_PROPERTIES_PREFIX);
+		Properties filteredDriverProperties = PropertiesHelper.findProperties(props, DRIVER_PROPERTIES_PREFIX, ".");
         this.connectionProperties = new Properties();
 		for (Entry<Object, Object> driverPropertyEntry : filteredDriverProperties.entrySet()) {
 			String key = StringHelper.toString(driverPropertyEntry.getKey()).substring(DRIVER_PROPERTIES_PREFIX.length() + 1);

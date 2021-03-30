@@ -23,6 +23,7 @@ import io.jans.orm.service.BaseFactoryService;
 import io.jans.orm.sql.operation.impl.SqlConnectionProvider;
 import io.jans.orm.sql.operation.impl.SqlOperationServiceImpl;
 import io.jans.orm.util.PropertiesHelper;
+import io.jans.orm.util.StringHelper;
 
 /**
  * Couchbase Entry Manager Factory
@@ -33,7 +34,7 @@ import io.jans.orm.util.PropertiesHelper;
 public class SqlEntryManagerFactory implements PersistenceEntryManagerFactory {
 
     public static final String PERSISTENCE_TYPE = PersistenceEntryManager.PERSITENCE_TYPES.sql.name();
-    public static final String SQL_DEFAULT_PROPERTIES_FILE = "jans-sql.properties";
+    public static final String PROPERTIES_FILE = "jans-sql%s.properties";
 
 	private static final Logger LOG = LoggerFactory.getLogger(SqlEntryManagerFactory.class);
 
@@ -51,16 +52,19 @@ public class SqlEntryManagerFactory implements PersistenceEntryManagerFactory {
     }
 
     @Override
-    public HashMap<String, String> getConfigurationFileNames() {
+    public HashMap<String, String> getConfigurationFileNames(String alias) {
+    	String usedAlias = StringHelper.isEmpty(alias) ? "" : "." + alias; 
+
     	HashMap<String, String> confs = new HashMap<String, String>();
-    	confs.put(PERSISTENCE_TYPE, SQL_DEFAULT_PROPERTIES_FILE);
+    	String confFileName = String.format(PROPERTIES_FILE, usedAlias);
+    	confs.put(PERSISTENCE_TYPE + usedAlias, confFileName);
 
     	return confs;
     }
 
 	@Override
     public SqlEntryManager createEntryManager(Properties conf) {
-		Properties entryManagerConf = PropertiesHelper.filterProperties(conf, PERSISTENCE_TYPE);
+		Properties entryManagerConf = PropertiesHelper.filterProperties(conf, "#");
 
 		SqlConnectionProvider connectionProvider = new SqlConnectionProvider(entryManagerConf);
         connectionProvider.create();

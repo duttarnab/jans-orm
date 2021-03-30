@@ -15,18 +15,16 @@ import java.util.Properties;
  */
 public final class PropertiesHelper {
 
-    public static Properties filterProperties(Properties conf, String prefix) {
-    	String findKey = prefix + ".";
-    	int findKeyLength = findKey.length();
-
+    public static Properties filterProperties(Properties conf, String splitter) {
     	Properties resultConf = new Properties();
 
     	Iterator<?> keys = conf.keySet().iterator();
         while (keys.hasNext()) {
             String key = (String) keys.next();
             
-            if (key.startsWith(findKey)) {
-                String resultKey = key.substring(findKeyLength);
+            int index = key.indexOf(splitter);
+            if ((index > 0) && (index < key.length() - 1)) {
+        		String resultKey = key.substring(index + 1);
                 String value = (String) conf.getProperty(key);
 
                 resultConf.put(resultKey, value);
@@ -36,8 +34,8 @@ public final class PropertiesHelper {
         return resultConf;
     }
 
-    public static Properties findProperties(Properties conf, String prefix) {
-    	String findKey = prefix + ".";
+    public static Properties findProperties(Properties conf, String prefix, String splitter) {
+    	String findKey = prefix + splitter;
 
     	Properties resultConf = new Properties();
 
@@ -55,8 +53,8 @@ public final class PropertiesHelper {
         return resultConf;
     }
 
-    public static Properties appendPrefix(Properties conf, String prefix) {
-    	String appendToKey = prefix + ".";
+    public static Properties appendPrefix(Properties conf, String prefix, String splitter) {
+    	String appendToKey = prefix + splitter;
 
     	Properties resultConf = new Properties();
 

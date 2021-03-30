@@ -22,7 +22,7 @@ public interface PersistenceEntryManagerFactory {
 
     String getPersistenceType();
 
-    Map<String, String> getConfigurationFileNames();
+    Map<String, String> getConfigurationFileNames(String alias);
 
     PersistenceEntryManager createEntryManager(Properties conf);
 

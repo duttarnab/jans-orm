@@ -23,6 +23,10 @@ public interface BaseFactoryService {
 
 	PersistenceEntryManagerFactory getPersistenceEntryManagerFactory(String persistenceType);
 
+	String getBasePersistenceType(String persistenceType);
+
+	String getPersistenceTypeAlias(String persistenceType);
+
 	Logger getLog();
 
 }

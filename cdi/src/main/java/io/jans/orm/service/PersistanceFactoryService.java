@@ -75,7 +75,7 @@ public class PersistanceFactoryService implements BaseFactoryService {
 			getLog().warn("Failed to load persistence configuration. Attempting to use LDAP layer");
 			PersistenceEntryManagerFactory defaultEntryManagerFactory = getPersistenceEntryManagerFactory(LdapEntryManagerFactory.class);
 			currentPersistenceConfiguration = createPersistenceConfiguration(defaultEntryManagerFactory.getPersistenceType(), LdapEntryManagerFactory.class,
-					defaultEntryManagerFactory.getConfigurationFileNames());
+					defaultEntryManagerFactory.getConfigurationFileNames(null));
 		}
 
 		return currentPersistenceConfiguration;
@@ -102,7 +102,7 @@ public class PersistanceFactoryService implements BaseFactoryService {
 			if (PersistenceEntryManagerFactory.class.isAssignableFrom(persistenceEntryManagerFactoryType.getSuperclass())) {
 				persistenceEntryManagerFactoryType = (Class<? extends PersistenceEntryManagerFactory>) persistenceEntryManagerFactoryType.getSuperclass();
 			}
-			Map<String, String> persistenceFileNames = persistenceEntryManagerFactory.getConfigurationFileNames();
+			Map<String, String> persistenceFileNames = persistenceEntryManagerFactory.getConfigurationFileNames(null);
 
 			PersistenceConfiguration persistenceConfiguration = createPersistenceConfiguration(persistenceType, persistenceEntryManagerFactoryType,
 					persistenceFileNames);
@@ -182,7 +182,7 @@ public class PersistanceFactoryService implements BaseFactoryService {
         while (keys.hasNext()) {
             String key = (String) keys.next();
             Object value = appendConfiguration.getProperty(key);
-            mergedConfiguration.setProperty(prefix + "." + key, value);
+            mergedConfiguration.setProperty(prefix + "#" + key, value);
         }
 	}
 
@@ -216,10 +216,12 @@ public class PersistanceFactoryService implements BaseFactoryService {
 
 	@Override
 	public PersistenceEntryManagerFactory getPersistenceEntryManagerFactory(String persistenceType) {
+		String basePersistenceType = getBasePersistenceType(persistenceType);
+
 		// Get persistence entry manager factory
 		for (PersistenceEntryManagerFactory currentPersistenceEntryManagerFactory : persistenceEntryManagerFactoryInstance) {
 			log.debug("Found Persistence Entry Manager Factory with type '{}'", currentPersistenceEntryManagerFactory);
-			if (StringHelper.equalsIgnoreCase(currentPersistenceEntryManagerFactory.getPersistenceType(), persistenceType)) {
+			if (StringHelper.equalsIgnoreCase(currentPersistenceEntryManagerFactory.getPersistenceType(), basePersistenceType)) {
 				return currentPersistenceEntryManagerFactory;
 			}
 		}
@@ -236,4 +238,29 @@ public class PersistanceFactoryService implements BaseFactoryService {
 		return this.log;
 		
 	}
+
+	@Override
+	public String getBasePersistenceType(String persistenceType) {
+		if (StringHelper.isEmpty(persistenceType) || !persistenceType.contains(".")) {
+			return persistenceType;
+		}
+		
+		int index = persistenceType.indexOf(".");
+		return persistenceType.substring(0, index);
+	}
+
+	@Override
+	public String getPersistenceTypeAlias(String persistenceType) {
+		if (StringHelper.isEmpty(persistenceType) || !persistenceType.contains(".")) {
+			return null;
+		}
+		
+		int index = persistenceType.indexOf(".");
+		if (index < persistenceType.length() - 1) {
+			return persistenceType.substring(index + 1);
+		}
+
+		return null;
+	}
+
 }

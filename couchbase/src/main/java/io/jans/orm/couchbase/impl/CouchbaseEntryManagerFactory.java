@@ -37,6 +37,7 @@ public class CouchbaseEntryManagerFactory extends Initializable implements Persi
     private static final Logger LOG = LoggerFactory.getLogger(CouchbaseEntryManagerFactory.class);
 
     public static final String PERSISTENCE_TYPE = PersistenceEntryManager.PERSITENCE_TYPES.couchbase.name();
+    public static final String PROPERTIES_FILE = "jans-couchbase%s.properties";
 
     private DefaultCouchbaseEnvironment.Builder builder;
     private CouchbaseEnvironment couchbaseEnvironment;
@@ -125,9 +126,12 @@ public class CouchbaseEntryManagerFactory extends Initializable implements Persi
     }
 
     @Override
-    public HashMap<String, String> getConfigurationFileNames() {
+    public HashMap<String, String> getConfigurationFileNames(String alias) {
+    	String usedAlias = StringHelper.isEmpty(alias) ? "" : "." + alias; 
+
     	HashMap<String, String> confs = new HashMap<String, String>();
-    	confs.put(PERSISTENCE_TYPE, "jans-couchbase.properties");
+    	String confFileName = String.format(PROPERTIES_FILE, usedAlias);
+    	confs.put(PERSISTENCE_TYPE + usedAlias, confFileName);
 
     	return confs;
     }
@@ -138,7 +142,7 @@ public class CouchbaseEntryManagerFactory extends Initializable implements Persi
 
     @Override
     public CouchbaseEntryManager createEntryManager(Properties conf) {
-		Properties entryManagerConf = PropertiesHelper.filterProperties(conf, PERSISTENCE_TYPE);
+		Properties entryManagerConf = PropertiesHelper.filterProperties(conf, "#");
 
 		// Allow proper initialization
 		if (this.couchbaseConnectionProperties == null) {

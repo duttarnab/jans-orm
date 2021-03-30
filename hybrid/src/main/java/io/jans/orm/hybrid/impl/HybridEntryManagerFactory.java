@@ -52,7 +52,7 @@ public class HybridEntryManagerFactory implements PersistenceEntryManagerFactory
 	public static final String DIR = BASE_DIR + File.separator + "conf" + File.separator;
 
     public static final String PERSISTENCE_TYPE = PersistenceEntryManager.PERSITENCE_TYPES.hybrid.name();
-    public static final String PROPERTIES_FILE = "jans-hybrid.properties";
+    public static final String PROPERTIES_FILE = "jans-hybrid%s.properties";
 
 	private static final Logger LOG = LoggerFactory.getLogger(HybridEntryManagerFactory.class);
 	
@@ -69,17 +69,20 @@ public class HybridEntryManagerFactory implements PersistenceEntryManagerFactory
     }
 
     @Override
-    public HashMap<String, String> getConfigurationFileNames() {
-    	HashMap<String, String> confs = new HashMap<String, String>();
-    	confs.put(PERSISTENCE_TYPE, PROPERTIES_FILE);
+    public HashMap<String, String> getConfigurationFileNames(String alias) {
+    	String usedAlias = StringHelper.isEmpty(alias) ? "" : "-" + alias; 
 
-    	HashMap<String, String> allConfs = getAllConfigurationFileNames(PROPERTIES_FILE);
+    	HashMap<String, String> confs = new HashMap<String, String>();
+    	String confFileName = String.format(PROPERTIES_FILE, usedAlias);
+    	confs.put(PERSISTENCE_TYPE, confFileName);
+
+    	HashMap<String, String> allConfs = getAllConfigurationFileNames(alias, confFileName);
     	confs.putAll(allConfs);
 
     	return confs;
     }
 
-    private HashMap<String, String> getAllConfigurationFileNames(String confFileName) {
+    private HashMap<String, String> getAllConfigurationFileNames(String alias, String confFileName) {
     	HashMap<String, String> allConfs = new HashMap<String, String>();
 
 		FileConfiguration fileConf = new FileConfiguration(DIR + confFileName);
@@ -100,7 +103,8 @@ public class HybridEntryManagerFactory implements PersistenceEntryManagerFactory
 				throw new ConfigurationException(String.format("Unable to get Persistence Entry Manager Factory by type '%s'", persistenceType));
 			}
 			
-	    	Map<String, String> confs = persistenceEntryManagerFactory.getConfigurationFileNames();
+			String persistenceTypeAlias = persistanceFactoryService.getPersistenceTypeAlias(persistenceType);
+	    	Map<String, String> confs = persistenceEntryManagerFactory.getConfigurationFileNames(persistenceTypeAlias);
 	    	allConfs.putAll(confs);
 		}
 
@@ -109,27 +113,34 @@ public class HybridEntryManagerFactory implements PersistenceEntryManagerFactory
 
     @Override
     public HybridEntryManager createEntryManager(Properties conf) {
-    	HashMap<String, Properties> сonnectionProperties = new HashMap<String, Properties>();
-
     	HashMap<String, PersistenceEntryManager> persistenceEntryManagers = new HashMap<String, PersistenceEntryManager>();
     	List<PersistenceOperationService> operationServices = new ArrayList<PersistenceOperationService>();
 
-		for (String persistenceType : persistenceTypes) {
+    	if (persistenceTypes == null) {
+    		Properties hybridProperties = PropertiesHelper.findProperties(conf, PERSISTENCE_TYPE, "#");
+    		hybridProperties = PropertiesHelper.filterProperties(hybridProperties, "#");
+
+    		String storagesList = hybridProperties.getProperty("storages", null);
+    		if (StringHelper.isEmpty(storagesList)) {
+                throw new ConfigurationException("'storages' key not exists or value is empty!");
+    		}
+    		this.persistenceTypes = StringHelper.split(storagesList, ",");
+    	}
+
+    	for (String persistenceType : persistenceTypes) {
 			PersistenceEntryManagerFactory persistenceEntryManagerFactory = persistanceFactoryService.getPersistenceEntryManagerFactory(persistenceType);
 			if (persistenceEntryManagerFactory == null) {
 				throw new ConfigurationException(String.format("Unable to get Persistence Entry Manager Factory by type '%s'", persistenceType));
 			}
 
-			Properties entryManagerConf = PropertiesHelper.findProperties(conf, persistenceType);
+			Properties entryManagerConf = PropertiesHelper.findProperties(conf, persistenceType, "#");
     		PersistenceEntryManager persistenceEntryManager = persistenceEntryManagerFactory.createEntryManager(entryManagerConf);
     		
     		persistenceEntryManagers.put(persistenceType, persistenceEntryManager);
     		operationServices.add(persistenceEntryManager.getOperationService());
-
-    		сonnectionProperties.put(persistenceType, entryManagerConf);
     	}
 
-		this.hybridMappingProperties = PropertiesHelper.filterProperties(conf, PERSISTENCE_TYPE);
+		this.hybridMappingProperties = PropertiesHelper.filterProperties(conf, "#");
 		
 		HybridPersistenceOperationService hybridOperationService = new HybridPersistenceOperationService(operationServices);
     	
