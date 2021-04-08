@@ -88,6 +88,7 @@ public class LdapOperationServiceImpl implements LdapOperationService {
 	private PersistenceExtension persistenceExtension;
 
     private static Map<String, Class<?>> ATTRIBUTE_DATA_TYPES = new HashMap<String, Class<?>>();
+    private static List<String> OBJECT_CLASSES = new ArrayList<String>();
     private static final Map<String, Class<?>> OID_SYNTAX_CLASS_MAPPING;
 
     static {
@@ -1085,6 +1086,11 @@ public class LdapOperationServiceImpl implements LdapOperationService {
 		this.persistenceExtension = persistenceExtension;
 	}
 
+	@Override
+	public boolean isSupportObjectClass(String objectClass) {
+		return true;
+	}
+
     private class SimplePagedResponse {
 
 		private ASN1OctetString cookie;
@@ -1102,7 +1108,6 @@ public class LdapOperationServiceImpl implements LdapOperationService {
 		public SearchResult getLastSearchResult() {
 			return lastSearchResult;
 		}
-
     }
 
 }

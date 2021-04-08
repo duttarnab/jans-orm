@@ -25,4 +25,6 @@ public interface PersistenceOperationService {
 
 	public void setPersistenceExtension(PersistenceExtension persistenceExtension);
 
+	public boolean isSupportObjectClass(String objectClass);
+
 }

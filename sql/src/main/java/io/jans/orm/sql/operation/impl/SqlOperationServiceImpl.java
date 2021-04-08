@@ -314,7 +314,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
 			return rowDeleted;
         } catch (QueryException ex) {
-            throw new DeleteException(String.format("Failed to delete entries. Expression: '%s'", expression.expression()));
+            throw new DeleteException(String.format("Failed to delete entries. Expression: '%s'", expression.expression()), ex);
         }
 	}
 
@@ -716,6 +716,11 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 		this.persistenceExtension = persistenceExtension;
 	}
 
+	@Override
+	public boolean isSupportObjectClass(String objectClass) {
+		return true;
+	}
+
 	private Expression<?> buildSelectAttributes(String ... attributes) {
 		if (ArrayHelper.isEmpty(attributes)) {
 			return Expressions.list(Wildcard.all, Expressions.path(Object.class, docAlias, DOC_ID));
@@ -871,6 +876,5 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 			throw new MappingException(String.format("Failed to convert json value '%s' to array", jsonValue));
 		}
 	}
-
 
 }

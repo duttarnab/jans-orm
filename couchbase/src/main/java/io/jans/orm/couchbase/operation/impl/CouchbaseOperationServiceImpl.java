@@ -751,4 +751,9 @@ public class CouchbaseOperationServiceImpl implements CouchbaseOperationService 
 		this.persistenceExtension = persistenceExtension;
 	}
 
+	@Override
+	public boolean isSupportObjectClass(String objectClass) {
+		return true;
+	}
+
 }
