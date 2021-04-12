@@ -54,4 +54,9 @@ public class HybridPersistenceOperationService implements PersistenceOperationSe
         throw new UnsupportedOperationException("Method not implemented.");
 	}
 
+	@Override
+	public boolean isSupportObjectClass(String objectClass) {
+        throw new UnsupportedOperationException("Method not implemented.");
+	}
+
 }
