@@ -135,7 +135,7 @@ WHERE
   SELECT
     _jansRedirectURI
   FROM
-    UNNEST(jansRedirectURI) AS _jansRedirectURI
+    UNNEST(jansRedirectURI) _jansRedirectURI
   WHERE
     _jansRedirectURI = '10')
 LIMIT 100
@@ -157,7 +157,7 @@ SELECT doc.*,
   WHERE
     doc.doc_id = c.doc_id) jansRedirectURI_array
 FROM
-  jansClnt_Interleave AS doc
+  jansClnt_Interleave doc
 JOIN
   jansClnt_Interleave_jansRedirectURI c2
 ON
@@ -180,3 +180,24 @@ OFFSET 150000
 2. DB with child interleave table
 
 ![](./img/sql_stat_interleave_data.png) <!-- .element height="50%" width="50%" -->
+
+### Queries explanations
+
+1. DB with ARRAY data type
+
+![](./img/sql_explained_array_data.png) <!-- .element height="50%" width="50%" -->
+
+2. DB with child interleave table
+
+![](./img/sql_explained_interleave_data.png) <!-- .element height="50%" width="50%" -->
+
+
+## Conclisions
+
+Thable size in DB with interleave child table is in 8.7 times bigger. This is major point when there are many records with multi valued attributes. From the other point statements execution with interleave child table is in 4 times faster. These 2 point are almost equals. Asresult ORM should support both approaches. Fortunatelly Jans project in most cases doesn't use multi valued attributes in filters. We need to use interleave child tables only in few cases.
+
+## Implementation notes
+
+At startup ORM should scan DB metadata and use interleave tables if it conform next naming pattern: `objectClass_attributeName`. Example: `jansClnt_jansRedirectURI`
+
+
