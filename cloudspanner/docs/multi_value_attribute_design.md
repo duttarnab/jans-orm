@@ -121,7 +121,7 @@ public class SpannerMultiValuedDataPopulatorTest {
 
 ### SQL statement examples
 
-These queries returns ARRAY attributes and uses the in filters
+These queries returns ARRAY attributes and use it in filters
 
 1. DB with ARRAY data type
 
@@ -194,7 +194,7 @@ OFFSET 150000
 
 ## Conclisions
 
-Table size in DB with interleave child table is in 8.7 times bigger. This is major point when there are many records with multi valued attributes. From the other point statements execution with interleave child table is in 4 times faster. These 2 point are almost equals. As result ORM should support both approaches. Fortunatelly Jans project in most cases doesn't use multi valued attributes in filters. We need to use interleave child tables only in few cases.
+Table size in DB with interleave child table is in 8.7 times bigger. This is major point when there are many records with multi valued attributes. From the other point statements execution with interleave child table is in 4 times faster. These 2 point have simular weights. As result ORM should support both approaches. Fortunatelly Jans project in most cases doesn't use multi valued attributes in filters. We need to use interleave child tables only in few cases.
 
 ## Implementation notes
 
