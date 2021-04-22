@@ -1,12 +1,12 @@
-### Multi valued attributes storing mechanisms
+# Multi valued attributes storing mechanisms
 
 Cloud Spanner DB supports ARRAY attributes but in same time it's not allows to index them. This led to full table scan when query has filter with these attributes. ALternative of this is to use interleave child tables support. These tables can increase queries performance but in parallel with this this approach requires additional storage space for child table and index. As result Spanner ORM should mix of both approaches.
 
 ## ARRAY attribute and interleave child table comparision
 
-# DB structures and sample data
+### DB structures and sample data
 
-1. DB Structure which uses ARRAY
+1. DB with ARRAY type
 
 ```
 CREATE TABLE jansClnt_Array (
@@ -20,7 +20,7 @@ CREATE TABLE jansClnt_Array (
 
 ![](./img/array_data.png) <!-- .element height="50%" width="50%" -->
 
-2. DB Structure which child interleave table
+2. DB with child interleave table
 
 ```
 CREATE TABLE jansClnt_Array (
@@ -34,7 +34,7 @@ CREATE TABLE jansClnt_Array (
 
 ![](./img/interleave_data.png) <!-- .element height="50%" width="50%" -->
 
-# Java code which inserts 1M records into both DB structures
+### Java code which inserts 1M records into both DB structures
 ```
 package io.jans.orm.cloud.spanner.operation.impl.test;
 
@@ -114,3 +114,69 @@ public class SpannerMultiValuedDataPopulatorTest {
 }
 
 ```
+
+### DB size comparision
+
+![](./img/db_size.png) <!-- .element height="50%" width="50%" -->
+
+### SQL statement examples
+
+These queries returns ARRAY attributes and uses the in filters
+
+1. DB with ARRAY data type
+
+```
+SELECT
+  doc.*
+FROM
+  jansClnt_Array doc
+WHERE
+  EXISTS (
+  SELECT
+    _jansRedirectURI
+  FROM
+    UNNEST(jansRedirectURI) AS _jansRedirectURI
+  WHERE
+    _jansRedirectURI = '10')
+LIMIT 100
+OFFSET 20000
+```
+
+![](./img/sql_array_data.png) <!-- .element height="50%" width="50%" -->
+
+
+2. DB with child interleave table
+
+```
+SELECT doc.*,
+  ARRAY(
+  SELECT
+    c.jansRedirectURI
+  FROM
+    jansClnt_Interleave_jansRedirectURI c
+  WHERE
+    doc.doc_id = c.doc_id) jansRedirectURI_array
+FROM
+  jansClnt_Interleave AS doc
+JOIN
+  jansClnt_Interleave_jansRedirectURI c2
+ON
+  doc.doc_id = c2.doc_id
+WHERE
+  c2.jansRedirectURI = '10'
+LIMIT 100
+OFFSET 150000
+
+```
+
+![](./img/sql_interleave_data.png) <!-- .element height="50%" width="50%" -->
+
+### Stats after 4 executions
+
+1. DB with ARRAY data type
+
+![](./img/sql_stat_array_data.png) <!-- .element height="50%" width="50%" -->
+
+2. DB with child interleave table
+
+![](./img/sql_stat_interleave_data.png) <!-- .element height="50%" width="50%" -->
