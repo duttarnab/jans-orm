@@ -225,7 +225,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 				boolean multiValued = (attributeType != null) && "json".equals(attributeType);
 				
 				AttributeModificationType type = attributeMod.getModificationType();
-                if ((AttributeModificationType.ADD == type) || AttributeModificationType.FORCE_UPDATE == type) {
+                if ((AttributeModificationType.ADD == type) || (AttributeModificationType.FORCE_UPDATE == type)) {
 					if (multiValued || Boolean.TRUE.equals(attribute.getMultiValued())) {
     					sqlUpdateQuery.set(path, convertValueToDbJson(attribute.getValues()));
     				} else {
@@ -424,7 +424,6 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	
 	            SQLQuery<?> query;
 	            int currentLimit;
-                ResultSet lastResultSet = null;
 	    		try {
 	                int resultCount = 0;
 	                int lastCountRows = 0;
@@ -439,10 +438,11 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 	                    query = baseQuery.limit(currentLimit).offset(start + resultCount);
 
 	                    queryStr = query.getSQL().getSQL();
-	                    LOG.debug("Execution query: '" + queryStr + "'");
+	                    LOG.debug("Executing query: '" + queryStr + "'");
 
-	                    lastResultSet = query.getResults();
-	                    lastResult = getEntryDataList(lastResultSet);
+	                    try (ResultSet resultSet = query.getResults()) {
+	                    	lastResult = getEntryDataList(resultSet);
+	                    }
 
 		    			lastCountRows = lastResult.size();
 		    			
@@ -468,14 +468,6 @@ public class SqlOperationServiceImpl implements SqlOperationService {
         			throw new SearchException(String.format("Failed to build search entries query. Key: '%s', expression: '%s'", key, expression.expression()), ex);
 	    		} catch (SQLException | EntryConvertationException ex) {
 	    			throw new SearchException(String.format("Failed to execute query '%s'  with key: '%s'", queryStr, key), ex);
-                } finally {
-                	if (lastResultSet != null) {
-                		try {
-							lastResultSet.close();
-						} catch (SQLException ex) {
-							LOG.error("Failed to close connection properly", ex);
-						}
-                	}
 	    		}
 	        } else {
 	    		try {
@@ -686,9 +678,9 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 
         if (connectionProvider != null) {
             try {
-                connectionProvider.destory();
+                connectionProvider.destroy();
             } catch (Exception ex) {
-                LOG.error("Failed to destory provider correctly");
+                LOG.error("Failed to destroy provider correctly");
                 result = false;
             }
         }
@@ -735,7 +727,7 @@ public class SqlOperationServiceImpl implements SqlOperationService {
 		for (String attribute : attributes) {
 			expresisons.add(Expressions.path(Object.class, docAlias, attribute));
 
-			hasDn &= StringHelper.equals(attribute, DN);
+			hasDn |= StringHelper.equals(attribute, DN);
 		}
 
 		if (!hasDn) {

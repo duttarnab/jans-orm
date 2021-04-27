@@ -250,7 +250,7 @@ public class SqlConnectionProvider {
                 	break;
                 } else {
                     LOG.info("Failed to connect to DB");
-                    destory();
+                    destroy();
                     throw new ConnectionException("Failed to create connection pool");
                 }
             } catch (Exception ex) {
@@ -280,7 +280,7 @@ public class SqlConnectionProvider {
 		poolableConnectionFactory.setPool(objectPool);
     }
 
-	public boolean destory() {
+	public boolean destroy() {
 		boolean result = true;
 		if (this.poolingDataSource != null) {
 			try {

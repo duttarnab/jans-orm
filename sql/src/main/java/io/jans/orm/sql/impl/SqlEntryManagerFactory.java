@@ -43,7 +43,7 @@ public class SqlEntryManagerFactory implements PersistenceEntryManagerFactory {
     }
 
     @PreDestroy
-    public void destory() {
+    public void destroy() {
     }
 
     @Override

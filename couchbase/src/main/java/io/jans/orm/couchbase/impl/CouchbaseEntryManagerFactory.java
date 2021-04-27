@@ -50,7 +50,7 @@ public class CouchbaseEntryManagerFactory extends Initializable implements Persi
     }
 
     @PreDestroy
-    public void destory() {
+    public void destroy() {
     	if (couchbaseEnvironment != null) {
     		boolean result = couchbaseEnvironment.shutdown();
     		resetInitialized();

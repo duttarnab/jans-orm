@@ -50,7 +50,7 @@ public class SqlFilterConverter {
 
     private static final Logger LOG = LoggerFactory.getLogger(SqlFilterConverter.class);
     
-    private static final String JSON_DATA_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+    private static final String SQL_DATA_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
     private static final LdapFilterConverter ldapFilterConverter = new LdapFilterConverter();
 	private static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
 
@@ -370,7 +370,7 @@ public class SqlFilterConverter {
 			if (assertionValue instanceof AttributeEnum) {
 				assertionValue = ((AttributeEnum) assertionValue).getValue();
 			} else if (assertionValue instanceof Date) {
-		        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(JSON_DATA_FORMAT);
+		        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SQL_DATA_FORMAT);
 		        assertionValue = jsonDateFormat.format(filter.getAssertionValue());
 			}
 	

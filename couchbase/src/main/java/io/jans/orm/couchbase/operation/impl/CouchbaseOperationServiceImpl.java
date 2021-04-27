@@ -719,7 +719,7 @@ public class CouchbaseOperationServiceImpl implements CouchbaseOperationService 
             try {
                 connectionProvider.destroy();
             } catch (Exception ex) {
-                LOG.error("Failed to destory provider correctly");
+                LOG.error("Failed to destroy provider correctly");
                 result = false;
             }
         }

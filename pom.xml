@@ -35,12 +35,14 @@
 		<module>ldap</module>
 		<module>couchbase</module>
  		<module>sql</module>
+ 		<module>spanner</module>
 		<module>hybrid</module>
 		<module>cdi</module>
 		<module>standalone</module>
 		<module>ldap-sample</module>
- 		<module>sql-sample</module>
 		<module>couchbase-sample</module>
+ 		<module>sql-sample</module>
+ 		<module>spanner-sample</module>
 	</modules>
 
 	<dependencyManagement>

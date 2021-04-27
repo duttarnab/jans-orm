@@ -814,25 +814,6 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 */
 	}
 
-    private static final class CountBatchOperation<T> extends DefaultBatchOperation<T> {
-
-        private int countEntries = 0;
-
-        @Override
-        public void performAction(List<T> entries) {
-        }
-
-        @Override
-        public boolean collectSearchResult(int size) {
-            countEntries += size;
-            return false;
-        }
-
-        public int getCountEntries() {
-            return countEntries;
-        }
-    }
-
     @Override
     public String encodeTime(String baseDN, Date date) {
         if (date == null) {
