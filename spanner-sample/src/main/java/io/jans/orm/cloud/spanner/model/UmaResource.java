@@ -11,8 +11,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.Lists;
 
@@ -40,7 +38,6 @@ public class UmaResource implements Serializable {
     @AttributeName(name = "jansId")
     private String id;
 
-    @NotNull(message = "Display name should be not empty")
     @AttributeName(name = "displayName")
     private String name;
 
