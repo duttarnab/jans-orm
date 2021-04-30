@@ -6,7 +6,7 @@
 
 package io.jans.orm.cloud.spanner.impl;
 
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,24 +15,43 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.cloud.spanner.Type.Code;
+import com.google.cloud.spanner.Type.StructField;
 
 import io.jans.orm.annotation.AttributeEnum;
 import io.jans.orm.cloud.spanner.model.ConvertedExpression;
+import io.jans.orm.cloud.spanner.model.TableMapping;
 import io.jans.orm.cloud.spanner.operation.SpannerOperationService;
 import io.jans.orm.exception.operation.SearchException;
 import io.jans.orm.ldap.impl.LdapFilterConverter;
 import io.jans.orm.reflect.property.PropertyAnnotation;
 import io.jans.orm.reflect.util.ReflectHelper;
 import io.jans.orm.search.filter.Filter;
+import io.jans.orm.search.filter.FilterType;
 import io.jans.orm.util.ArrayHelper;
 import io.jans.orm.util.StringHelper;
-import net.sf.jsqlparser.expression.DateValue;
+import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.expression.StringValue;
+import net.sf.jsqlparser.expression.NotExpression;
+import net.sf.jsqlparser.expression.Parenthesis;
+import net.sf.jsqlparser.expression.UserVariable;
+import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
+import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
+import net.sf.jsqlparser.expression.operators.relational.ExistsExpression;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
+import net.sf.jsqlparser.expression.operators.relational.GreaterThanEquals;
+import net.sf.jsqlparser.expression.operators.relational.InExpression;
+import net.sf.jsqlparser.expression.operators.relational.IsNullExpression;
+import net.sf.jsqlparser.expression.operators.relational.LikeExpression;
+import net.sf.jsqlparser.expression.operators.relational.MinorThanEquals;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.select.Join;
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import net.sf.jsqlparser.statement.select.SubSelect;
+import net.sf.jsqlparser.statement.select.TableFunction;
 
 /**
  * Filter to Cloud Spanner query convert
@@ -43,49 +62,42 @@ public class SpannerFilterConverter {
 
     private static final Logger LOG = LoggerFactory.getLogger(SpannerFilterConverter.class);
     
-    private static final String SPANNER_DATA_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
     private static final LdapFilterConverter ldapFilterConverter = new LdapFilterConverter();
-	private static final ObjectMapper JSON_OBJECT_MAPPER = new ObjectMapper();
 
 	private SpannerOperationService operationService;
 
-	private Table stringDocAlias = new Table("doc");
-/*
-	private Path<Boolean> booleanDocAlias = ExpressionUtils.path(Boolean.class, "doc");
-	private Path<Integer> integerDocAlias = ExpressionUtils.path(Integer.class, "doc");
-	private Path<Long> longDocAlias = ExpressionUtils.path(Long.class, "doc");
-	private Path<Object> objectDocAlias = ExpressionUtils.path(Object.class, "doc");
-*/
-    public SpannerFilterConverter(SpannerOperationService operationService) {
+	private Table tableAlias = new Table(SpannerOperationService.DOC_ALIAS);
+
+	public SpannerFilterConverter(SpannerOperationService operationService) {
     	this.operationService = operationService;
 	}
 
-	public ConvertedExpression convertToSqlFilter(Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap) throws SearchException {
-    	return convertToSqlFilter(genericFilter, propertiesAnnotationsMap, false);
+	public ConvertedExpression convertToSqlFilter(TableMapping tableMapping, Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap) throws SearchException {
+    	return convertToSqlFilter(tableMapping, genericFilter, propertiesAnnotationsMap, false);
     }
 
-	public ConvertedExpression convertToSqlFilter(Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap, boolean skipAlias) throws SearchException {
-    	return convertToSqlFilter(genericFilter, propertiesAnnotationsMap, null, skipAlias);
+	public ConvertedExpression convertToSqlFilter(TableMapping tableMapping, Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap, boolean skipAlias) throws SearchException {
+    	return convertToSqlFilter(tableMapping, genericFilter, propertiesAnnotationsMap, null, skipAlias);
     }
 
-	public ConvertedExpression convertToSqlFilter(Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap, Function<? super Filter, Boolean> processor) throws SearchException {
-    	return convertToSqlFilter(genericFilter, propertiesAnnotationsMap, processor, false);
+	public ConvertedExpression convertToSqlFilter(TableMapping tableMapping, Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap, Function<? super Filter, Boolean> processor) throws SearchException {
+    	return convertToSqlFilter(tableMapping, genericFilter, propertiesAnnotationsMap, processor, false);
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-	public ConvertedExpression convertToSqlFilter(Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap, Function<? super Filter, Boolean> processor, boolean skipAlias) throws SearchException {
-    	Map<String, Class<?>> jsonAttributes = new HashMap<>();
-    	ConvertedExpression convertedExpression = convertToSqlFilterImpl(genericFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias);
+	public ConvertedExpression convertToSqlFilter(TableMapping tableMapping, Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap, Function<? super Filter, Boolean> processor, boolean skipAlias) throws SearchException {
+    	Map<String, Object> queryParameters = new HashMap<>();
+    	Map<String, Join> joinTables = new HashMap<>();
+    	ConvertedExpression convertedExpression = convertToSqlFilterImpl(tableMapping, genericFilter, propertiesAnnotationsMap, queryParameters, joinTables, processor, skipAlias);
     	
     	return convertedExpression;
     }
 
-	private ConvertedExpression convertToSqlFilterImpl(Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap,
-			Map<String, Class<?>> jsonAttributes, Function<? super Filter, Boolean> processor, boolean skipAlias) throws SearchException {
+	private ConvertedExpression convertToSqlFilterImpl(TableMapping tableMapping, Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap,
+			Map<String, Object> queryParameters, Map<String, Join> joinTables, Function<? super Filter, Boolean> processor, boolean skipAlias) throws SearchException {
 		if (genericFilter == null) {
 			return null;
 		}
-/*
+
 		Filter currentGenericFilter = genericFilter;
 
         FilterType type = currentGenericFilter.getType();
@@ -109,7 +121,7 @@ public class SpannerFilterConverter {
             	String joinOrAttributeName = null;
                 for (int i = 0; i < genericFilters.length; i++) {
                 	Filter tmpFilter = genericFilters[i];
-                    expFilters[i] = convertToSqlFilterImpl(tmpFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias).expression();
+                    expFilters[i] = convertToSqlFilterImpl(tableMapping, tmpFilter, propertiesAnnotationsMap, queryParameters, joinTables, processor, skipAlias).expression();
 
                     // Check if we can replace OR with IN
                 	if (!canJoinOrFilters) {
@@ -147,131 +159,101 @@ public class SpannerFilterConverter {
                 }
 
                 if (FilterType.NOT == type) {
-                    return ConvertedExpression.build(new Parenthesis(new NotExpression(expFilters[0])), jsonAttributes);
+                    return ConvertedExpression.build(new NotExpression(expFilters[0]), queryParameters, joinTables);
                 } else if (FilterType.AND == type) {
                 	Expression result = expFilters[0];
                     for (int i = 1; i < expFilters.length; i++) {
                         result = new AndExpression(result, expFilters[i]);
                     }
 
-                    return ConvertedExpression.build(new Parenthesis(result), jsonAttributes);
+                    return ConvertedExpression.build(new Parenthesis(result), queryParameters, joinTables);
                 } else if (FilterType.OR == type) {
                     if (canJoinOrFilters) {
-                    	List<Expression> rightObjs = new ArrayList<>(joinOrFilters.size());
-                    	Filter lastEqFilter = null;
-                		for (Filter eqFilter : joinOrFilters) {
-                			lastEqFilter = eqFilter;
-
-                			rightObjs.add(buildTypedValueExpression(eqFilter));
-            			}
+                		ExpressionList expressionList = new ExpressionList();
+                		expressionList.addExpressions(expFilters);
                 		
-                		return ConvertedExpression.build(new Parenthesis(new InExpression(buildTypedPath(lastEqFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias), new ExpressionList(rightObjs))), jsonAttributes);
+                		Expression inExpression = new InExpression(buildExpression(tableMapping, joinOrFilters.get(0), false, false, propertiesAnnotationsMap, queryParameters, joinTables, processor, skipAlias), expressionList);
+
+                		return ConvertedExpression.build(inExpression, queryParameters, joinTables);
                 	} else {
                     	Expression result = expFilters[0];
                         for (int i = 1; i < expFilters.length; i++) {
                             result = new OrExpression(result, expFilters[i]);
                         }
 
-                        return ConvertedExpression.build(new Parenthesis(result), jsonAttributes);
+                        return ConvertedExpression.build(new Parenthesis(result), queryParameters, joinTables);
                 	}
             	}
             }
         }
 
-        if (FilterType.EQUALITY == type) {
-    		if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
-    			Expression expression = buildTypedPath(currentGenericFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias);
+        // Generic part for rest of expression types
+    	String internalAttribute = toInternalAttribute(currentGenericFilter);
+    	boolean multiValued = isMultiValue(tableMapping, internalAttribute, currentGenericFilter, propertiesAnnotationsMap);
+    	boolean hasChildTableForAttribute = tableMapping.hasChildTableForAttribute(internalAttribute);
+    	boolean useExistsInArray = multiValued && !hasChildTableForAttribute;
+		Expression leftExpression = buildExpression(tableMapping, currentGenericFilter, multiValued, useExistsInArray, propertiesAnnotationsMap, queryParameters, joinTables, processor, skipAlias);
 
-				Operation<Boolean> operation = ExpressionUtils.predicate(SpannerOps.JSON_CONTAINS, expression,
-						buildTypedValueExpression(currentGenericFilter), Expressions.constant("$.v"));
+    	if (FilterType.EQUALITY == type) {
+        	Expression variableExpression = buildVariableExpression(internalAttribute, currentGenericFilter.getAssertionValue(), queryParameters);
+    		Expression expression = new EqualsTo(leftExpression, variableExpression);
+    		if (multiValued) {
+    			if (useExistsInArray) {
+    				// EXISTS (SELECT _jansRedirectURI FROM UNNEST(jansRedirectURI) _jansRedirectURI WHERE _jansRedirectURI = '10')
+    	    		expression = buildExistsInArrayExpression(internalAttribute, expression);
+    			} else {
+    				// JOIN jansClnt_Interleave_jansRedirectURI jansRedirectURI ON doc.doc_id = jansRedirectURI.doc_id
+    				// WHERE jansRedirectURI.jansRedirectURI = '10'
+    	    		addJoinTable(tableMapping, internalAttribute, joinTables);
+    			}
 
-        		return ConvertedExpression.build(operation, jsonAttributes);
-            } else {
-            	Filter usedFilter = currentGenericFilter;
-            	Expression expression = buildTypedPath(currentGenericFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias);
-
-            	return ConvertedExpression.build(new EqualsTo(expression, buildTypedValueExpression(usedFilter)), jsonAttributes);
+    			return ConvertedExpression.build(expression, queryParameters, joinTables);
             }
+        	return ConvertedExpression.build(expression, queryParameters, joinTables);
         }
 
         if (FilterType.LESS_OR_EQUAL == type) {
-        	String internalAttribute = toInternalAttribute(currentGenericFilter);
-            if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
-            	if (currentGenericFilter.getMultiValuedCount() > 1) {
-                	Collection<Predicate> expressions = new ArrayList<>(currentGenericFilter.getMultiValuedCount());
-            		for (int i = 0; i < currentGenericFilter.getMultiValuedCount(); i++) {
-                		Operation<Boolean> operation = ExpressionUtils.predicate(SpannerOps.JSON_EXTRACT,
-                				buildTypedPath(currentGenericFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias), Expressions.constant("$.v[" + i + "]"));
-                		Predicate predicate = Expressions.asComparable(operation).loe(buildTypedValueExpression(currentGenericFilter));
+        	Expression variableExpression = buildVariableExpression(internalAttribute, currentGenericFilter.getAssertionValue(), queryParameters);
+        	Expression expression = new MinorThanEquals().withLeftExpression(leftExpression).withRightExpression(variableExpression);
+    		if (multiValued) {
+    			if (useExistsInArray) {
+    	    		expression = buildExistsInArrayExpression(internalAttribute, expression);
+    			} else {
+    	    		addJoinTable(tableMapping, internalAttribute, joinTables);
+    			}
 
-                		expressions.add(predicate);
-            		}
-
-            		Expression expression = ExpressionUtils.anyOf(expressions);
-
-            		return ConvertedExpression.build(expression, jsonAttributes);
-            	}
-
-            	Operation<Boolean> operation = ExpressionUtils.predicate(SpannerOps.JSON_EXTRACT,
-        				buildTypedPath(currentGenericFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias), Expressions.constant("$.v[0]"));
-        		Expression expression = Expressions.asComparable(operation).loe(buildTypedValueExpression(currentGenericFilter));
-
-            	return ConvertedExpression.build(expression, jsonAttributes);
-            } else {
-            	return ConvertedExpression.build(Expressions.asComparable(buildTypedPath(currentGenericFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias)).loe(buildTypedValueExpression(currentGenericFilter)), jsonAttributes);
+    			return ConvertedExpression.build(expression, queryParameters, joinTables);
             }
+        	return ConvertedExpression.build(expression, queryParameters, joinTables);
         }
 
         if (FilterType.GREATER_OR_EQUAL == type) {
-        	String internalAttribute = toInternalAttribute(currentGenericFilter);
-            if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
-            	if (currentGenericFilter.getMultiValuedCount() > 1) {
-                	Collection<Predicate> expressions = new ArrayList<>(currentGenericFilter.getMultiValuedCount());
-            		for (int i = 0; i < currentGenericFilter.getMultiValuedCount(); i++) {
-                		Operation<Boolean> operation = ExpressionUtils.predicate(SpannerOps.JSON_EXTRACT,
-                				buildTypedPath(currentGenericFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias), Expressions.constant("$.v[" + i + "]"));
-                		Predicate predicate = Expressions.asComparable(operation).goe(buildTypedValueExpression(currentGenericFilter));
+        	Expression variableExpression = buildVariableExpression(internalAttribute, currentGenericFilter.getAssertionValue(), queryParameters);
+        	Expression expression = new GreaterThanEquals().withLeftExpression(leftExpression).withRightExpression(variableExpression);
+    		if (multiValued) {
+    			if (useExistsInArray) {
+    	    		expression = buildExistsInArrayExpression(internalAttribute, expression);
+    			} else {
+    	    		addJoinTable(tableMapping, internalAttribute, joinTables);
+    			}
 
-                		expressions.add(predicate);
-            		}
-            		Expression expression = ExpressionUtils.anyOf(expressions);
-
-            		return ConvertedExpression.build(expression, jsonAttributes);
-            	}
-
-            	Operation<Boolean> operation = ExpressionUtils.predicate(SpannerOps.JSON_EXTRACT,
-        				buildTypedPath(currentGenericFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias), Expressions.constant("$.v[0]"));
-        		Expression expression = Expressions.asComparable(operation).goe(buildTypedValueExpression(currentGenericFilter));
-
-            	return ConvertedExpression.build(expression, jsonAttributes);
-            } else {
-            	return ConvertedExpression.build(Expressions.asComparable(buildTypedPath(currentGenericFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias)).goe(buildTypedValueExpression(currentGenericFilter)), jsonAttributes);
+    			return ConvertedExpression.build(expression, queryParameters, joinTables);
             }
+        	return ConvertedExpression.build(expression, queryParameters, joinTables);
         }
 
         if (FilterType.PRESENCE == type) {
-        	String internalAttribute = toInternalAttribute(currentGenericFilter);
-        	Expression expression;
-            if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
-            	if (currentGenericFilter.getMultiValuedCount() > 1) {
-                	Collection<Predicate> expressions = new ArrayList<>(currentGenericFilter.getMultiValuedCount());
-            		for (int i = 0; i < currentGenericFilter.getMultiValuedCount(); i++) {
-            			Predicate predicate = ExpressionUtils.isNotNull(ExpressionUtils.predicate(SpannerOps.JSON_EXTRACT,
-                				buildTypedPath(currentGenericFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias), Expressions.constant("$.v[" + i + "]")));
-            			expressions.add(predicate);
-            		}
-            		Predicate predicate = ExpressionUtils.anyOf(expressions);
+        	Expression expression = new IsNullExpression().withLeftExpression(leftExpression).withNot(true);
+    		if (multiValued) {
+    			if (useExistsInArray) {
+    	    		expression = buildExistsInArrayExpression(internalAttribute, expression);
+    			} else {
+    	    		addJoinTable(tableMapping, internalAttribute, joinTables);
+    			}
 
-            		return ConvertedExpression.build(predicate, jsonAttributes);
-            	}
-
-            	expression = ExpressionUtils.predicate(SpannerOps.JSON_EXTRACT,
-        				buildTypedPath(currentGenericFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias), Expressions.constant("$.v[0]"));
-            } else {
-            	expression = buildTypedPath(currentGenericFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias);
+    			return ConvertedExpression.build(expression, queryParameters, joinTables);
             }
-
-            return ConvertedExpression.build(ExpressionUtils.isNotNull(expression), jsonAttributes);
+        	return ConvertedExpression.build(expression, queryParameters, joinTables);
         }
 
         if (FilterType.APPROXIMATE_MATCH == type) {
@@ -296,49 +278,81 @@ public class SpannerFilterConverter {
             if (currentGenericFilter.getSubFinal() != null) {
                 like.append(currentGenericFilter.getSubFinal());
             }
+            
+            String likeValue = like.toString();
+        	Expression variableExpression = buildVariableExpression(internalAttribute, likeValue, queryParameters);
+        	Expression expression = new LikeExpression().withLeftExpression(leftExpression).withRightExpression(variableExpression);
+    		if (multiValued) {
+    			if (useExistsInArray) {
+    	    		expression = buildExistsInArrayExpression(internalAttribute, expression);
+    			} else {
+    	    		addJoinTable(tableMapping, internalAttribute, joinTables);
+    			}
 
-            String internalAttribute = toInternalAttribute(currentGenericFilter);
-
-            Expression expression;
-            if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
-            	if (currentGenericFilter.getMultiValuedCount() > 1) {
-                	Collection<Predicate> expressions = new ArrayList<>(currentGenericFilter.getMultiValuedCount());
-            		for (int i = 0; i < currentGenericFilter.getMultiValuedCount(); i++) {
-                		Operation<Boolean> operation = ExpressionUtils.predicate(SpannerOps.JSON_EXTRACT,
-                				buildTypedPath(currentGenericFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias), Expressions.constant("$.v[" + i + "]"));
-                		Predicate predicate = Expressions.booleanOperation(Ops.LIKE, operation, Expressions.constant(like.toString()));
-
-                		expressions.add(predicate);
-            		}
-            		Predicate predicate = ExpressionUtils.anyOf(expressions);
-
-            		return ConvertedExpression.build(predicate, jsonAttributes);
-            	}
-
-            	expression = ExpressionUtils.predicate(SpannerOps.JSON_EXTRACT,
-        				buildTypedPath(currentGenericFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias), Expressions.constant("$.v[0]"));
-            } else {
-            	expression = buildTypedPath(currentGenericFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias);
+    			return ConvertedExpression.build(expression, queryParameters, joinTables);
             }
-
-            return ConvertedExpression.build(Expressions.booleanOperation(Ops.LIKE, expression, Expressions.constant(like.toString())), jsonAttributes);
+        	return ConvertedExpression.build(expression, queryParameters, joinTables);
         }
 
         if (FilterType.LOWERCASE == type) {
-        	return ConvertedExpression.build(ExpressionUtils.toLower(buildTypedPath(currentGenericFilter, propertiesAnnotationsMap, jsonAttributes, processor, skipAlias)), jsonAttributes);
+    		net.sf.jsqlparser.expression.Function lowerFunction = new net.sf.jsqlparser.expression.Function();
+    		lowerFunction.setName("LOWER");
+    		lowerFunction.setParameters(new ExpressionList(leftExpression));
+
+        	return ConvertedExpression.build(lowerFunction, queryParameters, joinTables);
         }
+
         throw new SearchException(String.format("Unknown filter type '%s'", type));
-*/
-		return null;
 	}
 
-	protected Boolean isMultiValue(Filter currentGenericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap) {
-		Boolean isMultiValuedDetected = determineMultiValuedByType(currentGenericFilter.getAttributeName(), propertiesAnnotationsMap);
-		if (Boolean.TRUE.equals(currentGenericFilter.getMultiValued()) || Boolean.TRUE.equals(isMultiValuedDetected)) {
-			return true;
+	protected Boolean isMultiValue(TableMapping tableMapping, String attributeName, Filter currentGenericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap) throws SearchException {
+		StructField structField = tableMapping.getColumTypes().get(attributeName);
+		if (structField == null) {
+			TableMapping childTableMapping = tableMapping.getChildTableMappingForAttribute(attributeName);
+			if (childTableMapping != null) {
+				structField = childTableMapping.getColumTypes().get(attributeName);
+			}
 		}
+		
+		if (structField == null) {
+	        throw new SearchException(String.format("Unknown column name '%s' in table/child table '%s'", attributeName, tableMapping.getTableName()));
+		}
+		
+    	Code columnTypeCode = structField.getType().getCode();
+    	if (Code.ARRAY == columnTypeCode) {
+    		boolean multiValuedDetected = (Boolean.TRUE.equals(currentGenericFilter.getMultiValued()) ||
+    				Boolean.TRUE.equals(
+    						determineMultiValuedByType(currentGenericFilter.getAttributeName(), propertiesAnnotationsMap)));
+    		
+    		if (!multiValuedDetected) {
+    			LOG.warn(String.format("Сolumn name '%s' was defined as multi valued in table/child table '%s' but detected as single value", attributeName, tableMapping.getTableName()));
+    		}
+
+    		return true;
+    	}
 
 		return false;
+	}
+
+	private Boolean determineMultiValuedByType(String attributeName, Map<String, PropertyAnnotation> propertiesAnnotationsMap) {
+		if ((attributeName == null) || (propertiesAnnotationsMap == null)) {
+			return null;
+		}
+
+		if (StringHelper.equalsIgnoreCase(attributeName, SpannerEntryManager.OBJECT_CLASS)) {
+			return false;
+		}
+
+		PropertyAnnotation propertyAnnotation = propertiesAnnotationsMap.get(attributeName);
+		if ((propertyAnnotation == null) || (propertyAnnotation.getParameterType() == null)) {
+			return null;
+		}
+
+		Class<?> parameterType = propertyAnnotation.getParameterType();
+		
+		boolean isMultiValued = parameterType.equals(Object[].class) || parameterType.equals(String[].class) || ReflectHelper.assignableFrom(parameterType, List.class) || ReflectHelper.assignableFrom(parameterType, AttributeEnum[].class);
+		
+		return isMultiValued;
 	}
 
 	private String toInternalAttribute(Filter filter) {
@@ -365,90 +379,93 @@ public class SpannerFilterConverter {
 		return operationService.toInternalAttribute(attributeName);
 	}
 
-	private Expression buildTypedValueExpression(Filter filter) throws SearchException {
-		if (Boolean.TRUE.equals(filter.getMultiValued())) {
-			Object assertionValue = filter.getAssertionValue();
-			if (assertionValue instanceof AttributeEnum) {
-				return new StringValue(((AttributeEnum) assertionValue).getValue());
-			} else if (assertionValue instanceof Date) {
-				java.sql.Date sqlDate = new java.sql.Date(((Date) assertionValue).getTime());
-		        return new DateValue(sqlDate);
-			}
-	
-	        return null;
-//	        return Expressions.constant(convertValueToJson(Arrays.asList(assertionValue)));
-		} else {
-			Object assertionValue = filter.getAssertionValue();
-			if (assertionValue instanceof AttributeEnum) {
-				return new StringValue(((AttributeEnum) assertionValue).getValue());
-			} else if (assertionValue instanceof Date) {
-				java.sql.Date sqlDate = new java.sql.Date(((Date) assertionValue).getTime());
-		        return new DateValue(sqlDate);
-			}
+	private Expression buildVariableExpression(String attributeName, Object attribyteValue, Map<String, Object> queryParameters) {
+		String usedAttributeName = attributeName;
 
-			if (assertionValue instanceof Boolean) {
-				return new LongValue((Boolean) assertionValue ? 1 : 0);
-			} else if (assertionValue instanceof Integer) {
-				return new LongValue((Integer) assertionValue);
-			} else if (assertionValue instanceof Long) {
-				return new LongValue((Long) assertionValue);
-			}
-
-			return new StringValue((String) assertionValue);
+		int idx = 0;
+		while (queryParameters.containsKey(usedAttributeName) && (idx < 100)) {
+			usedAttributeName = attributeName + Integer.toString(idx++);
 		}
+
+    	queryParameters.put(usedAttributeName, attribyteValue);
+		return new UserVariable(usedAttributeName);
 	}
 
-	private Expression buildTypedPath(Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap,
-			Map<String, Class<?>> jsonAttributes, Function<? super Filter, Boolean> processor, boolean skipAlias) throws SearchException {
+	private Expression buildExistsInArrayExpression(String attributeName, Expression whereExpression) {
+		PlainSelect arrayQuery = new PlainSelect();
+		String columnAlias = "_" + attributeName;
+		arrayQuery.addSelectItems(new SelectExpressionItem(new Column(columnAlias)));
+		arrayQuery.setWhere(whereExpression);
+
+		TableFunction fromTableFunction = new TableFunction();
+		fromTableFunction.setAlias(new Alias(columnAlias, false));
+		
+		net.sf.jsqlparser.expression.Function unnestFunction = new net.sf.jsqlparser.expression.Function();
+		unnestFunction.setName("UNNEST");
+		unnestFunction.setParameters(new ExpressionList(new Column(attributeName)));
+		unnestFunction.setAttributeName("internalAttribute");
+
+		fromTableFunction.setFunction(unnestFunction);
+		arrayQuery.setFromItem(fromTableFunction);
+
+		SubSelect arraySubSelect = new SubSelect();
+		arraySubSelect.setSelectBody(arrayQuery);
+		arraySubSelect.withUseBrackets(false);
+         
+		ExistsExpression existsExpression = new ExistsExpression();
+		existsExpression.setRightExpression(arraySubSelect);
+
+		return existsExpression;
+	}
+
+	private Expression buildExpression(TableMapping tableMapping, Filter genericFilter, boolean multiValued, boolean useExistsInArray, Map<String, PropertyAnnotation> propertiesAnnotationsMap,
+			Map<String, Object> queryParameters, Map<String, Join> joinTables, Function<? super Filter, Boolean> processor, boolean skipAlias) throws SearchException {
     	boolean hasSubFilters = ArrayHelper.isNotEmpty(genericFilter.getFilters());
 
 		if (hasSubFilters) {
-    		return convertToSqlFilterImpl(genericFilter.getFilters()[0], propertiesAnnotationsMap, jsonAttributes, processor, skipAlias).expression();
+    		return convertToSqlFilterImpl(tableMapping, genericFilter.getFilters()[0], propertiesAnnotationsMap, queryParameters, joinTables, processor, skipAlias).expression();
 		}
 		
 		String internalAttribute = toInternalAttribute(genericFilter);
+		if (multiValued) {
+			skipAlias = true;
+			if (useExistsInArray) {
+				internalAttribute = "_" + internalAttribute;
+			} else {
+				internalAttribute = internalAttribute + "." + internalAttribute;
+			}
+		}
 		
-		return buildColumnExpression(genericFilter, internalAttribute, skipAlias);
+		return buildColumnExpression(internalAttribute, skipAlias);
 	}
 
-	private Expression buildColumnExpression(Filter filter, String attributeName, boolean skipAlias) {
+	private Expression buildColumnExpression(String attributeName, boolean skipAlias) {
     	if (skipAlias) {
-    	    return new Column("attributeName");
+    	    return new Column(attributeName);
     	}
 
-    	return new Column(stringDocAlias, "attributeName");
+    	return new Column(tableAlias, attributeName);
 	}
 
-	private Boolean determineMultiValuedByType(String attributeName, Map<String, PropertyAnnotation> propertiesAnnotationsMap) {
-		if ((attributeName == null) || (propertiesAnnotationsMap == null)) {
-			return null;
+	private void addJoinTable(TableMapping tableMapping, String attributeName, Map<String, Join> joinTables) {
+		if (joinTables.containsKey(attributeName)) {
+			return;
 		}
 
-		if (StringHelper.equalsIgnoreCase(attributeName, SpannerEntryManager.OBJECT_CLASS)) {
-			return false;
-		}
-
-		PropertyAnnotation propertyAnnotation = propertiesAnnotationsMap.get(attributeName);
-		if ((propertyAnnotation == null) || (propertyAnnotation.getParameterType() == null)) {
-			return null;
-		}
-
-		Class<?> parameterType = propertyAnnotation.getParameterType();
+		TableMapping childTableMapping = tableMapping.getChildTableMappingForAttribute(attributeName);
 		
-		boolean isMultiValued = parameterType.equals(Object[].class) || parameterType.equals(String[].class) || ReflectHelper.assignableFrom(parameterType, List.class) || ReflectHelper.assignableFrom(parameterType, AttributeEnum[].class);
+		Table childTable = new Table(childTableMapping.getTableName());
+		childTable.setAlias(new Alias(attributeName, false));
 		
-		return isMultiValued;
+		EqualsTo onExpression = new EqualsTo().
+				withLeftExpression(new Column().withTable(tableAlias).withColumnName(SpannerOperationService.DOC_ID)).
+				withRightExpression(new Column().withTable(childTable).withColumnName(SpannerOperationService.DOC_ID));
+
+		Join join = new Join();
+		join.setRightItem(childTable);
+		join.setOnExpression(onExpression);
+		
+		joinTables.put(attributeName, join);
 	}
-
-	protected String convertValueToJson(Object propertyValue) throws SearchException {
-		try {
-			String value = JSON_OBJECT_MAPPER.writeValueAsString(propertyValue);
-
-			return value;
-		} catch (Exception ex) {
-			LOG.error("Failed to convert '{}' to json value:", propertyValue, ex);
-			throw new SearchException(String.format("Failed to convert '%s' to json value", propertyValue));
-		}
-	}
-
+	
 }

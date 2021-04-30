@@ -8,6 +8,8 @@ package io.jans.orm.cloud.spanner.model;
 
 import java.util.Map;
 
+import com.google.cloud.spanner.Type.StructField;
+
 /**
  * Mapping to DB table
  *
@@ -18,9 +20,10 @@ public class TableMapping {
     private final String baseKeyName;
     private final String tableName;
     private final String objectClass;
-    private final Map<String, String> columTypes;
+    private final Map<String, StructField> columTypes;
+    private Map<String, TableMapping> childTableMapping;
 
-    public TableMapping(final String baseKeyName, final String tableName, final String objectClass, Map<String, String> columTypes) {
+    public TableMapping(final String baseKeyName, final String tableName, final String objectClass, Map<String, StructField> columTypes) {
         this.baseKeyName = baseKeyName;
         this.tableName = tableName;
         this.objectClass = objectClass;
@@ -39,8 +42,40 @@ public class TableMapping {
 		return objectClass;
 	}
 
-	public Map<String, String> getColumTypes() {
+	public Map<String, StructField> getColumTypes() {
 		return columTypes;
+	}
+
+	public Map<String, TableMapping> getChildTableMapping() {
+		return childTableMapping;
+	}
+
+	public void setChildTableMapping(Map<String, TableMapping> childTableMapping) {
+		this.childTableMapping = childTableMapping;
+	}
+
+	public boolean hasChildTables() {
+		return (childTableMapping != null) && (childTableMapping.size() > 0);
+	}
+
+	public boolean hasChildTableForAttribute(String attributeName) {
+		if (!hasChildTables()) {
+			return false;
+		}
+		
+		String childTableName = tableName + "_" + attributeName;
+		
+		return childTableMapping.containsKey(childTableName);
+	}
+
+	public TableMapping getChildTableMappingForAttribute(String attributeName) {
+		if (!hasChildTableForAttribute(attributeName)) {
+			return null;
+		}
+		
+		String childTableName = tableName + "_" + attributeName;
+		
+		return childTableMapping.get(childTableName);
 	}
 
 }

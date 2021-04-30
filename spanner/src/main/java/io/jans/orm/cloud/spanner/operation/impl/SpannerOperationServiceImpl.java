@@ -16,7 +16,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +37,7 @@ import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
 import com.google.cloud.spanner.Type.StructField;
+import com.google.cloud.spanner.ValueBinder;
 
 import io.jans.orm.cloud.spanner.impl.SpannerBatchOperationWraper;
 import io.jans.orm.cloud.spanner.model.ConvertedExpression;
@@ -45,6 +45,7 @@ import io.jans.orm.cloud.spanner.model.SearchReturnDataType;
 import io.jans.orm.cloud.spanner.model.TableMapping;
 import io.jans.orm.cloud.spanner.operation.SpannerOperationService;
 import io.jans.orm.cloud.spanner.operation.watch.OperationDurationUtil;
+import io.jans.orm.cloud.spanner.util.SpannerValueHelper;
 import io.jans.orm.exception.extension.PersistenceExtension;
 import io.jans.orm.exception.operation.DeleteException;
 import io.jans.orm.exception.operation.DuplicateEntryException;
@@ -186,13 +187,13 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	private boolean addEntryImpl(TableMapping tableMapping, String key, Collection<AttributeData> attributes) throws PersistenceException {
 		try {
 			MessageDigest messageDigest = getMessageDigestInstance();
-			Map<String, String> columTypes = tableMapping.getColumTypes();
+			Map<String, StructField> columTypes = tableMapping.getColumTypes();
 
 			WriteBuilder mutationBuilder = Mutation.newInsertOrUpdateBuilder(tableMapping.getTableName());
 			List<Mutation> mutations = new LinkedList<>();
 			for (AttributeData attribute : attributes) {
 				String attributeName = attribute.getName();
-				String attributeType = columTypes.get(attributeName.toLowerCase());
+				StructField attributeType = columTypes.get(attributeName.toLowerCase());
 
 				// If column not inside table we should check if there is child table
 				if (attributeType == null) {
@@ -201,8 +202,8 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 			            throw new PersistenceException(String.format("Failed to add entry. Column '%s' is undefined", attributeName));
 					}
 
-					Map<String, String> childColumTypes = childTableMapping.getColumTypes();
-					String childAttributeType = childColumTypes.get(attributeName.toLowerCase());
+					Map<String, StructField> childColumTypes = childTableMapping.getColumTypes();
+					StructField childAttributeType = childColumTypes.get(attributeName.toLowerCase());
 					
 					// Build Mutation for child table
 					WriteBuilder childMutationBuilder = Mutation.newInsertOrUpdateBuilder(childTableMapping.getTableName());
@@ -248,7 +249,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 			throws PersistenceException {
 		try {
 			MessageDigest messageDigest = getMessageDigestInstance();
-			Map<String, String> columTypes = tableMapping.getColumTypes();
+			Map<String, StructField> columTypes = tableMapping.getColumTypes();
 
 			WriteBuilder mutationBuilder = Mutation.newInsertOrUpdateBuilder(tableMapping.getTableName());
 			List<Mutation> mutations = new LinkedList<>();
@@ -257,7 +258,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 				AttributeModificationType type = attributeMod.getModificationType();
 
 				String attributeName = attribute.getName();
-				String attributeType = columTypes.get(attributeName.toLowerCase());
+				StructField attributeType = columTypes.get(attributeName.toLowerCase());
 
 				// If column not inside table we should check if there is child table
 				if (attributeType == null) {
@@ -267,8 +268,8 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 								String.format("Failed to update entry. Column '%s' is undefined", attributeName));
 					}
 
-					Map<String, String> childColumTypes = childTableMapping.getColumTypes();
-					String childAttributeType = childColumTypes.get(attributeName.toLowerCase());
+					Map<String, StructField> childColumTypes = childTableMapping.getColumTypes();
+					StructField childAttributeType = childColumTypes.get(attributeName.toLowerCase());
 
 					// Build Mutation for child table
 					WriteBuilder childMutationBuilder = Mutation.newInsertOrUpdateBuilder(childTableMapping.getTableName());
@@ -365,6 +366,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 			Delete sqlDeleteQuery = new Delete();
 			sqlDeleteQuery.setTable(table);
 			sqlDeleteQuery.setWhere(expression.expression());
+			// TODO: Set binding
 
 			if (count > 0) {
 				Limit limit = new Limit();
@@ -506,6 +508,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 		if (expression != null) {
 			Expression whereExp = expression.expression();
 			sqlSelectQuery.setWhere(whereExp);
+			// TODO: Set binding
 		}
 
         if (orderBy != null) {
@@ -628,6 +631,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
     		if (expression != null) {
     			Expression whereExp = expression.expression();
     			sqlCountSelectQuery.setWhere(whereExp);
+    			// TODO: Set binding
     		}
 
     		try {
@@ -812,8 +816,18 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
     }
 
     @Override
-    public Map<String, Map<String, String>> getMetadata() {
-        return connectionProvider.getTableColumnsMap();
+    public Map<String, Map<String, StructField>> getMetadata() {
+        return connectionProvider.getDatabaseMetaData();
+    }
+
+    @Override
+    public TableMapping getTabeMapping(String key, String objectClass) {
+    	TableMapping tableMapping = connectionProvider.getTableMappingByKey(key, objectClass);
+
+    	Map<String, TableMapping> childTableMapping = connectionProvider.getChildTablesMapping(key, tableMapping);
+    	tableMapping.setChildTableMapping(childTableMapping);
+    	
+    	return tableMapping;
     }
 
 	@Override
@@ -823,12 +837,12 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 
 	@Override
 	public boolean isSupportObjectClass(String objectClass) {
-		return connectionProvider.getTableColumnsMap().containsKey(objectClass);
+		return connectionProvider.getDatabaseMetaData().containsKey(objectClass);
 	}
 
 	private List<SelectItem> buildSelectAttributes(TableMapping tableMapping, String key, String ... attributes) throws SearchException {
 		String tableName = tableMapping.getTableName();
-		Map<String, String> columTypes = tableMapping.getColumTypes();
+		Map<String, StructField> columTypes = tableMapping.getColumTypes();
 
 		// Table alias for columns
 		// Column dn
@@ -866,7 +880,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 		
         boolean hasDn = false;
 		for (String attributeName : attributes) {
-			String attributeType = columTypes.get(attributeName.toLowerCase());
+			StructField attributeType = columTypes.get(attributeName.toLowerCase());
 			SelectExpressionItem selectExpressionItem;
 
 			// If column not inside table we should check if there is child table
@@ -1039,37 +1053,84 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 //		return resultAttributeNames;
 	}
 
-	private void setMutationBuilderValue(WriteBuilder mutation, AttributeData attribute, String attributeType,
-			Object value) {
-		// TODO: Implement
-/*
-		childMutation.set("").to(value)
-		try {
-//			String value = JSON_OBJECT_MAPPER.writeValueAsString(propertyValue);
-
-			JsonAttributeValue attributeValue;
-			if (propertyValue == null) {
-				attributeValue = new JsonAttributeValue();
-			} if (propertyValue instanceof List) {
-				attributeValue = new JsonAttributeValue(((List) propertyValue).toArray());
-			} else if (propertyValue.getClass().isArray()) {
-				attributeValue = new JsonAttributeValue((Object[]) propertyValue);
-			} else {
-				attributeValue = new JsonAttributeValue(new Object[] { propertyValue });
-			}
-
-			String value = JSON_OBJECT_MAPPER.writeValueAsString(attributeValue);
-
-			return value;
-		} catch (Exception ex) {
-			LOG.error("Failed to convert '{}' to json value:", propertyValue, ex);
-			throw new MappingException(String.format("Failed to convert '%s' to json value", propertyValue));
+	private void setMutationBuilderValue(WriteBuilder mutation, AttributeData attribute, StructField attributeType,
+			Object value) throws EntryConvertationException {
+		Object[] values = attribute.getValues();
+		if ((values == null) || (values.length == 0)) {
+			return;
 		}
-*/
+
+		ValueBinder<WriteBuilder> valueBinder = mutation.set(attributeType.getName());
+
+		Code typeCode = attributeType.getType().getCode();
+		if (Code.BOOL == typeCode) {
+			valueBinder.to(SpannerValueHelper.toBoolean(attribute.getValue()));
+		} else if (Code.DATE == typeCode) {
+			valueBinder.to(SpannerValueHelper.toGoogleDate(attribute.getValue()));
+		} else if (Code.TIMESTAMP == typeCode) {
+			valueBinder.to(SpannerValueHelper.toGoogleTimestamp(attribute.getValue()));
+		} else if (Code.INT64 == typeCode) {
+			valueBinder.to(SpannerValueHelper.toLong(attribute.getValue()));
+		} else if (Code.NUMERIC == typeCode) {
+			valueBinder.to(SpannerValueHelper.toBigDecimal(attribute.getValue()));
+		} else if (Code.STRING == typeCode) {
+			valueBinder.to(SpannerValueHelper.toString(attribute.getValue()));
+		} else if (Code.ARRAY == typeCode) {
+			Code arrayCode = attributeType.getType().getArrayElementType().getCode();
+			if (Code.BOOL == arrayCode) {
+				valueBinder.toBoolArray(SpannerValueHelper.toBooleanList(attribute.getValues()));
+			} else if (Code.DATE == arrayCode) {
+				valueBinder.toDateArray(SpannerValueHelper.toGoogleDateList(attribute.getValues()));
+			} else if (Code.TIMESTAMP == arrayCode) {
+				valueBinder.toTimestampArray(SpannerValueHelper.toGoogleTimestampList(attribute.getValues()));
+			} else if (Code.INT64 == arrayCode) {
+				valueBinder.toInt64Array(SpannerValueHelper.toLongList(attribute.getValues()));
+			} else if (Code.NUMERIC == arrayCode) {
+				valueBinder.toNumericArray(SpannerValueHelper.toBigDecimalList(attribute.getValues()));
+			} else if (Code.STRING == arrayCode) {
+				valueBinder.toStringArray(SpannerValueHelper.toStringList(attribute.getValues()));
+			}
+		}
+
+		throw new EntryConvertationException(String.format(
+				"Array column with name '%s' does not contain supported type '%s'", attribute.getName(), attributeType));
 	}
 
-	private void removeMutationBuilderValue(WriteBuilder childMutation, AttributeData attribute, String childAttributeType) {
-		// TODO: Implement
+	private void removeMutationBuilderValue(WriteBuilder mutation, AttributeData attribute, StructField attributeType) throws EntryConvertationException {
+		ValueBinder<WriteBuilder> valueBinder = mutation.set(attributeType.getName());
+
+		Code typeCode = attributeType.getType().getCode();
+		if (Code.BOOL == typeCode) {
+			valueBinder.to((Boolean) null);
+		} else if (Code.DATE == typeCode) {
+			valueBinder.to((com.google.cloud.Date) null);
+		} else if (Code.TIMESTAMP == typeCode) {
+			valueBinder.to((com.google.cloud.Timestamp) null);
+		} else if (Code.INT64 == typeCode) {
+			valueBinder.to((Long) null);
+		} else if (Code.NUMERIC == typeCode) {
+			valueBinder.to((BigDecimal) null);
+		} else if (Code.STRING == typeCode) {
+			valueBinder.to((String) null);
+		} else if (Code.ARRAY == typeCode) {
+			Code arrayCode = attributeType.getType().getArrayElementType().getCode();
+			if (Code.BOOL == arrayCode) {
+				valueBinder.toBoolArray((boolean[]) null);
+			} else if (Code.DATE == arrayCode) {
+				valueBinder.toDateArray((List<com.google.cloud.Date>) null);
+			} else if (Code.TIMESTAMP == arrayCode) {
+				valueBinder.toTimestampArray((List<com.google.cloud.Timestamp>) null);
+			} else if (Code.INT64 == arrayCode) {
+				valueBinder.toInt64Array((long[]) null);
+			} else if (Code.NUMERIC == arrayCode) {
+				valueBinder.toNumericArray((List<BigDecimal>) null);
+			} else if (Code.STRING == arrayCode) {
+				valueBinder.toStringArray((List<String>) null);
+			}
+		}
+
+		throw new EntryConvertationException(String.format(
+				"Array column with name '%s' does not contain supported type '%s'", attribute.getName(), attributeType));
 	}
 
 	private Object[] convertDbArrayToValue(ResultSet resultSet, Type elementType, int columnIndex,
@@ -1078,46 +1139,19 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 		if (Code.BOOL == elementCode) {
 			return resultSet.getBooleanList(columnIndex).toArray(NO_OBJECTS);
 		} else if (Code.DATE == elementCode) {
-			return toJavaDatesFromSpannerDate(resultSet.getDateList(columnIndex)).toArray(NO_OBJECTS);
+			return SpannerValueHelper.toJavaDateArrayFromSpannerDateList(resultSet.getDateList(columnIndex));
 		} else if (Code.TIMESTAMP == elementCode) {
-			return toJavaDatesFromSpannerTimestamp(resultSet.getTimestampList(columnIndex)).toArray(NO_OBJECTS);
+			return SpannerValueHelper.toJavaDateArrayFromSpannerTimestampList(resultSet.getTimestampList(columnIndex));
 		} else if (Code.INT64 == elementCode) {
 			return resultSet.getLongList(columnIndex).toArray(NO_OBJECTS);
 		} else if (Code.NUMERIC == elementCode) {
-			return toJavaLongFromSpannerNumeric(resultSet.getBigDecimalList(columnIndex)).toArray(NO_OBJECTS);
+			return SpannerValueHelper.toJavaLongArrayFromBigDecimalList(resultSet.getBigDecimalList(columnIndex));
 		} else if (Code.STRING == elementCode) {
 			return resultSet.getStringList(columnIndex).toArray(NO_OBJECTS);
-		} else {
-			throw new EntryConvertationException(String.format(
-					"Array column with name '%s' does not contain supported type '%s'", attributeName, elementCode));
-		}
-	}
-
-	private List<Date> toJavaDatesFromSpannerDate(List<com.google.cloud.Date> dates) {
-		List<Date> res = new ArrayList<>(dates.size());
-		for (com.google.cloud.Date date : dates) {
-			res.add(com.google.cloud.Date.toJavaUtilDate(date));
 		}
 
-		return res;
-	}
-
-	private List<Date> toJavaDatesFromSpannerTimestamp(List<com.google.cloud.Timestamp> dates) {
-		List<Date> res = new ArrayList<>(dates.size());
-		for (com.google.cloud.Timestamp date : dates) {
-			res.add(new java.util.Date(date.toSqlTimestamp().getTime()));
-		}
-
-		return res;
-	}
-
-	private List<Long> toJavaLongFromSpannerNumeric(List<BigDecimal> numbers) {
-		List<Long> res = new ArrayList<>(numbers.size());
-		for (BigDecimal number : numbers) {
-			res.add(number.longValue());
-		}
-
-		return res;
+		throw new EntryConvertationException(String.format(
+				"Array column with name '%s' does not contain supported type '%s'", attributeName, elementType));
 	}
 
 	public String getStringUniqueKey(MessageDigest messageDigest, Object value) {

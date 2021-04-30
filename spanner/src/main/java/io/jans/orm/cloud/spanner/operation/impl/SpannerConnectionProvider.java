@@ -29,6 +29,10 @@ import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.Statement;
+import com.google.cloud.spanner.Type;
+import com.google.cloud.spanner.Type.Code;
+import com.google.cloud.spanner.Type.StructField;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 import io.jans.orm.cloud.spanner.model.ResultCode;
 import io.jans.orm.cloud.spanner.model.TableMapping;
@@ -93,7 +97,7 @@ public class SpannerConnectionProvider {
 	
 	private String connectionCredentialsFile;
 	
-	private Map<String, Map<String, String>> tableColumnsMap;
+	private Map<String, Map<String, StructField>> tableColumnsMap;
 	private Map<String, Set<String>> tableNullableColumnsSet;
 	private Map<String, Set<String>> childTablesMap;
 
@@ -215,6 +219,8 @@ public class SpannerConnectionProvider {
         }
         LOG.debug("Build parent tables map: '{}'.", childTablesMap);
 
+        HashMap<String, Type> typeMap = buildSpannerTypesMap();
+
         try (ResultSet resultSet = executeQuery(QUERY_TABLE_SCHEMA)) {
         	if (resultSet.next()) {
             	int tableNameIdx = resultSet.getColumnIndex("TABLE_NAME");
@@ -228,15 +234,20 @@ public class SpannerConnectionProvider {
         			String isNullable = resultSet.getString(isNullableIdx);
 
 	        		// Load table schema
-        			Map<String, String> tableColumns;
+        			Map<String, StructField> tableColumns;
 	        		if (tableColumnsMap.containsKey(tableName)) {
 	        			tableColumns = tableColumnsMap.get(tableName);
 	        		} else {
 	            		tableColumns = new HashMap<>();
 	                	tableColumnsMap.put(tableName, tableColumns);
 	        		}
-	        		
-	        		tableColumns.put(columnName.toLowerCase(), spannerType.toLowerCase());
+
+	        		String comparebleType = toComparableType(spannerType);
+	        		Type type = typeMap.get(comparebleType);
+	        		if (type == null) {
+	                	throw new ConnectionException(String.format("Failed to parse SPANNER_TYPE: '%s'", spannerType));
+	        		}
+	        		tableColumns.put(columnName.toLowerCase(), StructField.of(columnName, type));
 
 	        		// Check if column nullable
 	        		Set<String> nullableColumns;
@@ -262,7 +273,37 @@ public class SpannerConnectionProvider {
         LOG.info("Metadata scan finisehd in {} milliseconds", takes);
    	}
 
-    private void openWithWaitImpl() throws Exception {
+	private HashMap<String, Type> buildSpannerTypesMap() {
+    	HashMap<String, Type> typeMap = new HashMap<>();
+    	
+    	// We have to add all types manually because Type is not enum and there is no method to get them all
+    	addSpannerType(typeMap, Type.bool());
+    	addSpannerType(typeMap, Type.int64());
+    	addSpannerType(typeMap, Type.numeric());
+    	addSpannerType(typeMap, Type.float64());
+    	addSpannerType(typeMap, Type.string());
+    	addSpannerType(typeMap, Type.bytes());
+    	addSpannerType(typeMap, Type.timestamp());
+    	addSpannerType(typeMap, Type.date());
+
+    	return typeMap;
+	}
+
+    private String toComparableType(String spannerType) {
+    	int idx = spannerType.lastIndexOf("<");
+    	if (idx == -1) {
+    		return spannerType.toLowerCase();
+    	}
+    	
+    	return spannerType.substring(0, idx).toLowerCase();
+	}
+
+	private void addSpannerType(HashMap<String, Type> typeMap, Type type) {
+		typeMap.put(type.toString().toLowerCase(), type);
+		typeMap.put(Code.ARRAY.name().toLowerCase()  + "<" + type.toString().toLowerCase(), Type.array(type));
+	}
+
+	private void openWithWaitImpl() throws Exception {
     	long connectionMaxWaitTimeMillis = StringHelper.toLong(props.getProperty("connection.client.create-max-wait-time-millis"), 30 * 1000L);
         LOG.debug("Using connection timeout: '{}'", connectionMaxWaitTimeMillis);
 
@@ -388,7 +429,7 @@ public class SpannerConnectionProvider {
 
 	public TableMapping getTableMappingByKey(String key, String objectClass) {
 		String tableName = objectClass;
-		Map<String, String> columTypes = tableColumnsMap.get(tableName);
+		Map<String, StructField> columTypes = tableColumnsMap.get(tableName);
 		if ("_".equals(key)) {
 			return new TableMapping("", tableName, objectClass, columTypes);
 		}
@@ -412,6 +453,21 @@ public class SpannerConnectionProvider {
 		return childTablesMap.get(objectClass);
 	}
 
+	public Map<String, TableMapping> getChildTablesMapping(String key, TableMapping tableMapping) {
+		Set<String> childTableNames = childTablesMap.get(tableMapping.getObjectClass());
+		if (childTableNames == null) {
+			return null;
+		}
+		
+		Map<String, TableMapping> childTableMapping = new HashMap<>();
+		for (String childTableName : childTableNames) {
+			TableMapping childColumTypes = getTableMappingByKey(key, childTableName);
+			childTableMapping.put(childTableName, childColumTypes);
+		}
+		
+		return childTableMapping;
+	}
+
 	public Set<String> getTableNullableColumns(String objectClass) {
 		return tableNullableColumnsSet.get(objectClass);
 	}
@@ -424,12 +480,12 @@ public class SpannerConnectionProvider {
 		return this.dbClient.singleUse().executeQuery(Statement.of(sql));
 	}
 
-	public Map<String, Map<String, String>> getTableColumnsMap() {
+	public Map<String, Map<String, StructField>> getDatabaseMetaData() {
 		return tableColumnsMap;
 	}
 
-	public static void main(String[] args) throws JSQLParserException {
-		Select selectCount = (Select) CCJSqlParserUtil.parse("SELECT count(*) as TOTAL FROM jansClnt_2 AS doc");
+	public static void main(String[] args) throws JSQLParserException, InvalidProtocolBufferException {
+		Select selectCount = (Select) CCJSqlParserUtil.parse("SELECT doc.* from doc JOIN jansClnt_Interleave_jansRedirectURI jansRedirectURI ON doc.doc_id = jansRedirectURI.doc_id");
 		System.out.println(selectCount);
 
 		Select select = (Select) CCJSqlParserUtil.parse("SELECT doc.*, ARRAY(SELECT c.jansRedirectURI FROM jansClnt_Interleave_jansRedirectURI c WHERE doc.doc_id = c.doc_id) jansRedirectURI\r\n"
@@ -456,7 +512,6 @@ public class SpannerConnectionProvider {
 		
 		Column attrSelectColumn = new Column("jansRedirectURI");
 		attrSelectColumn.setTable(tableAttrSelect);
-		
 		
 		attrSelect.addSelectItems(new SelectExpressionItem(attrSelectColumn));
 

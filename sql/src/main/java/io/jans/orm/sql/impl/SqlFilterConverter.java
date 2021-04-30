@@ -195,7 +195,6 @@ public class SqlFilterConverter {
         }
 
         if (FilterType.LESS_OR_EQUAL == type) {
-        	String internalAttribute = toInternalAttribute(currentGenericFilter);
             if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
             	if (currentGenericFilter.getMultiValuedCount() > 1) {
                 	Collection<Predicate> expressions = new ArrayList<>(currentGenericFilter.getMultiValuedCount());
@@ -223,7 +222,6 @@ public class SqlFilterConverter {
         }
 
         if (FilterType.GREATER_OR_EQUAL == type) {
-        	String internalAttribute = toInternalAttribute(currentGenericFilter);
             if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
             	if (currentGenericFilter.getMultiValuedCount() > 1) {
                 	Collection<Predicate> expressions = new ArrayList<>(currentGenericFilter.getMultiValuedCount());
@@ -250,7 +248,6 @@ public class SqlFilterConverter {
         }
 
         if (FilterType.PRESENCE == type) {
-        	String internalAttribute = toInternalAttribute(currentGenericFilter);
         	Expression expression;
             if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {
             	if (currentGenericFilter.getMultiValuedCount() > 1) {
@@ -296,8 +293,6 @@ public class SqlFilterConverter {
             if (currentGenericFilter.getSubFinal() != null) {
                 like.append(currentGenericFilter.getSubFinal());
             }
-
-            String internalAttribute = toInternalAttribute(currentGenericFilter);
 
             Expression expression;
             if (isMultiValue(currentGenericFilter, propertiesAnnotationsMap)) {

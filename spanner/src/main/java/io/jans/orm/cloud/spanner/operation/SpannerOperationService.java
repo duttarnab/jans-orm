@@ -11,10 +11,12 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.cloud.spanner.DatabaseClient;
+import com.google.cloud.spanner.Type.StructField;
 
 import io.jans.orm.cloud.spanner.impl.SpannerBatchOperationWraper;
 import io.jans.orm.cloud.spanner.model.ConvertedExpression;
 import io.jans.orm.cloud.spanner.model.SearchReturnDataType;
+import io.jans.orm.cloud.spanner.model.TableMapping;
 import io.jans.orm.cloud.spanner.operation.impl.SpannerConnectionProvider;
 import io.jans.orm.exception.operation.DeleteException;
 import io.jans.orm.exception.operation.DuplicateEntryException;
@@ -90,6 +92,8 @@ public interface SpannerOperationService extends PersistenceOperationService {
 
 	DatabaseClient getConnection();
 
-	Map<String, Map<String, String>> getMetadata();
+	Map<String, Map<String, StructField>> getMetadata();
+
+	TableMapping getTabeMapping(String key, String objectClass);
 
 }
