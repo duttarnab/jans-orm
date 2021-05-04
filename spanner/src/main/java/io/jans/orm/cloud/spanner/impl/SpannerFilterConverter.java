@@ -21,6 +21,7 @@ import com.google.cloud.spanner.Type.StructField;
 import io.jans.orm.annotation.AttributeEnum;
 import io.jans.orm.cloud.spanner.model.ConvertedExpression;
 import io.jans.orm.cloud.spanner.model.TableMapping;
+import io.jans.orm.cloud.spanner.model.ValueWithStructField;
 import io.jans.orm.cloud.spanner.operation.SpannerOperationService;
 import io.jans.orm.exception.operation.SearchException;
 import io.jans.orm.ldap.impl.LdapFilterConverter;
@@ -85,7 +86,7 @@ public class SpannerFilterConverter {
     }
 
 	public ConvertedExpression convertToSqlFilter(TableMapping tableMapping, Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap, Function<? super Filter, Boolean> processor, boolean skipAlias) throws SearchException {
-    	Map<String, Object> queryParameters = new HashMap<>();
+    	Map<String, ValueWithStructField> queryParameters = new HashMap<>();
     	Map<String, Join> joinTables = new HashMap<>();
     	ConvertedExpression convertedExpression = convertToSqlFilterImpl(tableMapping, genericFilter, propertiesAnnotationsMap, queryParameters, joinTables, processor, skipAlias);
     	
@@ -93,7 +94,7 @@ public class SpannerFilterConverter {
     }
 
 	private ConvertedExpression convertToSqlFilterImpl(TableMapping tableMapping, Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap,
-			Map<String, Object> queryParameters, Map<String, Join> joinTables, Function<? super Filter, Boolean> processor, boolean skipAlias) throws SearchException {
+			Map<String, ValueWithStructField> queryParameters, Map<String, Join> joinTables, Function<? super Filter, Boolean> processor, boolean skipAlias) throws SearchException {
 		if (genericFilter == null) {
 			return null;
 		}
@@ -195,7 +196,7 @@ public class SpannerFilterConverter {
 		Expression leftExpression = buildExpression(tableMapping, currentGenericFilter, multiValued, useExistsInArray, propertiesAnnotationsMap, queryParameters, joinTables, processor, skipAlias);
 
     	if (FilterType.EQUALITY == type) {
-        	Expression variableExpression = buildVariableExpression(internalAttribute, currentGenericFilter.getAssertionValue(), queryParameters);
+        	Expression variableExpression = buildVariableExpression(tableMapping, internalAttribute, currentGenericFilter.getAssertionValue(), queryParameters);
     		Expression expression = new EqualsTo(leftExpression, variableExpression);
     		if (multiValued) {
     			if (useExistsInArray) {
@@ -213,7 +214,7 @@ public class SpannerFilterConverter {
         }
 
         if (FilterType.LESS_OR_EQUAL == type) {
-        	Expression variableExpression = buildVariableExpression(internalAttribute, currentGenericFilter.getAssertionValue(), queryParameters);
+        	Expression variableExpression = buildVariableExpression(tableMapping, internalAttribute, currentGenericFilter.getAssertionValue(), queryParameters);
         	Expression expression = new MinorThanEquals().withLeftExpression(leftExpression).withRightExpression(variableExpression);
     		if (multiValued) {
     			if (useExistsInArray) {
@@ -228,7 +229,7 @@ public class SpannerFilterConverter {
         }
 
         if (FilterType.GREATER_OR_EQUAL == type) {
-        	Expression variableExpression = buildVariableExpression(internalAttribute, currentGenericFilter.getAssertionValue(), queryParameters);
+        	Expression variableExpression = buildVariableExpression(tableMapping, internalAttribute, currentGenericFilter.getAssertionValue(), queryParameters);
         	Expression expression = new GreaterThanEquals().withLeftExpression(leftExpression).withRightExpression(variableExpression);
     		if (multiValued) {
     			if (useExistsInArray) {
@@ -280,7 +281,7 @@ public class SpannerFilterConverter {
             }
             
             String likeValue = like.toString();
-        	Expression variableExpression = buildVariableExpression(internalAttribute, likeValue, queryParameters);
+        	Expression variableExpression = buildVariableExpression(tableMapping, internalAttribute, likeValue, queryParameters);
         	Expression expression = new LikeExpression().withLeftExpression(leftExpression).withRightExpression(variableExpression);
     		if (multiValued) {
     			if (useExistsInArray) {
@@ -306,17 +307,7 @@ public class SpannerFilterConverter {
 	}
 
 	protected Boolean isMultiValue(TableMapping tableMapping, String attributeName, Filter currentGenericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap) throws SearchException {
-		StructField structField = tableMapping.getColumTypes().get(attributeName);
-		if (structField == null) {
-			TableMapping childTableMapping = tableMapping.getChildTableMappingForAttribute(attributeName);
-			if (childTableMapping != null) {
-				structField = childTableMapping.getColumTypes().get(attributeName);
-			}
-		}
-		
-		if (structField == null) {
-	        throw new SearchException(String.format("Unknown column name '%s' in table/child table '%s'", attributeName, tableMapping.getTableName()));
-		}
+		StructField structField = getStructField(tableMapping, attributeName);
 		
     	Code columnTypeCode = structField.getType().getCode();
     	if (Code.ARRAY == columnTypeCode) {
@@ -332,6 +323,22 @@ public class SpannerFilterConverter {
     	}
 
 		return false;
+	}
+
+	private StructField getStructField(TableMapping tableMapping, String attributeName) throws SearchException {
+		StructField structField = tableMapping.getColumTypes().get(attributeName);
+		if (structField == null) {
+			TableMapping childTableMapping = tableMapping.getChildTableMappingForAttribute(attributeName);
+			if (childTableMapping != null) {
+				structField = childTableMapping.getColumTypes().get(attributeName);
+			}
+		}
+		
+		if (structField == null) {
+	        throw new SearchException(String.format("Unknown column name '%s' in table/child table '%s'", attributeName, tableMapping.getTableName()));
+		}
+
+		return structField;
 	}
 
 	private Boolean determineMultiValuedByType(String attributeName, Map<String, PropertyAnnotation> propertiesAnnotationsMap) {
@@ -379,7 +386,9 @@ public class SpannerFilterConverter {
 		return operationService.toInternalAttribute(attributeName);
 	}
 
-	private Expression buildVariableExpression(String attributeName, Object attribyteValue, Map<String, Object> queryParameters) {
+	private Expression buildVariableExpression(TableMapping tableMapping, String attributeName, Object attribyteValue, Map<String, ValueWithStructField> queryParameters) throws SearchException {
+		StructField structField = getStructField(tableMapping, attributeName);
+
 		String usedAttributeName = attributeName;
 
 		int idx = 0;
@@ -387,7 +396,7 @@ public class SpannerFilterConverter {
 			usedAttributeName = attributeName + Integer.toString(idx++);
 		}
 
-    	queryParameters.put(usedAttributeName, attribyteValue);
+    	queryParameters.put(usedAttributeName, new ValueWithStructField(attribyteValue, structField));
 		return new UserVariable(usedAttributeName);
 	}
 
@@ -419,7 +428,7 @@ public class SpannerFilterConverter {
 	}
 
 	private Expression buildExpression(TableMapping tableMapping, Filter genericFilter, boolean multiValued, boolean useExistsInArray, Map<String, PropertyAnnotation> propertiesAnnotationsMap,
-			Map<String, Object> queryParameters, Map<String, Join> joinTables, Function<? super Filter, Boolean> processor, boolean skipAlias) throws SearchException {
+			Map<String, ValueWithStructField> queryParameters, Map<String, Join> joinTables, Function<? super Filter, Boolean> processor, boolean skipAlias) throws SearchException {
     	boolean hasSubFilters = ArrayHelper.isNotEmpty(genericFilter.getFilters());
 
 		if (hasSubFilters) {

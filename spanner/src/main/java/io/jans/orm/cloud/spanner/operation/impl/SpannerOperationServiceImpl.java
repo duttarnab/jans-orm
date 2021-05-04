@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
@@ -34,6 +35,7 @@ import com.google.cloud.spanner.Mutation.WriteBuilder;
 import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.Statement;
+import com.google.cloud.spanner.Statement.Builder;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
 import com.google.cloud.spanner.Type.StructField;
@@ -43,6 +45,7 @@ import io.jans.orm.cloud.spanner.impl.SpannerBatchOperationWraper;
 import io.jans.orm.cloud.spanner.model.ConvertedExpression;
 import io.jans.orm.cloud.spanner.model.SearchReturnDataType;
 import io.jans.orm.cloud.spanner.model.TableMapping;
+import io.jans.orm.cloud.spanner.model.ValueWithStructField;
 import io.jans.orm.cloud.spanner.operation.SpannerOperationService;
 import io.jans.orm.cloud.spanner.operation.watch.OperationDurationUtil;
 import io.jans.orm.cloud.spanner.util.SpannerValueHelper;
@@ -51,6 +54,7 @@ import io.jans.orm.exception.operation.DeleteException;
 import io.jans.orm.exception.operation.DuplicateEntryException;
 import io.jans.orm.exception.operation.EntryConvertationException;
 import io.jans.orm.exception.operation.EntryNotFoundException;
+import io.jans.orm.exception.operation.IncompatibleTypeException;
 import io.jans.orm.exception.operation.PersistenceException;
 import io.jans.orm.exception.operation.SearchException;
 import io.jans.orm.model.AttributeData;
@@ -76,6 +80,7 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.select.AllTableColumns;
+import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.Limit;
 import net.sf.jsqlparser.statement.select.Offset;
 import net.sf.jsqlparser.statement.select.OrderByElement;
@@ -214,12 +219,12 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 							set(SpannerOperationService.DOC_ID).to(key).
 							set(SpannerOperationService.DICT_DOC_ID).to(dictDocId);
 						
-						setMutationBuilderValue(childMutationBuilder, attribute, childAttributeType, value);
+						setMutationBuilderValue(childMutationBuilder, childAttributeType, value);
 
 						mutations.add(childMutationBuilder.build());
 					}
 				} else {
-					setMutationBuilderValue(mutationBuilder, attribute, attributeType, attribute.getValues());
+					setMutationBuilderValue(mutationBuilder, attributeType, attribute.getValues());
 				}
 			}
 			mutations.add(0, mutationBuilder.build());
@@ -283,7 +288,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 								set(SpannerOperationService.DOC_ID).to(key).
 								set(SpannerOperationService.DICT_DOC_ID).to(dictDocId);
 
-							setMutationBuilderValue(childMutationBuilder, attribute, childAttributeType, value);
+							setMutationBuilderValue(childMutationBuilder, childAttributeType, value);
 
 							mutations.add(childMutationBuilder.build());
 						} else if (AttributeModificationType.REMOVE == type) {
@@ -298,7 +303,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 				} else {
 					if ((AttributeModificationType.ADD == type) || (AttributeModificationType.FORCE_UPDATE == type)
 							|| (AttributeModificationType.REPLACE == type)) {
-						setMutationBuilderValue(mutationBuilder, attribute, attributeType, attribute.getValues());
+						setMutationBuilderValue(mutationBuilder, attributeType, attribute.getValues());
 					} else if (AttributeModificationType.REMOVE == type) {
 						removeMutationBuilderValue(mutationBuilder, attribute, attributeType);
 					} else {
@@ -365,8 +370,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 
 			Delete sqlDeleteQuery = new Delete();
 			sqlDeleteQuery.setTable(table);
-			sqlDeleteQuery.setWhere(expression.expression());
-			// TODO: Set binding
+			applyWhereExpression(sqlDeleteQuery, expression);
 
 			if (count > 0) {
 				Limit limit = new Limit();
@@ -374,13 +378,16 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 				sqlDeleteQuery.setLimit(limit);
             }
 
-			Statement statement = Statement.of(sqlDeleteQuery.toString());
+			Statement.Builder statementBuilder = Statement.newBuilder(sqlDeleteQuery.toString());
+			applyParametersBinding(statementBuilder, expression);
+
+			Statement statement = statementBuilder.build();
             LOG.debug("Executing delete query: '{}'", statement);
 
 			long rowDeleted = databaseClient.executePartitionedUpdate(statement);
 
 			return rowDeleted;
-        } catch (SpannerException ex) {
+        } catch (SpannerException | IncompatibleTypeException ex) {
             throw new DeleteException(String.format("Failed to delete entries. Expression: '%s'", expression.expression()), ex);
         }
 	}
@@ -506,9 +513,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 		sqlSelectQuery.addSelectItems(selectItems);
 		
 		if (expression != null) {
-			Expression whereExp = expression.expression();
-			sqlSelectQuery.setWhere(whereExp);
-			// TODO: Set binding
+			applyWhereExpression(sqlSelectQuery, expression);
 		}
 
         if (orderBy != null) {
@@ -554,7 +559,10 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	    	    		limit.setRowCount(new LongValue(currentLimit));
 	    	    		offset.setOffset(start + resultCount);
 	                    
-	                    Statement statement = Statement.of(sqlSelectQuery.toString());
+	    				Statement.Builder statementBuilder = Statement.newBuilder(sqlSelectQuery.toString());
+	    				applyParametersBinding(statementBuilder, expression);
+
+	    				Statement statement = statementBuilder.build();
 	                    LOG.debug("Executing query: '{}'", statement);
 
 	                    try (ResultSet resultSet = databaseClient.singleUse().executeQuery(statement)) {
@@ -581,7 +589,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	                        break;
 	                    }
 	                } while (lastCountRows > 0);
-	    		} catch (SpannerException | EntryConvertationException ex) {
+	    		} catch (SpannerException | EntryConvertationException | IncompatibleTypeException ex) {
 	    			throw new SearchException(String.format("Failed to execute query '%s'  with key: '%s'", sqlSelectQuery, key), ex);
 	    		}
 	        } else {
@@ -597,14 +605,17 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	    	    		sqlSelectQuery.setOffset(offset);
 	                }
 	
-                    Statement statement = Statement.of(sqlSelectQuery.toString());
+    				Statement.Builder statementBuilder = Statement.newBuilder(sqlSelectQuery.toString());
+    				applyParametersBinding(statementBuilder, expression);
+
+    				Statement statement = statementBuilder.build();
                     LOG.debug("Executing query: '{}'", statement);
 
                     try (ResultSet resultSet = databaseClient.singleUse().executeQuery(statement)) {
 		    			lastResult = getEntryDataList(tableMapping.getObjectClass(), resultSet);
 		    			searchResultList.addAll(lastResult);
                     }
-	            } catch (SpannerException | EntryConvertationException ex) {
+	            } catch (SpannerException | EntryConvertationException | IncompatibleTypeException ex) {
 	                throw new SearchException(String.format("Failed to execute query '%s'  with key: '%s'", sqlSelectQuery, key), ex);
 	            }
 	        }
@@ -627,15 +638,15 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
     		selectCountItem.setAlias(new Alias("TOTAL", false));
 
     		sqlCountSelectQuery.addSelectItems(selectCountItem);
-    		
+
     		if (expression != null) {
-    			Expression whereExp = expression.expression();
-    			sqlCountSelectQuery.setWhere(whereExp);
-    			// TODO: Set binding
+    			applyWhereExpression(sqlCountSelectQuery, expression);
     		}
 
     		try {
-                Statement statement = Statement.of(sqlCountSelectQuery.toString());
+    			Statement.Builder statementBuilder = Statement.newBuilder(sqlCountSelectQuery.toString());
+    			applyParametersBinding(statementBuilder, expression);
+                Statement statement = statementBuilder.build();
                 LOG.debug("Calculating count. Executing query: '{}'", statement);
 
                 try (ResultSet countResult = databaseClient.singleUse().executeQuery(statement)) {
@@ -645,7 +656,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 
                 	result.setTotalEntriesCount((int) countResult.getLong("TOTAL"));
                 }
-    		} catch (SpannerException ex) {
+    		} catch (SpannerException | IncompatibleTypeException ex) {
     			throw new SearchException(String.format("Failed to build count search entries query. Key: '%s', expression: '%s'", key, expression.expression()), ex);
             }
         }
@@ -1053,47 +1064,79 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 //		return resultAttributeNames;
 	}
 
-	private void setMutationBuilderValue(WriteBuilder mutation, AttributeData attribute, StructField attributeType,
-			Object value) throws EntryConvertationException {
-		Object[] values = attribute.getValues();
+	private void applyParametersBinding(Statement.Builder builder, ConvertedExpression expression) throws IncompatibleTypeException {
+		Map<String, ValueWithStructField> queryParameters = expression.queryParameters();
+		for (Entry<String, ValueWithStructField> queryParameterEntry : queryParameters.entrySet()) {
+			String attributeName = queryParameterEntry.getKey();
+			ValueWithStructField valueWithStructField = queryParameterEntry.getValue();
+			ValueBinder<Builder> valueBinder = builder.bind(attributeName);
+
+			setMutationBuilderValue(valueBinder, valueWithStructField.getStructField(), valueWithStructField.getValue());
+		}
+	}
+
+	private void applyWhereExpression(Delete sqlDeleteQuery, ConvertedExpression expression) {
+		Expression whereExp = expression.expression();
+		sqlDeleteQuery.setWhere(whereExp);
+		Map<String, Join> joinTables = expression.joinTables();
+		if (joinTables != null) {
+			sqlDeleteQuery.setJoins(new ArrayList<>(joinTables.values()));
+		}
+	}
+
+	private void applyWhereExpression(PlainSelect sqlSelectQuery, ConvertedExpression expression) {
+		Expression whereExp = expression.expression();
+		sqlSelectQuery.setWhere(whereExp);
+		Map<String, Join> joinTables = expression.joinTables();
+		if (joinTables != null) {
+			sqlSelectQuery.setJoins(new ArrayList<>(joinTables.values()));
+		}
+	}
+
+	private void setMutationBuilderValue(WriteBuilder mutation, StructField attributeType, Object ... values) throws IncompatibleTypeException {
+		ValueBinder<WriteBuilder> valueBinder = mutation.set(attributeType.getName());
+
+		setMutationBuilderValue(valueBinder, attributeType, values);
+	}
+
+	private void setMutationBuilderValue(ValueBinder<?> valueBinder, StructField attributeType,
+			Object ... values) throws IncompatibleTypeException {
 		if ((values == null) || (values.length == 0)) {
 			return;
 		}
 
-		ValueBinder<WriteBuilder> valueBinder = mutation.set(attributeType.getName());
-
 		Code typeCode = attributeType.getType().getCode();
 		if (Code.BOOL == typeCode) {
-			valueBinder.to(SpannerValueHelper.toBoolean(attribute.getValue()));
+			valueBinder.to(SpannerValueHelper.toBoolean(values[0]));
 		} else if (Code.DATE == typeCode) {
-			valueBinder.to(SpannerValueHelper.toGoogleDate(attribute.getValue()));
+			valueBinder.to(SpannerValueHelper.toGoogleDate(values[0]));
 		} else if (Code.TIMESTAMP == typeCode) {
-			valueBinder.to(SpannerValueHelper.toGoogleTimestamp(attribute.getValue()));
+			valueBinder.to(SpannerValueHelper.toGoogleTimestamp(values[0]));
 		} else if (Code.INT64 == typeCode) {
-			valueBinder.to(SpannerValueHelper.toLong(attribute.getValue()));
+			valueBinder.to(SpannerValueHelper.toLong(values[0]));
 		} else if (Code.NUMERIC == typeCode) {
-			valueBinder.to(SpannerValueHelper.toBigDecimal(attribute.getValue()));
+			valueBinder.to(SpannerValueHelper.toBigDecimal(values[0]));
 		} else if (Code.STRING == typeCode) {
-			valueBinder.to(SpannerValueHelper.toString(attribute.getValue()));
+			valueBinder.to(SpannerValueHelper.toString(values[0]));
 		} else if (Code.ARRAY == typeCode) {
 			Code arrayCode = attributeType.getType().getArrayElementType().getCode();
 			if (Code.BOOL == arrayCode) {
-				valueBinder.toBoolArray(SpannerValueHelper.toBooleanList(attribute.getValues()));
+				valueBinder.toBoolArray(SpannerValueHelper.toBooleanList(values));
 			} else if (Code.DATE == arrayCode) {
-				valueBinder.toDateArray(SpannerValueHelper.toGoogleDateList(attribute.getValues()));
+				valueBinder.toDateArray(SpannerValueHelper.toGoogleDateList(values));
 			} else if (Code.TIMESTAMP == arrayCode) {
-				valueBinder.toTimestampArray(SpannerValueHelper.toGoogleTimestampList(attribute.getValues()));
+				valueBinder.toTimestampArray(SpannerValueHelper.toGoogleTimestampList(values));
 			} else if (Code.INT64 == arrayCode) {
-				valueBinder.toInt64Array(SpannerValueHelper.toLongList(attribute.getValues()));
+				valueBinder.toInt64Array(SpannerValueHelper.toLongList(values));
 			} else if (Code.NUMERIC == arrayCode) {
-				valueBinder.toNumericArray(SpannerValueHelper.toBigDecimalList(attribute.getValues()));
+				valueBinder.toNumericArray(SpannerValueHelper.toBigDecimalList(values));
 			} else if (Code.STRING == arrayCode) {
-				valueBinder.toStringArray(SpannerValueHelper.toStringList(attribute.getValues()));
+				valueBinder.toStringArray(SpannerValueHelper.toStringList(values));
 			}
 		}
 
-		throw new EntryConvertationException(String.format(
-				"Array column with name '%s' does not contain supported type '%s'", attribute.getName(), attributeType));
+		throw new IncompatibleTypeException(String.format(
+				"Array column with name '%s' does not contain supported type '%s'", attributeType.getName(), attributeType));
 	}
 
 	private void removeMutationBuilderValue(WriteBuilder mutation, AttributeData attribute, StructField attributeType) throws EntryConvertationException {

@@ -6,7 +6,6 @@
 
 package io.jans.orm.cloud.spanner.model;
 
-import java.util.List;
 import java.util.Map;
 
 import net.sf.jsqlparser.expression.Expression;
@@ -20,20 +19,20 @@ import net.sf.jsqlparser.statement.select.Join;
 public class ConvertedExpression {
 	
 	private Expression expression;
-	private Map<String, Object> queryParameters;
+	private Map<String, ValueWithStructField> queryParameters;
 	private Map<String, Join> joinTables;
 
 	private ConvertedExpression(Expression expression) {
 		this.expression = expression;
 	}
 
-	private ConvertedExpression(Expression expression, Map<String, Object> queryParameters, Map<String, Join> joinTables) {
+	private ConvertedExpression(Expression expression, Map<String, ValueWithStructField> queryParameters, Map<String, Join> joinTables) {
 		this.expression = expression;
 		this.queryParameters = queryParameters;
 		this.joinTables = joinTables;
 	}
 
-	public static ConvertedExpression build(Expression expression, Map<String, Object> queryParameters, Map<String, Join> joinTables) {
+	public static ConvertedExpression build(Expression expression, Map<String, ValueWithStructField> queryParameters, Map<String, Join> joinTables) {
 		return new ConvertedExpression(expression, queryParameters, joinTables);
 	}
 
@@ -41,7 +40,7 @@ public class ConvertedExpression {
 		return expression;
 	}
 
-	public Map<String, Object> queryParameters() {
+	public Map<String, ValueWithStructField> queryParameters() {
 		return queryParameters;
 	}
 
