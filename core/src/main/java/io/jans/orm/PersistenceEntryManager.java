@@ -33,7 +33,7 @@ import io.jans.orm.search.filter.Filter;
  */
 public interface PersistenceEntryManager extends EntityManager {
 
-	enum PERSITENCE_TYPES {ldap, couchbase, sql, hybrid};
+	enum PERSITENCE_TYPES {ldap, couchbase, sql, spanner, hybrid};
 
 	@Deprecated
     boolean authenticate(String primaryKey, String password);

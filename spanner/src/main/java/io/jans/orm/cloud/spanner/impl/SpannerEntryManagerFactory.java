@@ -33,7 +33,7 @@ import io.jans.orm.util.StringHelper;
 @ApplicationScoped
 public class SpannerEntryManagerFactory implements PersistenceEntryManagerFactory {
 
-    public static final String PERSISTENCE_TYPE = PersistenceEntryManager.PERSITENCE_TYPES.sql.name();
+    public static final String PERSISTENCE_TYPE = PersistenceEntryManager.PERSITENCE_TYPES.spanner.name();
     public static final String PROPERTIES_FILE = "jans-spanner%s.properties";
 
 	private static final Logger LOG = LoggerFactory.getLogger(SpannerEntryManagerFactory.class);
