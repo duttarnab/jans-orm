@@ -1133,10 +1133,10 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 			} else if (Code.STRING == arrayCode) {
 				valueBinder.toStringArray(SpannerValueHelper.toStringList(values));
 			}
+		} else {
+			throw new IncompatibleTypeException(String.format(
+					"Array column with name '%s' does not contain supported type '%s'", attributeType.getName(), attributeType.getType()));
 		}
-
-		throw new IncompatibleTypeException(String.format(
-				"Array column with name '%s' does not contain supported type '%s'", attributeType.getName(), attributeType));
 	}
 
 	private void removeMutationBuilderValue(WriteBuilder mutation, AttributeData attribute, StructField attributeType) throws EntryConvertationException {
@@ -1170,10 +1170,10 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 			} else if (Code.STRING == arrayCode) {
 				valueBinder.toStringArray((List<String>) null);
 			}
+		} else {
+			throw new EntryConvertationException(String.format(
+					"Array column with name '%s' does not contain supported type '%s'", attribute.getName(), attributeType));
 		}
-
-		throw new EntryConvertationException(String.format(
-				"Array column with name '%s' does not contain supported type '%s'", attribute.getName(), attributeType));
 	}
 
 	private Object[] convertDbArrayToValue(ResultSet resultSet, Type elementType, int columnIndex,

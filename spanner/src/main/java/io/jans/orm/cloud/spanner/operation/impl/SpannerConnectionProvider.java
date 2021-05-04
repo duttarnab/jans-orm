@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.NoCredentials;
 import com.google.cloud.spanner.DatabaseClient;
 import com.google.cloud.spanner.DatabaseId;
 import com.google.cloud.spanner.ResultSet;
@@ -110,6 +111,7 @@ public class SpannerConnectionProvider {
     public SpannerConnectionProvider(Properties props) {
         this.props = props;
         this.tableColumnsMap = new HashMap<>();
+        this.tableNullableColumnsSet = new HashMap<>();
         this.childTablesMap = new HashMap<>();
     }
 
@@ -290,9 +292,14 @@ public class SpannerConnectionProvider {
 	}
 
     private String toComparableType(String spannerType) {
-    	int idx = spannerType.lastIndexOf("<");
+    	int idx = spannerType.lastIndexOf("(");
     	if (idx == -1) {
-    		return spannerType.toLowerCase();
+        	idx = spannerType.lastIndexOf("<");
+        	if (idx == -1) {
+        		return spannerType.toLowerCase();
+        	} else {
+        		System.out.println(1);
+        	}
     	}
     	
     	return spannerType.substring(0, idx).toLowerCase();
@@ -352,7 +359,9 @@ public class SpannerConnectionProvider {
         }
 
         if (StringHelper.isNotEmpty(connectionCredentialsFile)) {
-        	optionsBuilder = optionsBuilder.setCredentials(GoogleCredentials.fromStream(new FileInputStream(connectionCredentialsFile)));
+        	optionsBuilder.setCredentials(GoogleCredentials.fromStream(new FileInputStream(connectionCredentialsFile)));
+        } else {
+        	optionsBuilder.setCredentials(NoCredentials.getInstance());
         }
 
         DatabaseId databaseId = DatabaseId.of(connectionProject, connectionInstance, connectionDatabase);
@@ -482,110 +491,6 @@ public class SpannerConnectionProvider {
 
 	public Map<String, Map<String, StructField>> getDatabaseMetaData() {
 		return tableColumnsMap;
-	}
-
-	public static void main(String[] args) throws JSQLParserException, InvalidProtocolBufferException {
-		Select selectCount = (Select) CCJSqlParserUtil.parse("SELECT doc.* from doc JOIN jansClnt_Interleave_jansRedirectURI jansRedirectURI ON doc.doc_id = jansRedirectURI.doc_id");
-		System.out.println(selectCount);
-
-		Select select = (Select) CCJSqlParserUtil.parse("SELECT doc.*, ARRAY(SELECT c.jansRedirectURI FROM jansClnt_Interleave_jansRedirectURI c WHERE doc.doc_id = c.doc_id) jansRedirectURI\r\n"
-				+ "FROM jansClnt_2 AS doc\r\n"
-				+ "ORDER BY doc_id, doc_id2 DESC\r\n");
-		System.out.println(select);
-
-		Function arrayFunction = new Function();
-		arrayFunction.setName("ARRAY");
-		arrayFunction.setAllColumns(false);
-
-		SelectExpressionItem selectArrayItem = new SelectExpressionItem(arrayFunction);
-		selectArrayItem.setAlias(new Alias("jansRedirectURI", false));
-
-		SubSelect attrSubSelect = new SubSelect();
-		PlainSelect attrSelect = new PlainSelect();
-		attrSubSelect.setSelectBody(attrSelect);
-		attrSubSelect.withUseBrackets(false);
-		arrayFunction.setParameters(new ExpressionList(attrSubSelect));
-
-		Table tableAttrSelect = new Table("jansClnt_Interleave_jansRedirectURI");
-		tableAttrSelect.setAlias(new Alias("c", false));
-		attrSelect.setFromItem(tableAttrSelect);
-		
-		Column attrSelectColumn = new Column("jansRedirectURI");
-		attrSelectColumn.setTable(tableAttrSelect);
-		
-		attrSelect.addSelectItems(new SelectExpressionItem(attrSelectColumn));
-
-		Column attrLeftColumn = new Column("doc_id");
-		attrLeftColumn.setTable(new Table("doc"));
-
-		Column attrRightColumn = new Column("doc_id");
-		attrRightColumn.setTable(tableAttrSelect);
-
-		EqualsTo attrEquals = new EqualsTo(attrLeftColumn, attrRightColumn);
-
-		attrSelect.withWhere(attrEquals);
-
-//		selectArrayItem.setExpression(attrSelect);
-
-		System.out.println(selectArrayItem);
-
-		PlainSelect select2 = new PlainSelect();
-		Table table = new Table("jansClnt_2");
-		table.setAlias(new Alias("doc"));
-		select2.setFromItem(table);
-
-		Table tableAlias = new Table("doc");
-		
-		
-		AllTableColumns all = new AllTableColumns(tableAlias);
-
-		Table selectJoinTable = new Table("jansRedirectURI");
-		Column selectJoinColumn = new Column("jansRedirectURI");
-		selectJoinColumn.setTable(selectJoinTable);
-		SelectExpressionItem selectItem = new SelectExpressionItem();
-		selectItem.setExpression(selectJoinColumn);
-		
-		select2.addSelectItems(all, selectItem);
-
-		Table joinTable = new Table("jansClnt_2_jansRedirectURI");
-		joinTable.setAlias(new Alias("jansRedirectURI"));
-		Table jointTableAlias = new Table("jansRedirectURI");
-
-		Join join = new Join();
-		join.setRightItem(joinTable);
-		
-		Column leftColumn = new Column("doc_id");
-		leftColumn.setTable(tableAlias);
-
-		Column rightColumn = new Column("doc_id");
-		rightColumn.setTable(jointTableAlias);
-
-		EqualsTo equals = new EqualsTo(leftColumn, rightColumn);
-		join.setOnExpression(equals);
-
-		join.setRightItem(joinTable);
-		select2.addJoins(join);
-		
-		Column leftWhereColumn = new Column("jansRedirectURI");
-		leftWhereColumn.setTable(jointTableAlias);
-		
-		StringValue rightPart = new StringValue("https://jenkins-mysql.jans.io/identity/scim/auth");
-
-		EqualsTo where = new EqualsTo(leftWhereColumn, rightPart);
-		select2.setWhere(where);
-		System.out.println(select2);
-		
-		Limit limit = new Limit();
-		limit.setRowCount(new LongValue(1000));
-		select2.setLimit(limit);
-		
-		Offset offset = new Offset();
-		offset.setOffset(3000);
-		select2.setOffset(offset);
-
-		System.out.println(select2);
-
-		System.out.println(select.equals(select2));
 	}
 
 }
