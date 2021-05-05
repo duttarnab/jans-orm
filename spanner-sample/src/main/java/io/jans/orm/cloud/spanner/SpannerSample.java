@@ -46,7 +46,7 @@ public final class SpannerSample {
         newUser.setDn(String.format("inum=%s,ou=people,o=jans", System.currentTimeMillis()));
         newUser.setUserId("sample_user_" + System.currentTimeMillis());
         newUser.setUserPassword("pwd");
-        newUser.getCustomAttributes().add(new CustomObjectAttribute("address", Arrays.asList("London", "Texas", "Kiev")));
+        newUser.getCustomAttributes().add(new CustomObjectAttribute("address2", Arrays.asList("London", "Texas", "Kiev")));
         newUser.getCustomAttributes().add(new CustomObjectAttribute("transientId", "transientId"));
         sqlEntryManager.persist(newUser);
 
@@ -58,7 +58,7 @@ public final class SpannerSample {
         for (SimpleUser user : users) {
             LOG.info("User with uid: '{}' with DN: '{}'", user.getUserId(), user.getDn());
         }
-
+/*
         if (users.size() > 0) {
             // Add attribute "address" to first user
             SimpleUser user = users.get(0);
@@ -73,7 +73,7 @@ public final class SpannerSample {
 
             sqlEntryManager.merge(user);
         }
-
+*/
         for (SimpleUser user : users) {
             boolean result1 = sqlEntryManager.authenticate(user.getDn(), SimpleUser.class, "test_pwd");
             boolean result2 = sqlEntryManager.authenticate("ou=people,o=jans", SimpleUser.class, user.getUserId(), "test");

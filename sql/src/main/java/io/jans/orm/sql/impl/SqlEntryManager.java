@@ -354,7 +354,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 		try {
 			convertedExpression = toSqlFilterWithEmptyAlias(searchFilter, propertiesAnnotationsMap);
 		} catch (SearchException ex) {
-            throw new EntryDeleteException(String.format("Failed to convert filter '%s' to expression", searchFilter));
+            throw new EntryDeleteException(String.format("Failed to convert filter '%s' to expression", searchFilter), ex);
 		}
         
         try {
@@ -616,7 +616,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 
 		try {
             PagedResult<EntryData> searchResult = searchImpl(toSQLKey(baseDN).getKey(), objectClasses[0], convertedExpression,
-                    SearchScope.SUB, null, null, null, SearchReturnDataType.SEARCH, 0, 1, 1);
+                    SearchScope.SUB, SqlOperationService.UID_ARRAY, null, null, SearchReturnDataType.SEARCH, 0, 1, 1);
             if ((searchResult == null) || (searchResult.getEntriesCount() != 1)) {
                 return false;
             }

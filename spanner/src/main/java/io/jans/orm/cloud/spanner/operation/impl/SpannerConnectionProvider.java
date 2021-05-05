@@ -127,7 +127,6 @@ public class SpannerConnectionProvider {
         }
     }
 
-    // TODO: Support encryption
 	protected void init() throws Exception {
         if (!props.containsKey("connection.project")) {
         	throw new ConfigurationException("Property 'connection.project' is mandatory!");
@@ -291,15 +290,15 @@ public class SpannerConnectionProvider {
     	return typeMap;
 	}
 
-    private String toComparableType(String spannerType) {
-    	int idx = spannerType.lastIndexOf("(");
+    private static String toComparableType(String spannerType) {
+    	int idx = spannerType.indexOf("(");
+    	if (idx != -1) {
+    		spannerType = spannerType.substring(0, idx);
+    	}
+
+    	idx = spannerType.indexOf(">");
     	if (idx == -1) {
-        	idx = spannerType.lastIndexOf("<");
-        	if (idx == -1) {
-        		return spannerType.toLowerCase();
-        	} else {
-        		System.out.println(1);
-        	}
+    		return spannerType.toLowerCase();
     	}
     	
     	return spannerType.substring(0, idx).toLowerCase();

@@ -41,6 +41,7 @@ public interface SpannerOperationService extends PersistenceOperationService {
 
     static String DN = "dn";
     static String UID = "uid";
+    static String[] UID_ARRAY = new String[] { "uid" };
     static String USER_PASSWORD = "userPassword";
     static String OBJECT_CLASS = "objectClass";
 

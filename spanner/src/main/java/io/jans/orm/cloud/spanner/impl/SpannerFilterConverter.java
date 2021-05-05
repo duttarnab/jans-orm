@@ -326,11 +326,13 @@ public class SpannerFilterConverter {
 	}
 
 	private StructField getStructField(TableMapping tableMapping, String attributeName) throws SearchException {
-		StructField structField = tableMapping.getColumTypes().get(attributeName);
+		String attributeNameLower = attributeName.toLowerCase();
+
+		StructField structField = tableMapping.getColumTypes().get(attributeNameLower);
 		if (structField == null) {
 			TableMapping childTableMapping = tableMapping.getChildTableMappingForAttribute(attributeName);
 			if (childTableMapping != null) {
-				structField = childTableMapping.getColumTypes().get(attributeName);
+				structField = childTableMapping.getColumTypes().get(attributeNameLower);
 			}
 		}
 		
@@ -461,7 +463,7 @@ public class SpannerFilterConverter {
 			return;
 		}
 
-		TableMapping childTableMapping = tableMapping.getChildTableMappingForAttribute(attributeName);
+		TableMapping childTableMapping = tableMapping.getChildTableMappingForAttribute(attributeName.toLowerCase());
 		
 		Table childTable = new Table(childTableMapping.getTableName());
 		childTable.setAlias(new Alias(attributeName, false));

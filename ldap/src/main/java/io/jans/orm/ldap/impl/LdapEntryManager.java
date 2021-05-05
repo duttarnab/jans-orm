@@ -716,7 +716,7 @@ public class LdapEntryManager extends BaseEntryManager implements Serializable {
 
     	SearchScope scope = SearchScope.SUB;
         try {
-            SearchResult searchResult = getOperationService().search(baseDN, toLdapFilter(searchFilter), toLdapSearchScope(scope), null, 0, 1, 1, null, (String[]) null);
+            SearchResult searchResult = getOperationService().search(baseDN, toLdapFilter(searchFilter), toLdapSearchScope(scope), null, 0, 1, 1, null, LdapOperationService.UID_ARRAY);
             if ((searchResult == null) || (searchResult.getEntryCount() != 1)) {
                 return false;
             }

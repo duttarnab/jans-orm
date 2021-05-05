@@ -39,8 +39,8 @@ import io.jans.orm.couchbase.operation.impl.CouchbaseConnectionProvider;
 import io.jans.orm.event.DeleteNotifier;
 import io.jans.orm.exception.AuthenticationException;
 import io.jans.orm.exception.EntryDeleteException;
-import io.jans.orm.exception.MappingException;
 import io.jans.orm.exception.EntryPersistenceException;
+import io.jans.orm.exception.MappingException;
 import io.jans.orm.exception.operation.SearchException;
 import io.jans.orm.impl.BaseEntryManager;
 import io.jans.orm.impl.GenericKeyConverter;
@@ -333,7 +333,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
 		try {
 			convertedExpression = toCouchbaseFilter(searchFilter, propertiesAnnotationsMap);
 		} catch (SearchException ex) {
-            throw new EntryDeleteException(String.format("Failed to convert filter %s to expression", searchFilter));
+            throw new EntryDeleteException(String.format("Failed to convert filter %s to expression", searchFilter), ex);
 		}
         
         try {
@@ -644,7 +644,7 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
 
 		try {
             PagedResult<JsonObject> searchResult = searchImpl(toCouchbaseKey(baseDN).getKey(), getScanConsistency(convertedExpression), convertedExpression.expression(),
-                    SearchScope.SUB, null, null, null, SearchReturnDataType.SEARCH, 0, 1, 1);
+                    SearchScope.SUB, CouchbaseOperationService.UID_ARRAY, null, null, SearchReturnDataType.SEARCH, 0, 1, 1);
             if ((searchResult == null) || (searchResult.getEntriesCount() != 1)) {
                 return false;
             }

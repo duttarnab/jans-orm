@@ -594,12 +594,16 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	    		}
 	        } else {
 	    		try {
-	                if (count > 0) {
-	    	    		Limit limit = new Limit();
-	    	    		limit.setRowCount(new LongValue(count));
-	    	    		sqlSelectQuery.setLimit(limit);
-	                }
-	                if (start > 0) {
+                    int currentLimit = count;
+                    if (currentLimit <= 0) {
+                        currentLimit = 1000;
+                    }
+
+    	    		Limit limit = new Limit();
+    	    		limit.setRowCount(new LongValue(currentLimit));
+    	    		sqlSelectQuery.setLimit(limit);
+
+    	    		if (start > 0) {
 	    	    		Offset offset = new Offset();
 	    	    		offset.setOffset(start);
 	    	    		sqlSelectQuery.setOffset(offset);
@@ -646,7 +650,8 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
     		try {
     			Statement.Builder statementBuilder = Statement.newBuilder(sqlCountSelectQuery.toString());
     			applyParametersBinding(statementBuilder, expression);
-                Statement statement = statementBuilder.build();
+
+    			Statement statement = statementBuilder.build();
                 LOG.debug("Calculating count. Executing query: '{}'", statement);
 
                 try (ResultSet countResult = databaseClient.singleUse().executeQuery(statement)) {
@@ -770,12 +775,6 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 
     	List<AttributeData> attributeDataList = null;
     	do  {
-	        int columnsCount = resultSet.getColumnCount();
-	        Type[] columnTypes = new Type[columnsCount];
-	        for (int i = 1; i <= columnsCount; i++) {
-	        	columnTypes[i] = resultSet.getColumnType(i);
-	        }
-
     		attributeDataList = getAttributeDataList(objectClass, resultSet, false);
     		if (attributeDataList != null) {
         		EntryData entryData = new EntryData(attributeDataList);
@@ -925,7 +924,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	}
 
 	private Table buildTable(TableMapping tableMapping) {
-		Table tableRelationalPath = new Table();
+		Table tableRelationalPath = new Table(tableMapping.getTableName());
 		tableRelationalPath.setAlias(new Alias(DOC_ALIAS, false));
 
 		return tableRelationalPath;
@@ -1065,6 +1064,10 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	}
 
 	private void applyParametersBinding(Statement.Builder builder, ConvertedExpression expression) throws IncompatibleTypeException {
+		if (expression == null) {
+			return;
+		}
+
 		Map<String, ValueWithStructField> queryParameters = expression.queryParameters();
 		for (Entry<String, ValueWithStructField> queryParameterEntry : queryParameters.entrySet()) {
 			String attributeName = queryParameterEntry.getKey();
@@ -1076,6 +1079,10 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	}
 
 	private void applyWhereExpression(Delete sqlDeleteQuery, ConvertedExpression expression) {
+		if (expression == null) {
+			return;
+		}
+
 		Expression whereExp = expression.expression();
 		sqlDeleteQuery.setWhere(whereExp);
 		Map<String, Join> joinTables = expression.joinTables();
@@ -1085,10 +1092,14 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	}
 
 	private void applyWhereExpression(PlainSelect sqlSelectQuery, ConvertedExpression expression) {
+		if (expression == null) {
+			return;
+		}
+
 		Expression whereExp = expression.expression();
 		sqlSelectQuery.setWhere(whereExp);
 		Map<String, Join> joinTables = expression.joinTables();
-		if (joinTables != null) {
+		if ((joinTables != null) && (joinTables.size() > 0)) {
 			sqlSelectQuery.setJoins(new ArrayList<>(joinTables.values()));
 		}
 	}
