@@ -9,6 +9,7 @@ package io.jans.orm.cloud.spanner.operation;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.cloud.spanner.DatabaseClient;
 import com.google.cloud.spanner.Type.StructField;
@@ -50,9 +51,7 @@ public interface SpannerOperationService extends PersistenceOperationService {
     static String DOC_ID = "doc_id";
     static String DICT_DOC_ID = "dict_doc_id";
 
-    static String DOC_ID_BINDING = "@" + DOC_ID;
-
-	public static final String SQL_DATA_FORMAT = "yyyy-MM-ddTHH:mm:ss.SSSZ";
+	public static final String SQL_DATA_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 	public static final Object[] NO_OBJECTS = new Object[0];
 
     SpannerConnectionProvider getConnectionProvider();
@@ -96,5 +95,7 @@ public interface SpannerOperationService extends PersistenceOperationService {
 	Map<String, Map<String, StructField>> getMetadata();
 
 	TableMapping getTabeMapping(String key, String objectClass);
+
+	Set<String> getTabeChildAttributes(String objectClass);
 
 }

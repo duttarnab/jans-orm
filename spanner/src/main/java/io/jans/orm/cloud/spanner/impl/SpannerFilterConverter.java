@@ -171,7 +171,9 @@ public class SpannerFilterConverter {
                 } else if (FilterType.OR == type) {
                     if (canJoinOrFilters) {
                 		ExpressionList expressionList = new ExpressionList();
-                		expressionList.addExpressions(expFilters);
+                		for (Expression expFilter : expFilters) {
+                    		expressionList.addExpressions(((EqualsTo) expFilter).getRightExpression());
+                		}
                 		
                 		Expression inExpression = new InExpression(buildExpression(tableMapping, joinOrFilters.get(0), false, false, propertiesAnnotationsMap, queryParameters, joinTables, processor, skipAlias), expressionList);
 
@@ -191,21 +193,20 @@ public class SpannerFilterConverter {
         // Generic part for rest of expression types
     	String internalAttribute = toInternalAttribute(currentGenericFilter);
     	boolean multiValued = isMultiValue(tableMapping, internalAttribute, currentGenericFilter, propertiesAnnotationsMap);
-    	boolean hasChildTableForAttribute = tableMapping.hasChildTableForAttribute(internalAttribute);
-    	boolean useExistsInArray = multiValued && !hasChildTableForAttribute;
-		Expression leftExpression = buildExpression(tableMapping, currentGenericFilter, multiValued, useExistsInArray, propertiesAnnotationsMap, queryParameters, joinTables, processor, skipAlias);
+    	boolean hasChildTableForAttribute = tableMapping.hasChildTableForAttribute(internalAttribute.toLowerCase());
+		Expression leftExpression = buildExpression(tableMapping, currentGenericFilter, multiValued, !hasChildTableForAttribute, propertiesAnnotationsMap, queryParameters, joinTables, processor, skipAlias);
 
     	if (FilterType.EQUALITY == type) {
         	Expression variableExpression = buildVariableExpression(tableMapping, internalAttribute, currentGenericFilter.getAssertionValue(), queryParameters);
     		Expression expression = new EqualsTo(leftExpression, variableExpression);
     		if (multiValued) {
-    			if (useExistsInArray) {
-    				// EXISTS (SELECT _jansRedirectURI FROM UNNEST(jansRedirectURI) _jansRedirectURI WHERE _jansRedirectURI = '10')
-    	    		expression = buildExistsInArrayExpression(internalAttribute, expression);
-    			} else {
+    			if (hasChildTableForAttribute) {
     				// JOIN jansClnt_Interleave_jansRedirectURI jansRedirectURI ON doc.doc_id = jansRedirectURI.doc_id
     				// WHERE jansRedirectURI.jansRedirectURI = '10'
     	    		addJoinTable(tableMapping, internalAttribute, joinTables);
+    			} else {
+    				// EXISTS (SELECT _jansRedirectURI FROM UNNEST(doc.jansRedirectURI) _jansRedirectURI WHERE _jansRedirectURI = '10')
+    	    		expression = buildExistsInArrayExpression(internalAttribute, expression);
     			}
 
     			return ConvertedExpression.build(expression, queryParameters, joinTables);
@@ -217,10 +218,10 @@ public class SpannerFilterConverter {
         	Expression variableExpression = buildVariableExpression(tableMapping, internalAttribute, currentGenericFilter.getAssertionValue(), queryParameters);
         	Expression expression = new MinorThanEquals().withLeftExpression(leftExpression).withRightExpression(variableExpression);
     		if (multiValued) {
-    			if (useExistsInArray) {
-    	    		expression = buildExistsInArrayExpression(internalAttribute, expression);
-    			} else {
+    			if (hasChildTableForAttribute) {
     	    		addJoinTable(tableMapping, internalAttribute, joinTables);
+    			} else {
+    	    		expression = buildExistsInArrayExpression(internalAttribute, expression);
     			}
 
     			return ConvertedExpression.build(expression, queryParameters, joinTables);
@@ -232,10 +233,10 @@ public class SpannerFilterConverter {
         	Expression variableExpression = buildVariableExpression(tableMapping, internalAttribute, currentGenericFilter.getAssertionValue(), queryParameters);
         	Expression expression = new GreaterThanEquals().withLeftExpression(leftExpression).withRightExpression(variableExpression);
     		if (multiValued) {
-    			if (useExistsInArray) {
-    	    		expression = buildExistsInArrayExpression(internalAttribute, expression);
-    			} else {
+    			if (hasChildTableForAttribute) {
     	    		addJoinTable(tableMapping, internalAttribute, joinTables);
+    			} else {
+    	    		expression = buildExistsInArrayExpression(internalAttribute, expression);
     			}
 
     			return ConvertedExpression.build(expression, queryParameters, joinTables);
@@ -246,10 +247,10 @@ public class SpannerFilterConverter {
         if (FilterType.PRESENCE == type) {
         	Expression expression = new IsNullExpression().withLeftExpression(leftExpression).withNot(true);
     		if (multiValued) {
-    			if (useExistsInArray) {
-    	    		expression = buildExistsInArrayExpression(internalAttribute, expression);
-    			} else {
+    			if (hasChildTableForAttribute) {
     	    		addJoinTable(tableMapping, internalAttribute, joinTables);
+    			} else {
+    	    		expression = buildExistsInArrayExpression(internalAttribute, expression);
     			}
 
     			return ConvertedExpression.build(expression, queryParameters, joinTables);
@@ -284,10 +285,10 @@ public class SpannerFilterConverter {
         	Expression variableExpression = buildVariableExpression(tableMapping, internalAttribute, likeValue, queryParameters);
         	Expression expression = new LikeExpression().withLeftExpression(leftExpression).withRightExpression(variableExpression);
     		if (multiValued) {
-    			if (useExistsInArray) {
-    	    		expression = buildExistsInArrayExpression(internalAttribute, expression);
-    			} else {
+    			if (hasChildTableForAttribute) {
     	    		addJoinTable(tableMapping, internalAttribute, joinTables);
+    			} else {
+    	    		expression = buildExistsInArrayExpression(internalAttribute, expression);
     			}
 
     			return ConvertedExpression.build(expression, queryParameters, joinTables);
@@ -308,9 +309,10 @@ public class SpannerFilterConverter {
 
 	protected Boolean isMultiValue(TableMapping tableMapping, String attributeName, Filter currentGenericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap) throws SearchException {
 		StructField structField = getStructField(tableMapping, attributeName);
-		
+		boolean hasChildTableForAttribute = tableMapping.hasChildTableForAttribute(attributeName.toLowerCase());
+
     	Code columnTypeCode = structField.getType().getCode();
-    	if (Code.ARRAY == columnTypeCode) {
+    	if ((Code.ARRAY == columnTypeCode) || hasChildTableForAttribute) {
     		boolean multiValuedDetected = (Boolean.TRUE.equals(currentGenericFilter.getMultiValued()) ||
     				Boolean.TRUE.equals(
     						determineMultiValuedByType(currentGenericFilter.getAttributeName(), propertiesAnnotationsMap)));
@@ -330,7 +332,7 @@ public class SpannerFilterConverter {
 
 		StructField structField = tableMapping.getColumTypes().get(attributeNameLower);
 		if (structField == null) {
-			TableMapping childTableMapping = tableMapping.getChildTableMappingForAttribute(attributeName);
+			TableMapping childTableMapping = tableMapping.getChildTableMappingForAttribute(attributeNameLower);
 			if (childTableMapping != null) {
 				structField = childTableMapping.getColumTypes().get(attributeNameLower);
 			}
@@ -413,15 +415,14 @@ public class SpannerFilterConverter {
 		
 		net.sf.jsqlparser.expression.Function unnestFunction = new net.sf.jsqlparser.expression.Function();
 		unnestFunction.setName("UNNEST");
-		unnestFunction.setParameters(new ExpressionList(new Column(attributeName)));
-		unnestFunction.setAttributeName("internalAttribute");
+		unnestFunction.setParameters(new ExpressionList(new Column(tableAlias, attributeName)));
 
 		fromTableFunction.setFunction(unnestFunction);
 		arrayQuery.setFromItem(fromTableFunction);
 
 		SubSelect arraySubSelect = new SubSelect();
 		arraySubSelect.setSelectBody(arrayQuery);
-		arraySubSelect.withUseBrackets(false);
+		arraySubSelect.withUseBrackets(true);
          
 		ExistsExpression existsExpression = new ExistsExpression();
 		existsExpression.setRightExpression(arraySubSelect);

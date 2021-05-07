@@ -63,9 +63,7 @@ public class TableMapping {
 			return false;
 		}
 		
-		String childTableName = tableName + "_" + attributeName;
-		
-		return childTableMapping.containsKey(childTableName);
+		return childTableMapping.containsKey(attributeName);
 	}
 
 	public TableMapping getChildTableMappingForAttribute(String attributeName) {
@@ -73,9 +71,7 @@ public class TableMapping {
 			return null;
 		}
 		
-		String childTableName = tableName + "_" + attributeName;
-		
-		return childTableMapping.get(childTableName);
+		return childTableMapping.get(attributeName);
 	}
 
 }

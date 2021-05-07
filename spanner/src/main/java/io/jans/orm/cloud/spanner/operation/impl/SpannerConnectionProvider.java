@@ -100,7 +100,7 @@ public class SpannerConnectionProvider {
 	
 	private Map<String, Map<String, StructField>> tableColumnsMap;
 	private Map<String, Set<String>> tableNullableColumnsSet;
-	private Map<String, Set<String>> childTablesMap;
+	private Map<String, Set<String>> tableChildAttributesMap;
 
 	private DatabaseClient dbClient;
 	private Spanner spanner;
@@ -112,7 +112,7 @@ public class SpannerConnectionProvider {
         this.props = props;
         this.tableColumnsMap = new HashMap<>();
         this.tableNullableColumnsSet = new HashMap<>();
-        this.childTablesMap = new HashMap<>();
+        this.tableChildAttributesMap = new HashMap<>();
     }
 
     public void create() {
@@ -201,24 +201,24 @@ public class SpannerConnectionProvider {
         			String parentTableName = resultSet.getString(parentTableNameIdx);
         			String tableName = resultSet.getString(tableNameIdx);
 
-        			Set<String> childTables;
-	        		if (childTablesMap.containsKey(parentTableName)) {
-	        			childTables = childTablesMap.get(parentTableName);
+        			Set<String> childAttributes;
+	        		if (tableChildAttributesMap.containsKey(parentTableName)) {
+	        			childAttributes = tableChildAttributesMap.get(parentTableName);
 	        		} else {
-	        			childTables = new HashSet<>();
-	        			childTablesMap.put(parentTableName, childTables);
+	        			childAttributes = new HashSet<>();
+	        			tableChildAttributesMap.put(parentTableName, childAttributes);
 	        		}
 	        		
 	        		if (tableName.startsWith(parentTableName + "_")) {
 	        			tableName = tableName.substring(parentTableName.length() + 1);
 	        		}
-	        		childTables.add(tableName);
+	        		childAttributes.add(tableName);
 	        	} while (resultSet.next());
         	}
         } catch (SpannerException ex) {
         	throw new ConnectionException("Failed to get database metadata", ex);
         }
-        LOG.debug("Build parent tables map: '{}'.", childTablesMap);
+        LOG.debug("Build child attributes map: '{}'.", tableChildAttributesMap);
 
         HashMap<String, Type> typeMap = buildSpannerTypesMap();
 
@@ -435,8 +435,7 @@ public class SpannerConnectionProvider {
         return passwordEncryptionMethod;
     }
 
-	public TableMapping getTableMappingByKey(String key, String objectClass) {
-		String tableName = objectClass;
+	public TableMapping getTableMappingByKey(String key, String objectClass, String tableName) {
 		Map<String, StructField> columTypes = tableColumnsMap.get(tableName);
 		if ("_".equals(key)) {
 			return new TableMapping("", tableName, objectClass, columTypes);
@@ -452,25 +451,30 @@ public class SpannerConnectionProvider {
 		return tableMapping;
 	}
 
-	 public TableMapping getChildTableMappingByKey(String key, TableMapping tableMapping, String columnName) {
-		String childTableName = tableMapping.getTableName() + "_" + columnName;
-		return getTableMappingByKey(key, childTableName);
+	public TableMapping getTableMappingByKey(String key, String objectClass) {
+		return getTableMappingByKey(key, objectClass, objectClass);
 	}
 
-	public Set<String> getChildTables(String objectClass) {
-		return childTablesMap.get(objectClass);
+	 public TableMapping getChildTableMappingByKey(String key, TableMapping tableMapping, String columnName) {
+		String childTableName = tableMapping.getTableName() + "_" + columnName;
+		TableMapping childTableMapping = getTableMappingByKey(key, tableMapping.getObjectClass(), childTableName);
+		return childTableMapping;
+	}
+
+	public Set<String> getTableChildAttributes(String objectClass) {
+		return tableChildAttributesMap.get(objectClass);
 	}
 
 	public Map<String, TableMapping> getChildTablesMapping(String key, TableMapping tableMapping) {
-		Set<String> childTableNames = childTablesMap.get(tableMapping.getObjectClass());
-		if (childTableNames == null) {
+		Set<String> childAttributes = tableChildAttributesMap.get(tableMapping.getObjectClass());
+		if (childAttributes == null) {
 			return null;
 		}
 		
 		Map<String, TableMapping> childTableMapping = new HashMap<>();
-		for (String childTableName : childTableNames) {
-			TableMapping childColumTypes = getTableMappingByKey(key, childTableName);
-			childTableMapping.put(childTableName, childColumTypes);
+		for (String childAttribute : childAttributes) {
+			TableMapping childColumTypes = getChildTableMappingByKey(key, tableMapping, childAttribute);
+			childTableMapping.put(childAttribute.toLowerCase(), childColumTypes);
 		}
 		
 		return childTableMapping;

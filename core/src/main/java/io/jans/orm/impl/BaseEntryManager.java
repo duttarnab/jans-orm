@@ -232,7 +232,7 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 			// attributes from LDAP
 			attributesFromLdap = new ArrayList<AttributeData>();
 		} else {
-			List<String> currentLdapReturnAttributesList = getAttributesList(entry, propertiesAnnotations, false);
+			List<String> currentLdapReturnAttributesList = buildAttributesListForUpdate(entry, objectClasses, propertiesAnnotations);
 			if (!isConfigurationUpdate) {
 				currentLdapReturnAttributesList.add("objectClass");
 			}
@@ -269,6 +269,10 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		merge(dnValue.toString(), objectClasses, attributeDataModifications, expirationValue);
 
 		return null;
+	}
+
+	protected List<String> buildAttributesListForUpdate(Object entry, String[] objectClasses, List<PropertyAnnotation> propertiesAnnotations) {
+		return getAttributesList(entry, propertiesAnnotations, false);
 	}
 
 	protected abstract <T> void updateMergeChanges(String baseDn, T entry, boolean isConfigurationUpdate, Class<?> entryClass,
@@ -1819,8 +1823,10 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		Integer propertyValue = null;
 		Object propertyValueObject = attribute.getValue();
 		if (propertyValueObject != null) {
-			if (propertyValueObject instanceof Long) {
+			if (propertyValueObject instanceof Integer) {
 				propertyValue = (Integer) propertyValueObject;
+			} else if (propertyValueObject instanceof Long) {
+					propertyValue = ((Long) propertyValueObject).intValue();
 			} else {
 				propertyValue = Integer.valueOf(String.valueOf(propertyValueObject));
 			}
@@ -1834,6 +1840,8 @@ public abstract class BaseEntryManager implements PersistenceEntryManager {
 		if (propertyValueObject != null) {
 			if (propertyValueObject instanceof Long) {
 				propertyValue = (Long) propertyValueObject;
+			} else if (propertyValueObject instanceof Integer) {
+				propertyValue = ((Integer) propertyValueObject).longValue();
 			} else {
 				propertyValue = Long.valueOf(String.valueOf(propertyValueObject));
 			}

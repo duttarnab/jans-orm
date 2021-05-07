@@ -70,7 +70,7 @@ public class SpannerEntryManagerFactory implements PersistenceEntryManagerFactor
         connectionProvider.create();
         if (!connectionProvider.isCreated()) {
             throw new ConfigurationException(
-                    String.format("Failed to create SQL connection pool! Result code: '%s'", connectionProvider.getCreationResultCode()));
+                    String.format("Failed to create Spanner connection pool! Result code: '%s'", connectionProvider.getCreationResultCode()));
         }
         LOG.debug("Created connectionProvider '{}' with code '{}'", connectionProvider, connectionProvider.getCreationResultCode());
 

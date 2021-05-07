@@ -14,7 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -113,6 +113,17 @@ public class SpannerEntryManager extends BaseEntryManager implements Serializabl
             return merge(entry, false, false, null);
         }
     }
+
+    @Override
+	protected List<String> buildAttributesListForUpdate(Object entry, String[] objectClasses, List<PropertyAnnotation> propertiesAnnotations) {
+    	List<String> attributesList = getAttributesList(entry, propertiesAnnotations, false);
+    	Set<String> childAttributes = getOperationService().getTabeChildAttributes(objectClasses[0]);
+    	if (childAttributes != null) {
+    		attributesList.addAll(childAttributes);
+    	}
+    	
+    	return attributesList;
+	}
 
     @Override
     protected <T> void updateMergeChanges(String baseDn, T entry, boolean isConfigurationUpdate, Class<?> entryClass, Map<String, AttributeData> attributesFromDbMap,
@@ -242,16 +253,16 @@ public class SpannerEntryManager extends BaseEntryManager implements Serializabl
                 AttributeModificationType modificationType = attributeDataModification.getModificationType();
 				if ((AttributeModificationType.ADD == modificationType) ||
                 	(AttributeModificationType.FORCE_UPDATE == modificationType)) {
-                    modification = createModification(modificationType, toInternalAttribute(attributeName), multiValued, attributeValues);
+                    modification = createModification(modificationType, toInternalAttribute(attributeName), multiValued, attributeValues, oldAttributeValues);
                 } else {
                     if ((AttributeModificationType.REMOVE == modificationType)) {
                 		if ((attribute == null) && isEmptyAttributeValues(oldAttribute)) {
 							// It's RDBS case. We don't need to set null to already empty table cell
                 			continue;
                 		}
-                        modification = createModification(AttributeModificationType.REMOVE, toInternalAttribute(oldAttributeName), multiValued, oldAttributeValues);
+                        modification = createModification(AttributeModificationType.REMOVE, toInternalAttribute(oldAttributeName), multiValued, oldAttributeValues, null);
                     } else if ((AttributeModificationType.REPLACE == modificationType)) {
-                        modification = createModification(AttributeModificationType.REPLACE, toInternalAttribute(attributeName), multiValued, attributeValues);
+                        modification = createModification(AttributeModificationType.REPLACE, toInternalAttribute(attributeName), multiValued, attributeValues, oldAttributeValues);
                     }
                 }
 
@@ -707,7 +718,7 @@ public class SpannerEntryManager extends BaseEntryManager implements Serializabl
         return searchResult.getTotalEntriesCount();
     }
 
-    private AttributeDataModification createModification(final AttributeModificationType type, final String attributeName, final Boolean multiValued, final Object... attributeValues) {
+    private AttributeDataModification createModification(final AttributeModificationType type, final String attributeName, final Boolean multiValued, final Object[] attributeValues, final Object[] oldAttributeValues) {
         String realAttributeName = attributeName;
 
         Object[] realValues = attributeValues;
@@ -717,13 +728,12 @@ public class SpannerEntryManager extends BaseEntryManager implements Serializabl
 
         escapeValues(realValues);
         
-        if (Boolean.TRUE.equals(multiValued)) {
-            return new AttributeDataModification(type, new AttributeData(realAttributeName, realValues, multiValued));
+        if (AttributeModificationType.REPLACE == type) {
+            escapeValues(oldAttributeValues);
+        	return new AttributeDataModification(type, new AttributeData(realAttributeName, realValues, multiValued),
+        			new AttributeData(realAttributeName, oldAttributeValues, multiValued));
         } else {
-        	if ((realValues == null) || (realValues.length == 0)) {
-                return new AttributeDataModification(type, new AttributeData(realAttributeName, null));
-        	}
-            return new AttributeDataModification(type, new AttributeData(realAttributeName, realValues[0]));
+        	return new AttributeDataModification(type, new AttributeData(realAttributeName, realValues, multiValued));
         }
     }
 
@@ -784,15 +794,6 @@ public class SpannerEntryManager extends BaseEntryManager implements Serializabl
     private ConvertedExpression toSqlFilterWithEmptyAlias(String key, String objectClass, Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap) throws SearchException {
     	TableMapping tableMapping = getOperationService().getTabeMapping(key, objectClass);
         return filterConverter.convertToSqlFilter(tableMapping, excludeObjectClassFilters(genericFilter), propertiesAnnotationsMap, true);
-    }
-
-    private ConvertedExpression toSqlFilter(String key, String objectClass, Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap, Function<? super Filter, Boolean> processor) throws SearchException {
-    	TableMapping tableMapping = getOperationService().getTabeMapping(key, objectClass);
-        return filterConverter.convertToSqlFilter(tableMapping, excludeObjectClassFilters(genericFilter), propertiesAnnotationsMap);
-    }
-    private ConvertedExpression toSqlFilterWithEmptyAlias(String key, String objectClass, Filter genericFilter, Map<String, PropertyAnnotation> propertiesAnnotationsMap, Function<? super Filter, Boolean> processor) throws SearchException {
-    	TableMapping tableMapping = getOperationService().getTabeMapping(key, objectClass);
-        return filterConverter.convertToSqlFilter(tableMapping, excludeObjectClassFilters(genericFilter), propertiesAnnotationsMap, processor, true);
     }
 
 	private Filter excludeObjectClassFilters(Filter genericFilter) {
@@ -916,14 +917,6 @@ public class SpannerEntryManager extends BaseEntryManager implements Serializabl
 
 	private void escapeValues(Object[] realValues) {
 		((SpannerOperationService) operationService).escapeValues(realValues);
-	}
-
-	private String unescapeValue(String value) {
-		return ((SpannerOperationService) operationService).unescapeValue(value);
-	}
-
-	private void unescapeValues(Object[] realValues) {
-		((SpannerOperationService) operationService).unescapeValues(realValues);
 	}
 
 	public String toInternalAttribute(String attributeName) {

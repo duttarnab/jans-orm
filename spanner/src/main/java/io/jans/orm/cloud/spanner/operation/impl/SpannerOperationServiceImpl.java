@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +75,7 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.StringValue;
+import net.sf.jsqlparser.expression.UserVariable;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.schema.Column;
@@ -211,10 +213,11 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 					StructField childAttributeType = childColumTypes.get(attributeName.toLowerCase());
 					
 					// Build Mutation for child table
-					WriteBuilder childMutationBuilder = Mutation.newInsertOrUpdateBuilder(childTableMapping.getTableName());
 					for (Object value : attribute.getValues()) {
 						// Build Mutation for child table
 						String dictDocId = getStringUniqueKey(messageDigest, value);
+
+						WriteBuilder childMutationBuilder = Mutation.newInsertOrUpdateBuilder(childTableMapping.getTableName());
 						childMutationBuilder.
 							set(SpannerOperationService.DOC_ID).to(key).
 							set(SpannerOperationService.DICT_DOC_ID).to(dictDocId);
@@ -256,7 +259,8 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 			MessageDigest messageDigest = getMessageDigestInstance();
 			Map<String, StructField> columTypes = tableMapping.getColumTypes();
 
-			WriteBuilder mutationBuilder = Mutation.newInsertOrUpdateBuilder(tableMapping.getTableName());
+			WriteBuilder mutationBuilder = Mutation.newInsertOrUpdateBuilder(tableMapping.getTableName()).
+					set(SpannerOperationService.DOC_ID).to(key);
 			List<Mutation> mutations = new LinkedList<>();
 			for (AttributeDataModification attributeMod : mods) {
 				AttributeData attribute = attributeMod.getAttribute();
@@ -277,13 +281,21 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 					StructField childAttributeType = childColumTypes.get(attributeName.toLowerCase());
 
 					// Build Mutation for child table
-					WriteBuilder childMutationBuilder = Mutation.newInsertOrUpdateBuilder(childTableMapping.getTableName());
-					for (Object value : attribute.getValues()) {
-						String dictDocId = getStringUniqueKey(messageDigest, value);
-
-						if ((AttributeModificationType.ADD == type) ||
+					Map<String, Object> oldValues = null;
+					if ((attributeMod.getOldAttribute() != null) && (attributeMod.getOldAttribute().getValues() != null)) {
+						oldValues = new HashMap<>();
+						for (Object oldValue : attributeMod.getOldAttribute().getValues()) {
+							String dictDocId = getStringUniqueKey(messageDigest, oldValue);
+							oldValues.put(dictDocId, oldValue);
+						}
+					}
+					
+					if ((AttributeModificationType.ADD == type) ||
 							(AttributeModificationType.FORCE_UPDATE == type) || (AttributeModificationType.REPLACE == type)) {
+						for (Object value : attribute.getValues()) {
+							WriteBuilder childMutationBuilder = Mutation.newInsertOrUpdateBuilder(childTableMapping.getTableName());
 
+							String dictDocId = getStringUniqueKey(messageDigest, value);
 							childMutationBuilder.
 								set(SpannerOperationService.DOC_ID).to(key).
 								set(SpannerOperationService.DICT_DOC_ID).to(dictDocId);
@@ -291,14 +303,35 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 							setMutationBuilderValue(childMutationBuilder, childAttributeType, value);
 
 							mutations.add(childMutationBuilder.build());
-						} else if (AttributeModificationType.REMOVE == type) {
-							// Build Mutation for child table
-							Mutation childMutation = Mutation.delete(childTableMapping.getTableName(), Key.of(key, dictDocId));
-							mutations.add(childMutation);
-						} else {
-							throw new UnsupportedOperationException("Operation type '" + type + "' is not implemented");
+
+							if (oldValues != null) {
+								oldValues.remove(dictDocId);
+							}
+						}
+					} else if (AttributeModificationType.REMOVE == type) {
+						// Build Mutation for child table
+						com.google.cloud.spanner.KeySet.Builder keySetBuilder = KeySet.newBuilder();
+						for (Object value : attribute.getValues()) {
+							String dictDocId = getStringUniqueKey(messageDigest, value);
+							keySetBuilder.addKey(Key.of(key, dictDocId));
 						}
 
+						Mutation childMutation = Mutation.delete(childTableMapping.getTableName(), keySetBuilder.build());
+
+						mutations.add(childMutation);
+					} else {
+						throw new UnsupportedOperationException("Operation type '" + type + "' is not implemented");
+					}
+
+					if ((oldValues != null) && (oldValues.size() > 0)) {
+						com.google.cloud.spanner.KeySet.Builder keySetBuilder = KeySet.newBuilder();
+						for (String removeDictDocId : oldValues.keySet()) {
+							keySetBuilder.addKey(Key.of(key, removeDictDocId));
+						}
+
+						Mutation childMutation = Mutation.delete(childTableMapping.getTableName(), keySetBuilder.build());
+
+						mutations.add(childMutation);
 					}
 				} else {
 					if ((AttributeModificationType.ADD == type) || (AttributeModificationType.FORCE_UPDATE == type)
@@ -429,7 +462,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 			String tableName = tableMapping.getTableName();
 
 			// If all requested attributes belong to one table get row by primary key
-			Set<String> childTables = connectionProvider.getChildTables(tableName);
+			Set<String> childTables = connectionProvider.getTableChildAttributes(tableName);
 			List<AttributeData> result = null;
 			if (childTables == null) {
 				// All attributes in one table
@@ -454,7 +487,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 
 				Column leftColumn = new Column(DOC_ID);
 				leftColumn.setTable(tableAlias);
-				StringValue rightValue = new StringValue(DOC_ID_BINDING);
+				UserVariable rightValue = new UserVariable(DOC_ID);
 
 				EqualsTo whereExp = new EqualsTo(leftColumn, rightValue);
 				sqlSelectQuery.setWhere(whereExp);
@@ -596,7 +629,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	    		try {
                     int currentLimit = count;
                     if (currentLimit <= 0) {
-                        currentLimit = 1000;
+                        currentLimit = 1000; //TODO:!!!
                     }
 
     	    		Limit limit = new Limit();
@@ -698,7 +731,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 
             List<AttributeData> result = new ArrayList<AttributeData>();
 
-            Set<String> nullableColumns = connectionProvider.getTableNullableColumns(objectClass);
+            Set<String> nullableColumns = connectionProvider.getTableNullableColumns(objectClass); // TODO: Include child table columns
 
 	        List<StructField> structFields = resultSet.getType().getStructFields();
 	        int columnsCount = resultSet.getColumnCount();
@@ -841,6 +874,12 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
     }
 
 	@Override
+    public Set<String> getTabeChildAttributes(String objectClass) {
+    	return connectionProvider.getTableChildAttributes(objectClass);
+    }
+    
+    
+	@Override
 	public void setPersistenceExtension(PersistenceExtension persistenceExtension) {
 		this.persistenceExtension = persistenceExtension;
 	}
@@ -868,7 +907,8 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 		if (ArrayHelper.isEmpty(attributes)) {
 			// Select all columns
 			AllTableColumns allColumns = new AllTableColumns(tableAlias);
-			List<SelectItem> selectColumns = Arrays.asList(allColumns);
+			List<SelectItem> selectColumns = new ArrayList<SelectItem>();
+			selectColumns.add(allColumns);
 
 			// Add columns from child tables
 			List<SelectExpressionItem> selectChildColumns = buildSelectAttributeFromChildTables(tableName);
@@ -932,7 +972,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 
 	private List<SelectExpressionItem> buildSelectAttributeFromChildTables(String tableName) {
 		List<SelectExpressionItem> selectChildColumns = new ArrayList<>();
-		Set<String> childAttributes = connectionProvider.getChildTables(tableName);
+		Set<String> childAttributes = connectionProvider.getTableChildAttributes(tableName);
 		if (childAttributes != null) {
 			selectChildColumns = new ArrayList<>();
 			for (String childAttribute : childAttributes) {
@@ -1074,7 +1114,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 			ValueWithStructField valueWithStructField = queryParameterEntry.getValue();
 			ValueBinder<Builder> valueBinder = builder.bind(attributeName);
 
-			setMutationBuilderValue(valueBinder, valueWithStructField.getStructField(), valueWithStructField.getValue());
+			setMutationBuilderValue(valueBinder, valueWithStructField.getStructField(), true, valueWithStructField.getValue());
 		}
 	}
 
@@ -1107,16 +1147,20 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	private void setMutationBuilderValue(WriteBuilder mutation, StructField attributeType, Object ... values) throws IncompatibleTypeException {
 		ValueBinder<WriteBuilder> valueBinder = mutation.set(attributeType.getName());
 
-		setMutationBuilderValue(valueBinder, attributeType, values);
+		setMutationBuilderValue(valueBinder, attributeType, false, values);
 	}
 
-	private void setMutationBuilderValue(ValueBinder<?> valueBinder, StructField attributeType,
+	private void setMutationBuilderValue(ValueBinder<?> valueBinder, StructField attributeType, boolean useArrayElementType,
 			Object ... values) throws IncompatibleTypeException {
 		if ((values == null) || (values.length == 0)) {
 			return;
 		}
 
 		Code typeCode = attributeType.getType().getCode();
+		if (useArrayElementType && (Code.ARRAY == typeCode)) {
+			typeCode = attributeType.getType().getArrayElementType().getCode();
+		}
+
 		if (Code.BOOL == typeCode) {
 			valueBinder.to(SpannerValueHelper.toBoolean(values[0]));
 		} else if (Code.DATE == typeCode) {

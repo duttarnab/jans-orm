@@ -35,6 +35,9 @@ public class SpannerEntryManagerSample {
         // Max time needed to create connection pool in milliseconds
         connectionProperties.put("spanner#connection.pool.create-max-wait-time-millis", "20000");
 
+        // # Maximum allowed statement result set size
+        connectionProperties.put("spanner#statement.limit.default-maximum-result-size", "1000");
+
         connectionProperties.put("spanner#binaryAttributes", "objectGUID");
         connectionProperties.put("spanner#certificateAttributes", "userCertificate");
 
