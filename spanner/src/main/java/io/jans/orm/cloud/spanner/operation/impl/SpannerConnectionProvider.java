@@ -363,6 +363,8 @@ public class SpannerConnectionProvider {
         	optionsBuilder.setCredentials(NoCredentials.getInstance());
         }
 
+        optionsBuilder.setProjectId(connectionProject);
+
         DatabaseId databaseId = DatabaseId.of(connectionProject, connectionInstance, connectionDatabase);
 
         this.spanner = optionsBuilder.build().getService();
