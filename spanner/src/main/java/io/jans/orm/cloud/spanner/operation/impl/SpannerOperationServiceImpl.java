@@ -1196,8 +1196,9 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 			Object value = values[0];
 	        if (value instanceof Date) {
 				valueBinder.to(SpannerValueHelper.toGoogleDate(value));
+	        } else {
+	        	valueBinder.to(SpannerValueHelper.toString(value));
 	        }
-			valueBinder.to(SpannerValueHelper.toString(value));
 		} else if (Code.ARRAY == typeCode) {
 			Code arrayCode = attributeType.getType().getArrayElementType().getCode();
 			if (Code.BOOL == arrayCode) {
