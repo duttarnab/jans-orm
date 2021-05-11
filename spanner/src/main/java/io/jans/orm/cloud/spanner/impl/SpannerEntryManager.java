@@ -827,9 +827,8 @@ public class SpannerEntryManager extends BaseEntryManager implements Serializabl
         if (date == null) {
             return null;
         }
-
-        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SpannerOperationService.SQL_DATA_FORMAT);
-        return jsonDateFormat.format(date);
+        
+        return com.google.cloud.Timestamp.of(date).toString();
     }
 
     @Override
@@ -843,10 +842,9 @@ public class SpannerEntryManager extends BaseEntryManager implements Serializabl
             return null;
         }
 
-        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SpannerOperationService.SQL_DATA_FORMAT);
         Date decodedDate;
         try {
-            decodedDate = jsonDateFormat.parse(date);
+            decodedDate = com.google.cloud.Timestamp.parseTimestamp(date).toDate();
         } catch (Exception ex) {
             LOG.error("Failed to decode generalized time '{}'", date, ex);
 

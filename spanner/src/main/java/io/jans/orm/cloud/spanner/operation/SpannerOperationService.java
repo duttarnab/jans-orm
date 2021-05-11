@@ -51,7 +51,6 @@ public interface SpannerOperationService extends PersistenceOperationService {
     static String DOC_ID = "doc_id";
     static String DICT_DOC_ID = "dict_doc_id";
 
-	public static final String SQL_DATA_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 	public static final Object[] NO_OBJECTS = new Object[0];
 
     SpannerConnectionProvider getConnectionProvider();

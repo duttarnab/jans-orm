@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -656,9 +655,9 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	    		}
 	        } else {
 	    		try {
-                    long currentLimit = connectionProvider.getDefaultMaximumResultSize();
-                    if (count > 0) {
-                        currentLimit = Math.min(count, currentLimit);
+                    long currentLimit = count;
+                    if (currentLimit <= 0) {
+                        currentLimit = connectionProvider.getDefaultMaximumResultSize();
                     }
 
     	    		Limit limit = new Limit();
@@ -798,7 +797,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	            	} else if (Code.DATE == columnTypeCode) {
 	            		attributeValueObjects = new Object[] { com.google.cloud.Date.toJavaUtilDate(resultSet.getDate(i)) };
 	            	} else if (Code.TIMESTAMP == columnTypeCode) {
-	            		attributeValueObjects = new Object[] { resultSet.getTimestamp(i).toSqlTimestamp().getTime() };
+	            		attributeValueObjects = new Object[] { resultSet.getTimestamp(i).toDate() };
 	            	} else if (Code.INT64 == columnTypeCode) {
 	            		attributeValueObjects = new Object[] { resultSet.getLong(i) };
 	            	} else if (Code.NUMERIC == columnTypeCode) {
@@ -806,8 +805,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	            	} else if (Code.STRING == columnTypeCode) {
 						Object value = resultSet.getString(i);
 						try {
-							SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SQL_DATA_FORMAT);
-							value = jsonDateFormat.parse(value.toString());
+							value = com.google.cloud.Timestamp.parseTimestamp(value.toString());
 						} catch (Exception ex) {
 						}
 						attributeValueObjects = new Object[] { value };
