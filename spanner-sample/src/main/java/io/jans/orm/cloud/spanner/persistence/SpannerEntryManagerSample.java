@@ -38,6 +38,9 @@ public class SpannerEntryManagerSample {
         // # Maximum allowed statement result set size
         connectionProperties.put("spanner#statement.limit.default-maximum-result-size", "1000");
 
+        // # Maximum allowed delete statement result set size
+        connectionProperties.put("spanner#statement.limit.maximum-result-delete-size", "10000");
+
         connectionProperties.put("spanner#binaryAttributes", "objectGUID");
         connectionProperties.put("spanner#certificateAttributes", "userCertificate");
 

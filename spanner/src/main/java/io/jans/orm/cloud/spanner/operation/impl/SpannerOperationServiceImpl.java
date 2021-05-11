@@ -37,6 +37,8 @@ import com.google.cloud.spanner.ResultSet;
 import com.google.cloud.spanner.SpannerException;
 import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Statement.Builder;
+import com.google.cloud.spanner.TransactionContext;
+import com.google.cloud.spanner.TransactionRunner.TransactionCallable;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
 import com.google.cloud.spanner.Type.StructField;
@@ -74,10 +76,10 @@ import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.expression.UserVariable;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
+import net.sf.jsqlparser.expression.operators.relational.InExpression;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.delete.Delete;
@@ -401,15 +403,37 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 		try {
 			Table table = buildTable(tableMapping);
 
+			// select
+			PlainSelect sqlSelectQuery = new PlainSelect();
+			sqlSelectQuery.setFromItem(table);
+
+			// doc_id
+			Column selectDocIdColumn = new Column(tableAlias, DOC_ID);
+			SelectExpressionItem selectDocIdItem = new SelectExpressionItem(selectDocIdColumn);
+
+			sqlSelectQuery.addSelectItems(selectDocIdItem);
+
+			applyWhereExpression(sqlSelectQuery, expression);
+
+			long useCount = connectionProvider.getMaximumResultDeleteSize();
+			if (count > 0) {
+				useCount = Math.min(count, useCount);
+            }
+
+			Limit limit = new Limit();
+			limit.setRowCount(new LongValue(useCount));
+
+			sqlSelectQuery.setLimit(limit);
+
+			SubSelect subSelect = new SubSelect();
+			subSelect.setSelectBody(sqlSelectQuery);
+			subSelect.withUseBrackets(true);
+
+			Expression inExpression = new InExpression(selectDocIdColumn, subSelect);
+
 			Delete sqlDeleteQuery = new Delete();
 			sqlDeleteQuery.setTable(table);
-			applyWhereExpression(sqlDeleteQuery, expression);
-
-			if (count > 0) {
-				Limit limit = new Limit();
-				limit.setRowCount(new LongValue(count));
-				sqlDeleteQuery.setLimit(limit);
-            }
+			sqlDeleteQuery.setWhere(inExpression);
 
 			Statement.Builder statementBuilder = Statement.newBuilder(sqlDeleteQuery.toString());
 			applyParametersBinding(statementBuilder, expression);
@@ -417,7 +441,13 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 			Statement statement = statementBuilder.build();
             LOG.debug("Executing delete query: '{}'", statement);
 
-			long rowDeleted = databaseClient.executePartitionedUpdate(statement);
+			Long rowDeleted = databaseClient.readWriteTransaction().run(new TransactionCallable<Long>() {
+				@Override
+				public Long run(TransactionContext transaction) throws Exception {
+					long rowCount = transaction.executeUpdate(statement);
+					return rowCount;
+				}
+			});
 
 			return rowDeleted;
         } catch (SpannerException | IncompatibleTypeException ex) {
@@ -485,8 +515,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 				List<SelectItem> selectItems = buildSelectAttributes(tableMapping, key, attributes);
 				sqlSelectQuery.addSelectItems(selectItems);
 
-				Column leftColumn = new Column(DOC_ID);
-				leftColumn.setTable(tableAlias);
+				Column leftColumn = new Column(tableAlias, DOC_ID);
 				UserVariable rightValue = new UserVariable(DOC_ID);
 
 				EqualsTo whereExp = new EqualsTo(leftColumn, rightValue);
@@ -627,9 +656,9 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	    		}
 	        } else {
 	    		try {
-                    int currentLimit = count;
-                    if (currentLimit <= 0) {
-                        currentLimit = 1000; //TODO:!!!
+                    long currentLimit = connectionProvider.getDefaultMaximumResultSize();
+                    if (count > 0) {
+                        currentLimit = Math.min(count, currentLimit);
                     }
 
     	    		Limit limit = new Limit();
@@ -895,13 +924,11 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 
 		// Table alias for columns
 		// Column dn
-		Column selectDnColumn = new Column(DN);
-		selectDnColumn.setTable(tableAlias);
+		Column selectDnColumn = new Column(tableAlias, DN);
 		SelectExpressionItem selectDnItem = new SelectExpressionItem(selectDnColumn);
 
 		// Column doc_id
-		Column selectDocIdColumn = new Column(DOC_ID);
-		selectDocIdColumn.setTable(tableAlias);
+		Column selectDocIdColumn = new Column(tableAlias, DOC_ID);
 		SelectExpressionItem selectDocIdItem = new SelectExpressionItem(selectDocIdColumn);
 
 		if (ArrayHelper.isEmpty(attributes)) {
@@ -916,7 +943,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 
 			return selectColumns;
 		} else if ((attributes.length == 1) && StringHelper.isEmpty(attributes[0])) {
-        	// Compatibility with base persistence layer when application pass filter new String[] { "" }
+        	// Compatibility with base persistence layer when application pass attributes new String[] { "" }
 			List<SelectItem> selectColumns = Arrays.asList(selectDnItem, selectDocIdItem);
 
 			// Add columns from child tables
@@ -943,9 +970,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 				// Add columns from child table
 				selectExpressionItem = buildSelectAttributeFromChildTable(tableName, attributeName);
 			} else {
-				Column selectColumn = new Column(attributeName);
-				selectColumn.setTable(tableAlias);
-				
+				Column selectColumn = new Column(tableAlias, attributeName);
 				selectExpressionItem = new SelectExpressionItem(selectColumn);
 			}
 
@@ -1003,16 +1028,13 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 		attrTableSelect.setAlias(new Alias("c", false));
 		attrSelect.setFromItem(attrTableSelect);
 		
-		Column attrSelectColumn = new Column(childAttribute);
-		attrSelectColumn.setTable(attrTableSelect);
+		Column attrSelectColumn = new Column(attrTableSelect, childAttribute);
 
 		attrSelect.addSelectItems(new SelectExpressionItem(attrSelectColumn));
 
-		Column attrLeftColumn = new Column(DOC_ID);
-		attrLeftColumn.setTable(tableAlias);
+		Column attrLeftColumn = new Column(tableAlias, DOC_ID);
 
-		Column attrRightColumn = new Column(DOC_ID);
-		attrRightColumn.setTable(attrTableSelect);
+		Column attrRightColumn = new Column(attrTableSelect, DOC_ID);
 
 		EqualsTo attrEquals = new EqualsTo(attrLeftColumn, attrRightColumn);
 
@@ -1263,7 +1285,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 		return Hex.encodeHexString(digest);
 	}
 
-	public MessageDigest getMessageDigestInstance() {
+	public static MessageDigest getMessageDigestInstance() {
 		MessageDigest messageDigest;
 		try {
 			messageDigest = MessageDigest.getInstance("SHA-256");
@@ -1274,4 +1296,12 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 		return messageDigest;
 	}
 
+	public static void main(String[] args) {
+		String value = "inum=60B7,ou=groups,o=jans";
+
+		String str = StringHelper.toString(value);
+		byte[] digest = getMessageDigestInstance().digest(str.getBytes(StandardCharsets.UTF_8));
+
+		System.out.println(Hex.encodeHexString(digest));
+	}
 }

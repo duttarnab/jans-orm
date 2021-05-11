@@ -46,12 +46,37 @@ public final class SpannerSample {
         newUser.setDn(String.format("inum=%s,ou=people,o=jans", System.currentTimeMillis()));
         newUser.setUserId("sample_user_" + System.currentTimeMillis());
         newUser.setUserPassword("pwd");
-        newUser.getCustomAttributes().add(new CustomObjectAttribute("address2", Arrays.asList("London", "Texas", "Kiev")));
+        newUser.getCustomAttributes().add(new CustomObjectAttribute("address", Arrays.asList("London", "Texas", "Kiev")));
         newUser.getCustomAttributes().add(new CustomObjectAttribute("transientId", "transientId"));
+        newUser.getCustomAttributes().add(new CustomObjectAttribute("memberOf", Arrays.asList("1", "2", "3", "3")));
         sqlEntryManager.persist(newUser);
 
         SimpleUser dummyUser = sqlEntryManager.find(SimpleUser.class, newUser.getDn());
         LOG.info("Dummy User '{}'", dummyUser);
+
+        String[] values = new String[] { "Somewhere: " + System.currentTimeMillis(), "Somewhere2: " + System.currentTimeMillis() };
+        dummyUser.getCustomAttributes().add(new CustomObjectAttribute("address", Arrays.asList(values)));
+        dummyUser.getCustomAttributes().add(new CustomObjectAttribute("transientId", "new_transientId"));
+        dummyUser.getCustomAttributes().add(new CustomObjectAttribute("jansGuid", "test_guid"));
+        dummyUser.getCustomAttributes().add(new CustomObjectAttribute("memberOf", Arrays.asList("1", "9")));
+        dummyUser.setUserId("user1");
+        dummyUser.setUserPassword("test_pwd");
+        sqlEntryManager.merge(dummyUser);
+/*
+        Filter filterX1 = Filter.createEqualityFilter("transientId", "new_transientId");
+        List<SimpleUser> usersss = sqlEntryManager.findEntries("ou=people,o=jans", SimpleUser.class, filterX1);
+        System.out.println(usersss.size());
+*/
+        Filter filterX = Filter.createEqualityFilter("memberOf", "1");
+        List<SimpleUser> userss = sqlEntryManager.findEntries("ou=people,o=jans", SimpleUser.class, filterX, new String[] { "memberOf", "uid" }, 10);
+        System.out.println(userss.size());
+
+        Filter filterR = Filter.createEqualityFilter("jansGuid", "test_guid");
+        int removed = sqlEntryManager.remove("ou=people,o=jans", SimpleUser.class, filterR, 10);
+        System.out.println(removed);
+//        sqlEntryManager.remove(dummyUser);
+        sqlEntryManager.destroy();
+        System.exit(0);
 
         // Find all users which have specified object classes defined in SimpleUser
         List<SimpleUser> users = sqlEntryManager.findEntries("ou=people,o=jans", SimpleUser.class, null);

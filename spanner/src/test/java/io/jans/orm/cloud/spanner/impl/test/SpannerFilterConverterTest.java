@@ -1,18 +1,5 @@
 package io.jans.orm.cloud.spanner.impl.test;
 
-import static org.testng.Assert.assertEquals;
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TimeZone;
-
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-import io.jans.orm.cloud.spanner.impl.SpannerFilterConverter;
-import io.jans.orm.cloud.spanner.model.ConvertedExpression;
-import io.jans.orm.exception.operation.SearchException;
-import io.jans.orm.search.filter.Filter;
-
 @SuppressWarnings({ "rawtypes", "unchecked"})
 public class SpannerFilterConverterTest {
 /*

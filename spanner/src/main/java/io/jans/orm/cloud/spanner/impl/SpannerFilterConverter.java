@@ -407,7 +407,7 @@ public class SpannerFilterConverter {
 	private Expression buildExistsInArrayExpression(String attributeName, Expression whereExpression) {
 		PlainSelect arrayQuery = new PlainSelect();
 		String columnAlias = "_" + attributeName;
-		arrayQuery.addSelectItems(new SelectExpressionItem(new Column(columnAlias)));
+		arrayQuery.addSelectItems(new SelectExpressionItem(new Column(tableAlias, SpannerOperationService.DOC_ID)));
 		arrayQuery.setWhere(whereExpression);
 
 		TableFunction fromTableFunction = new TableFunction();

@@ -33,7 +33,6 @@ import com.google.cloud.spanner.Statement;
 import com.google.cloud.spanner.Type;
 import com.google.cloud.spanner.Type.Code;
 import com.google.cloud.spanner.Type.StructField;
-import com.google.protobuf.InvalidProtocolBufferException;
 
 import io.jans.orm.cloud.spanner.model.ResultCode;
 import io.jans.orm.cloud.spanner.model.TableMapping;
@@ -44,24 +43,6 @@ import io.jans.orm.operation.auth.PasswordEncryptionMethod;
 import io.jans.orm.util.ArrayHelper;
 import io.jans.orm.util.PropertiesHelper;
 import io.jans.orm.util.StringHelper;
-import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.expression.Alias;
-import net.sf.jsqlparser.expression.Function;
-import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.expression.StringValue;
-import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
-import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.schema.Table;
-import net.sf.jsqlparser.statement.select.AllTableColumns;
-import net.sf.jsqlparser.statement.select.Join;
-import net.sf.jsqlparser.statement.select.Limit;
-import net.sf.jsqlparser.statement.select.Offset;
-import net.sf.jsqlparser.statement.select.PlainSelect;
-import net.sf.jsqlparser.statement.select.Select;
-import net.sf.jsqlparser.statement.select.SelectExpressionItem;
-import net.sf.jsqlparser.statement.select.SubSelect;
 
 /**
  * Perform connection pool initialization
@@ -97,6 +78,9 @@ public class SpannerConnectionProvider {
 	private String connectionEmulatorHost;
 	
 	private String connectionCredentialsFile;
+
+	private long defaultMaximumResultSize;
+	private long maximumResultDeleteSize;
 	
 	private Map<String, Map<String, StructField>> tableColumnsMap;
 	private Map<String, Set<String>> tableNullableColumnsSet;
@@ -155,6 +139,14 @@ public class SpannerConnectionProvider {
 
 			clientConnectionProperties.put(key, value);
 		}
+
+		if (props.containsKey("statement.limit.default-maximum-result-size")) {
+            this.defaultMaximumResultSize = StringHelper.toLong(props.getProperty("statement.limit.default-maximum-result-size"), 1000);
+        }
+
+		if (props.containsKey("statement.limit.maximum-result-delete-size")) {
+            this.maximumResultDeleteSize = StringHelper.toLong(props.getProperty("statement.limit.maximum-result-delete-size"), 10000);
+        }
 
 		this.connectionCredentialsFile = null;
         if (props.containsKey("connection.credentials-file")) {
@@ -496,6 +488,14 @@ public class SpannerConnectionProvider {
 
 	public Map<String, Map<String, StructField>> getDatabaseMetaData() {
 		return tableColumnsMap;
+	}
+
+	public long getDefaultMaximumResultSize() {
+		return defaultMaximumResultSize;
+	}
+
+	public long getMaximumResultDeleteSize() {
+		return maximumResultDeleteSize;
 	}
 
 }

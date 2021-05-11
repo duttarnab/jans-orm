@@ -6,24 +6,15 @@
 
 package io.jans.orm.cloud.spanner;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.jans.orm.cloud.spanner.impl.SpannerEntryManager;
-import io.jans.orm.cloud.spanner.model.SimpleAttribute;
-import io.jans.orm.cloud.spanner.model.SimpleGrant;
-import io.jans.orm.cloud.spanner.model.SimpleSession;
-import io.jans.orm.cloud.spanner.model.SimpleUser;
 import io.jans.orm.cloud.spanner.model.UmaResource;
 import io.jans.orm.cloud.spanner.operation.impl.SpannerConnectionProvider;
 import io.jans.orm.cloud.spanner.persistence.SpannerEntryManagerSample;
-import io.jans.orm.model.PagedResult;
-import io.jans.orm.model.SearchScope;
-import io.jans.orm.model.SortOrder;
-import io.jans.orm.model.base.CustomObjectAttribute;
 import io.jans.orm.search.filter.Filter;
 
 /**

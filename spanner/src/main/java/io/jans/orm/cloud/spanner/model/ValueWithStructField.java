@@ -6,8 +6,6 @@
 
 package io.jans.orm.cloud.spanner.model;
 
-import java.util.Map;
-
 import com.google.cloud.spanner.Type.StructField;
 
 /**
