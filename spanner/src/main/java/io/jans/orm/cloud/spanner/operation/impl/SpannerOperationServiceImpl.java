@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -1192,7 +1193,11 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 		} else if (Code.NUMERIC == typeCode) {
 			valueBinder.to(SpannerValueHelper.toBigDecimal(values[0]));
 		} else if (Code.STRING == typeCode) {
-			valueBinder.to(SpannerValueHelper.toString(values[0]));
+			Object value = values[0];
+	        if (value instanceof Date) {
+				valueBinder.to(SpannerValueHelper.toGoogleDate(value));
+	        }
+			valueBinder.to(SpannerValueHelper.toString(value));
 		} else if (Code.ARRAY == typeCode) {
 			Code arrayCode = attributeType.getType().getArrayElementType().getCode();
 			if (Code.BOOL == arrayCode) {
