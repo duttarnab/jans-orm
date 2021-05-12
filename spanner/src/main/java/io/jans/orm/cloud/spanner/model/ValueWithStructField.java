@@ -32,4 +32,9 @@ public class ValueWithStructField {
 		return structField;
 	}
 
+	@Override
+	public String toString() {
+		return "ValueWithStructField [value=" + value + ", structField=" + structField + "]";
+	}
+
 }

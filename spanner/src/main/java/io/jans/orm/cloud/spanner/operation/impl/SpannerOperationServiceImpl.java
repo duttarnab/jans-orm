@@ -175,7 +175,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
         Duration duration = OperationDurationUtil.instance().duration(startTime);
 
         TableMapping tableMapping = connectionProvider.getTableMappingByKey(key, objectClass);
-        OperationDurationUtil.instance().logDebug("SQL operation: bind, duration: {}, table: {}, key: {}", duration, tableMapping.getTableName(), key);
+        OperationDurationUtil.instance().logDebug("Spanner operation: bind, duration: {}, table: {}, key: {}", duration, tableMapping.getTableName(), key);
 
         return result;
     }
@@ -1300,12 +1300,4 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 		return messageDigest;
 	}
 
-	public static void main(String[] args) {
-		String value = "inum=60B7,ou=groups,o=jans";
-
-		String str = StringHelper.toString(value);
-		byte[] digest = getMessageDigestInstance().digest(str.getBytes(StandardCharsets.UTF_8));
-
-		System.out.println(Hex.encodeHexString(digest));
-	}
 }
