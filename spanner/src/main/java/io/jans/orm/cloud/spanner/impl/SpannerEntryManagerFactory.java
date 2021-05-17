@@ -76,7 +76,7 @@ public class SpannerEntryManagerFactory implements PersistenceEntryManagerFactor
 
         
         SpannerEntryManager sqlEntryManager = new SpannerEntryManager(new SpannerOperationServiceImpl(entryManagerConf, connectionProvider));
-        LOG.info("Created SqlEntryManager: {}", sqlEntryManager.getOperationService());
+        LOG.info("Created SpannerEntryManager: {}", sqlEntryManager.getOperationService());
 
         return sqlEntryManager;
     }

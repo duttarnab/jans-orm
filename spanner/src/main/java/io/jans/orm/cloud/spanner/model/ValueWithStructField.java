@@ -34,7 +34,7 @@ public class ValueWithStructField {
 
 	@Override
 	public String toString() {
-		return "ValueWithStructField [value=" + value + ", structField=" + structField + "]";
+		return "ValueWithStructField [value=" + value + ", structField=" + structField.getType().getCode() + "]";
 	}
 
 }
