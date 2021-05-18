@@ -212,6 +212,9 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 					}
 
 					Map<String, StructField> childColumTypes = childTableMapping.getColumTypes();
+					if (childColumTypes == null) {
+			            throw new PersistenceException(String.format("Failed to add entry. Column '%s' is undefined", attributeName));
+					}
 					StructField childAttributeType = childColumTypes.get(attributeName.toLowerCase());
 					
 					// Build Mutation for child table
