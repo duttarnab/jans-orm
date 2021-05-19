@@ -8,8 +8,10 @@ package io.jans.orm.cloud.spanner.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import io.jans.orm.annotation.AttributeName;
 import io.jans.orm.annotation.AttributesList;
 import io.jans.orm.annotation.CustomObjectClass;
 import io.jans.orm.annotation.DN;
@@ -32,6 +34,12 @@ public class SimpleClient implements Serializable {
 
     @AttributesList(name = "name", value = "values", sortByName = true)
     private List<CustomAttribute> customAttributes = new ArrayList<CustomAttribute>();
+
+    @AttributeName(name = "jansClntIdIssuedAt")
+    private Date clientIdIssuedAt;
+
+    @AttributeName(name = "jansClntSecretExpAt")
+    private Date clientSecretExpiresAt;
 
     @CustomObjectClass
     private String[] customObjectClasses;
@@ -87,5 +95,21 @@ public class SimpleClient implements Serializable {
     public void setCustomObjectClasses(String[] customObjectClasses) {
         this.customObjectClasses = customObjectClasses;
     }
+
+	public Date getClientIdIssuedAt() {
+		return clientIdIssuedAt;
+	}
+
+	public void setClientIdIssuedAt(Date clientIdIssuedAt) {
+		this.clientIdIssuedAt = clientIdIssuedAt;
+	}
+
+	public Date getClientSecretExpiresAt() {
+		return clientSecretExpiresAt;
+	}
+
+	public void setClientSecretExpiresAt(Date clientSecretExpiresAt) {
+		this.clientSecretExpiresAt = clientSecretExpiresAt;
+	}
 
 }

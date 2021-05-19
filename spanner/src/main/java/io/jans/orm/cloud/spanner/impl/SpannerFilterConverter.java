@@ -105,6 +105,7 @@ public class SpannerFilterConverter {
         if (FilterType.RAW == type) {
         	LOG.warn("RAW Ldap filter to SQL convertion will be removed in new version!!!");
         	currentGenericFilter = ldapFilterConverter.convertRawLdapFilterToFilter(currentGenericFilter.getFilterString());
+        	LOG.debug(String.format("Converted RAW filter: %s", currentGenericFilter));
         	type = currentGenericFilter.getType();
         }
 

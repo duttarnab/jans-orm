@@ -46,6 +46,10 @@ public final class SqlUserSearchSample {
         // Prepare sample connection details
     	final SqlEntryManagerSample sqlEntryManagerSample = new SqlEntryManagerSample();
         final SqlEntryManager sqlEntryManager = sqlEntryManagerSample.createSqlEntryManager();
+
+        Filter filter1 = Filter.createEqualityFilter("uid", "test_user");
+        List<SimpleUser> users = sqlEntryManager.findEntries("ou=people,o=jans", SimpleUser.class, filter1);
+        System.out.println(users);
         
         int countUsers = 2000000;
         int threadCount = 200;

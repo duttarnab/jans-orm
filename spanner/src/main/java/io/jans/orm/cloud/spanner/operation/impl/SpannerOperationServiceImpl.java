@@ -655,6 +655,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 	                    }
 	                } while (lastCountRows > 0);
 	    		} catch (SpannerException | EntryConvertationException | IncompatibleTypeException ex) {
+	    			LOG.error("Failed to execute query with expression: '{}'", expression);
 	    			throw new SearchException(String.format("Failed to execute query '%s'  with key: '%s'", sqlSelectQuery, key), ex);
 	    		}
 	        } else {
@@ -685,6 +686,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
 		    			searchResultList.addAll(lastResult);
                     }
 	            } catch (SpannerException | EntryConvertationException | IncompatibleTypeException ex) {
+	    			LOG.error("Failed to execute query with expression: '{}'", expression);
 	                throw new SearchException(String.format("Failed to execute query '%s'  with key: '%s'", sqlSelectQuery, key), ex);
 	            }
 	        }
@@ -727,6 +729,7 @@ public class SpannerOperationServiceImpl implements SpannerOperationService {
                 	result.setTotalEntriesCount((int) countResult.getLong("TOTAL"));
                 }
     		} catch (SpannerException | IncompatibleTypeException ex) {
+    			LOG.error("Failed to execute query with expression: '{}'", expression);
     			throw new SearchException(String.format("Failed to build count search entries query. Key: '%s', expression: '%s'", key, expression.expression()), ex);
             }
         }
