@@ -6,8 +6,12 @@
 
 package io.jans.orm.couchbase.impl;
 
+import static java.time.format.DateTimeFormatter.ISO_INSTANT;
+
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
+import java.time.DateTimeException;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -65,8 +69,6 @@ import io.jans.orm.util.StringHelper;
  * @author Yuriy Movchan Date: 05/14/2018
  */
 public class CouchbaseEntryManager extends BaseEntryManager implements Serializable {
-
-	private static final String JSON_DATA_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
 	private static final long serialVersionUID = 2127241817126412574L;
 
@@ -591,11 +593,10 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
             		(attributeObject instanceof JsonObject)) {
                     attributeValueObjects = new Object[] { attributeObject };
             	} else if (attributeObject instanceof String) {
-               		Object value = attributeObject.toString();
-                    try {
-                        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(JSON_DATA_FORMAT);
-                    	value = jsonDateFormat.parse(attributeObject.toString());
-                    } catch (Exception ex) {}
+            		// If it looks like date, treat as Date
+                    Object valueAsDate = decodeTime(null, attributeObject.toString());
+                    Object value = valueAsDate == null ? attributeObject.toString() : valueAsDate;
+                    
             		attributeValueObjects = new Object[] { value };
             	} else {
                		Object value = attributeObject.toString();
@@ -837,9 +838,16 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
         if (date == null) {
             return null;
         }
-
-        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(JSON_DATA_FORMAT);
-        return jsonDateFormat.format(date);
+        
+        try {
+            String utcDate = ISO_INSTANT.format(Instant.ofEpochMilli(date.getTime()));
+            // Drop UTC zone identifier to comply with format employed in CB: yyyy-MM-dd'T'HH:mm:ss.SSS 
+            return utcDate.substring(0, utcDate.length() - 1);
+        } catch (DateTimeException ex) {
+        	LOG.error("Cannot format date '{}' as ISO", date, ex);
+        	return null;
+        }
+        
     }
 
     @Override
@@ -853,17 +861,14 @@ public class CouchbaseEntryManager extends BaseEntryManager implements Serializa
             return null;
         }
 
-        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(JSON_DATA_FORMAT);
-        Date decodedDate;
+        // Add ending Z if necessary
+        String dateZ = date.endsWith("Z") ? date : date + "Z";
         try {
-            decodedDate = jsonDateFormat.parse(date);
-        } catch (Exception ex) {
+            return new Date(Instant.parse(dateZ).toEpochMilli());
+        } catch (DateTimeParseException ex) {
             LOG.error("Failed to decode generalized time '{}'", date, ex);
-
             return null;
         }
-
-        return decodedDate;
     }
 
     @Override
