@@ -7,14 +7,16 @@
 package io.jans.orm.sql.impl;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.time.DateTimeException;
+import java.time.format.DateTimeParseException;
 
 import javax.inject.Inject;
 
@@ -53,6 +55,8 @@ import io.jans.orm.sql.operation.SqlOperationService;
 import io.jans.orm.util.ArrayHelper;
 import io.jans.orm.util.StringHelper;
 
+import static java.time.format.DateTimeFormatter.ISO_INSTANT;
+
 /**
  * SQL Entry Manager
  *
@@ -63,8 +67,6 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 	private static final long serialVersionUID = 2127241817126412574L;
 
     private static final Logger LOG = LoggerFactory.getLogger(SqlEntryManager.class);
-
-    private static final String JSON_DATA_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
     @Inject
     private Logger log;
@@ -820,8 +822,15 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
             return null;
         }
 
-        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SqlOperationService.SQL_DATA_FORMAT);
-        return jsonDateFormat.format(date);
+        try {
+            String utcDate = ISO_INSTANT.format(Instant.ofEpochMilli(date.getTime()));
+            // Drop UTC zone identifier to comply with format employed in SQL: yyyy-MM-dd'T'HH:mm:ss.SSS
+            return utcDate.substring(0, utcDate.length() - 1);
+        } catch (DateTimeException ex) {
+        	LOG.error("Cannot format date '{}' as ISO", date, ex);
+        	return null;
+        }
+        
     }
 
     @Override
@@ -835,13 +844,12 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
             return null;
         }
 
-        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(SqlOperationService.SQL_DATA_FORMAT);
-        Date decodedDate;
+        // Add ending Z if necessary
+        String dateZ = date.endsWith("Z") ? date : date + "Z";
         try {
-            decodedDate = jsonDateFormat.parse(date);
-        } catch (Exception ex) {
+            return new Date(Instant.parse(dateZ).toEpochMilli());
+        } catch (DateTimeParseException ex) {
             LOG.error("Failed to decode generalized time '{}'", date, ex);
-
             return null;
         }
 
@@ -894,8 +902,7 @@ public class SqlEntryManager extends BaseEntryManager implements Serializable {
 
     @Override
     protected Object getNativeDateMultiAttributeValue(Date dateValue) {
-        SimpleDateFormat jsonDateFormat = new SimpleDateFormat(JSON_DATA_FORMAT);
-		return jsonDateFormat.format(dateValue);
+    	return encodeTime(null, dateValue);
 	}
 
     @Override
