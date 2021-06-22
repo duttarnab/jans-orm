@@ -1,4 +1,4 @@
-package io.jans.as.persistence.model.configuration;
+package io.jans.orm.sql.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
